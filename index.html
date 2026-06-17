@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Today's Fuel</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#f7f7f5">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Today's Fuel">
+<style>
+  :root{
+    --ink:#1d2127; --muted:#6b7280; --line:#e6e8eb; --bg:#f7f7f5; --card:#fff;
+    --rest:#2e7d32; --mod:#e8a33d; --hard:#d9534f;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       color:var(--ink); margin:0; background:var(--bg); -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1040px; margin:0 auto; padding:22px 16px 40px;}
+  .top{margin-bottom:20px;}
+  .layout{display:grid; grid-template-columns:1fr; gap:22px;}
+  @media(min-width:840px){ .layout{grid-template-columns:1fr 360px;} }
+  .right{align-self:start;}
+  @media(min-width:840px){ .right{position:sticky; top:18px;} }
+  header h1{font-size:24px; margin:0 0 2px;}
+  header p{color:var(--muted); font-size:14px; margin:0 0 18px;}
+  label.lbl{font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  .picker{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 4px;}
+  .chip{border:1px solid var(--line); background:var(--card); border-radius:999px; padding:9px 14px;
+        font-size:14px; cursor:pointer; transition:.12s; user-select:none;}
+  .chip:hover{border-color:#c7ccd1;}
+  .chip.on{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .band{display:flex; align-items:center; gap:10px; margin:18px 0 6px; padding:12px 14px; border-radius:12px; color:#fff;}
+  .band.rest{background:var(--rest);} .band.mod{background:var(--mod);} .band.hard{background:var(--hard);}
+  .band .t{font-weight:700; font-size:15px;} .band .d{font-size:13px; opacity:.92;}
+  .meal{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:12px 0;}
+  .meal h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 10px;}
+  .meal h2 .pickone{color:#aab1b9; font-weight:600;}
+  .opt{padding:10px 0; position:relative;}
+  .clickable{cursor:pointer; padding-left:30px; border-radius:10px; transition:.12s;}
+  .clickable:hover{background:#f3f6f9;}
+  .pickrow{background:#f5faf5; border:1px solid #d9ecd9; padding:12px 14px 12px 30px; margin-bottom:4px;}
+  .selected{background:#eef4ff !important; border:1px solid #b9d0f5;}
+  .check{position:absolute; left:8px; top:11px; width:16px; height:16px; color:#2f6fdb; font-weight:800; font-size:14px;}
+  .orline{font-size:12px; color:#aab1b9; text-transform:uppercase; letter-spacing:.05em; margin:6px 0 2px;}
+  .opt + .opt:not(.pickrow):not(.selected){border-top:1px dashed var(--line);}
+  .macros{display:flex; gap:12px; margin-top:6px; font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums;}
+  .macros .cal{font-weight:700; color:var(--ink);}
+  .totalsbar{background:var(--ink); color:#fff; border-radius:14px; padding:16px 18px; margin-bottom:14px;}
+  .totalsbar .thint{color:#cfd4da; font-size:13px; line-height:1.5;}
+  .trow{display:flex; align-items:center; justify-content:space-between;}
+  .tcal{display:flex; flex-direction:column; line-height:1.05;}
+  .tcal b{font-size:30px;} .tcal span{font-size:12px; color:#aab1bb;}
+  .tmac{display:flex; gap:22px; margin-top:12px; padding-top:12px; border-top:1px solid #3a3f47;}
+  .tmac div{display:flex; flex-direction:column; line-height:1.1;}
+  .tmac b{font-size:17px;} .tmac span{font-size:11px; color:#aab1bb;}
+  .tclear{background:none; border:1px solid #4a4f57; border-radius:8px; padding:6px 12px;
+          font-size:12px; color:#cfd4da; cursor:pointer;}
+  .tclear:hover{background:#2a2e34;}
+  .recipebox{display:flex; flex-direction:column; gap:12px;}
+  .rempty{color:var(--muted); font-size:13px; border:1px dashed var(--line); border-radius:12px; padding:18px; text-align:center;}
+  .rcard{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px 16px;}
+  .rmeal{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--hard); font-weight:700;}
+  .rname{font-size:16px; font-weight:700; margin:2px 0 4px;}
+  .rmeta{font-size:12px; color:var(--muted); margin-bottom:10px;}
+  .rsec{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin:10px 0 4px;}
+  .ring, .rsteps{margin:0; padding-left:18px; font-size:13.5px; line-height:1.5;}
+  .ring li, .rsteps li{margin:3px 0;}
+  .rport{font-size:13.5px; font-weight:600;}
+  .rnote{margin-top:10px; background:#fff7ee; border:1px solid #f3dcb6; border-radius:10px; padding:9px 11px; font-size:12.5px; line-height:1.5; color:#7a5a1e;}
+  .opt .name{font-weight:600; font-size:15px;}
+  .opt .tag{font-size:11px; font-weight:700; padding:2px 7px; border-radius:6px; margin-left:8px; vertical-align:middle;}
+  .tag.pick{background:#eaf5ea; color:var(--rest);}
+  .opt .desc{color:var(--muted); font-size:13px; margin-top:3px;}
+  .note{background:#fff7ee; border:1px solid #f3dcb6; border-radius:12px; padding:12px 14px; font-size:13px; margin:14px 0;}
+  .note b{color:#b9791b;}
+  .rules{margin-top:22px; border-top:1px solid var(--line); padding-top:16px;}
+  .rules h3{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px;}
+  .rules ul{margin:0; padding-left:18px; color:var(--muted); font-size:13px;}
+  .rules li{margin:4px 0;}
+  footer{color:#aab; font-size:11px; text-align:center; margin-top:26px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Today's Fuel</h1>
+    <p>Pick what you're training today &rarr; get your breakfast, lunch & snack.</p>
+  </header>
+
+  <div class="top">
+    <label class="lbl">Today's activity</label>
+    <div class="picker" id="picker"></div>
+
+    <label class="lbl" style="display:block; margin-top:14px;">Intensity</label>
+    <div class="picker" id="intensity"></div>
+  </div>
+
+  <div class="layout">
+    <div class="left">
+      <div id="out"></div>
+
+      <div class="rules">
+        <h3>Always-on rules</h3>
+        <ul>
+          <li>Protein every meal &middot; dressing = <b>lemon, never vinegar</b></li>
+          <li>No dairy &middot; no wheat &middot; no tomato &middot; eggs &le; 3&times;/week</li>
+          <li>Alcohol &le; 2 days/week &mdash; pilsner or red wine over hazy IPA</li>
+          <li>Carbs follow effort: more on hard days, less on easy/rest days</li>
+        </ul>
+      </div>
+    </div>
+
+    <aside class="right">
+      <div id="totals" class="totalsbar"></div>
+      <div id="recipe" class="recipebox"></div>
+    </aside>
+  </div>
+
+  <footer>Built for your KBMO + IgE profile. Macros are estimates. Not medical advice.</footer>
+</div>
+
+<script>
+// Each activity suggests a default intensity, but you can override it below.
+const WORKOUTS = [
+  {id:"rest",   label:"Rest",     def:"rest"},
+  {id:"yoga",   label:"Yoga",     def:"rest"},
+  {id:"run",    label:"Run",      def:"mod"},
+  {id:"climb",  label:"Climbing", def:"mod"},
+  {id:"tennis", label:"Tennis",   def:"mod"},
+  {id:"lift",   label:"Lift",     def:"mod"},
+];
+
+const INTENSITIES = [
+  {id:"rest", label:"Light"},
+  {id:"mod",  label:"Moderate"},
+  {id:"hard", label:"Intense"},
+];
+
+const BANDS = {
+  rest: {cls:"rest", t:"Lower-carb day", d:"Protein + veg + fat. Skip the grains today."},
+  mod:  {cls:"mod",  t:"Moderate day",   d:"A fist of grain or sweet potato is fine."},
+  hard: {cls:"hard", t:"High-fuel day",  d:"Carbs at breakfast and lunch. Refuel after."},
+};
+
+// Each meal: pick level + approx macros + a full recipe (ingredients w/ portions, steps, notes).
+const MEALS = {
+  Breakfast: [
+    {name:"Eggs + sausage + avocado", desc:"2-3 eggs, sausage, ½ avocado sliced with lemon + salt. Lower carb.", pickFor:["rest"], cal:470, p:26, c:9, f:38,
+     recipe:{
+       serves:"1", time:"~10 min",
+       ingredients:["3 large eggs","2 breakfast sausage links (~2 oz) — vinegar-free","½ avocado","1 tsp olive oil (if needed)","½ lemon (a squeeze)","Salt + pepper"],
+       steps:["Heat a skillet on medium. Cook the sausage 6–8 min, turning, until browned and cooked through. Move to your plate.","In the same pan (use its fat, or add 1 tsp olive oil), cook the eggs how you like — scrambled soft, or fried 2–3 min.","Scoop the ½ avocado out of the skin, fan the slices onto the plate, hit with a squeeze of lemon + salt.","Plate it all; pepper the eggs. Eat with a fork."],
+       portion:"3 eggs · 2 oz sausage · ½ avocado",
+       note:"Keep eggs to ~3×/week. Double-check the sausage label has no vinegar. No cheese — the lemon does the lift."}},
+    {name:"Sweet potato + turkey hash", desc:"Reheat a container. Add an egg on top if you want.", pickFor:["mod"], cal:420, p:32, c:24, f:21,
+     recipe:{
+       serves:"1 (from a batch of 3)", time:"3 min to reheat",
+       ingredients:["~1 cup pre-made hash (≈ ⅔ sweet potato + 4–5 oz ground turkey + ¼ pepper + ¼ onion)","Optional: 1 egg to top","Salt + pepper"],
+       steps:["Reheat 1 container: microwave ~2 min, or 4–5 min in a skillet on medium with a splash of oil to re-crisp.","Optional: fry or scramble an egg and lay it on top.","Salt + pepper to taste."],
+       portion:"~1 cup / 1 meal-prep container",
+       note:"BATCH (makes 3): dice 2 sweet potatoes (½-in), cook alone in olive oil with a lid ~8–10 min until tender; push aside, add 1 lb ground turkey, break up, 5–6 min; add ½ onion + 1 bell pepper diced, salt+pepper, 3–4 min. Cool, portion into 3 containers."}},
+    {name:"GF overnight oats", desc:"Oats, chia, almond butter, strawberries. The carbs earn their place before a hard effort.", pickFor:["hard"], cal:380, p:12, c:40, f:18,
+     recipe:{
+       serves:"1 jar", time:"4 min night before",
+       ingredients:["½ cup GF rolled oats (Bob's Red Mill)","½ cup coconut milk, carton (+ a splash more if dry)","1 tbsp chia seeds","1 tbsp almond butter","Pinch of salt","~½ cup strawberries, sliced","Optional: drizzle of honey/maple"],
+       steps:["The night before: add oats, coconut milk, chia, almond butter, and salt to a jar.","Stir well, top with strawberries, lid on, fridge at least 4 hrs (overnight is best).","Eat cold straight from the jar, or microwave 60 sec if you want it warm.","Make 2–3 jars at once — they keep 3–4 days."],
+       portion:"1 jar (½ cup dry oats)",
+       note:"This is a training-day breakfast — the carbs are there to fuel a hard effort. Use the certified gluten-free oats."}},
+  ],
+  Lunch: [
+    {name:"Chicken + chickpea salad", desc:"Arugula, cucumber, chicken, chickpeas, avocado, hummus, almonds, lemon + olive oil.", pickFor:["rest","mod"], cal:640, p:50, c:34, f:34,
+     recipe:{
+       serves:"1", time:"5 min (chicken pre-cooked)",
+       ingredients:["2–3 cups arugula","½ cucumber, sliced","5 oz cooked chicken, sliced","½ cup canned chickpeas, rinsed","½ avocado, diced","2 tbsp hummus","Small handful almonds (~0.5 oz)","1 tbsp olive oil","½ lemon, juiced","Salt"],
+       steps:["Bed of arugula in your bowl. Layer on cucumber, sliced chicken, chickpeas, and diced avocado.","Add a dollop of hummus and the almonds.","Dress ONLY when you're about to eat: olive oil + lemon juice + a pinch of salt. Toss.","Packing it for tomorrow? Keep dressing separate so the greens don't wilt."],
+       portion:"5 oz chicken · ½ cup chickpeas · ½ avocado",
+       note:"No feta, no tomato, dressing is lemon (never vinegar). Cook chicken in a batch: season with salt+pepper, sear ~6–7 min/side to 165°F, or bake 400°F ~20 min."}},
+    {name:"Salad + sweet potato", desc:"Same salad, plus a scoop of roasted sweet potato or extra chickpeas for fuel.", pickFor:["hard"], cal:780, p:52, c:60, f:36,
+     recipe:{
+       serves:"1", time:"5 min (components pre-cooked)",
+       ingredients:["Everything in the chicken + chickpea salad, PLUS:","½ cup roasted sweet potato cubes (or an extra ¼ cup chickpeas)"],
+       steps:["Build the chicken + chickpea salad as usual.","Top with the roasted sweet potato (warm or cold both work).","Dress with olive oil + lemon + salt just before eating."],
+       portion:"Standard salad + ½ cup sweet potato",
+       note:"This is the high-fuel lunch — use it on intense / long-run days. Roast sweet potato cubes alongside your hash prep: olive oil + salt, 400°F ~25 min."}},
+    {name:"Rotation bowl", desc:"Swap chicken for beef, turkey, or salmon over greens — keeps you off chicken daily.", pickFor:[], cal:600, p:48, c:22, f:34,
+     recipe:{
+       serves:"1", time:"10–12 min",
+       ingredients:["5 oz protein: ground beef, ground turkey, or salmon","2–3 cups greens (arugula or spinach)","½ cucumber, sliced","½ avocado, diced","1 tbsp olive oil + ½ lemon","Drizzle of coconut aminos","Optional (training day): ½ cup cooked rice"],
+       steps:["Cook the protein: brown ground beef/turkey 6–8 min, or pan-sear salmon ~4 min/side.","Build a bowl with greens, cucumber, avocado (and rice if it's a training day).","Top with the protein, drizzle coconut aminos, then olive oil + lemon + salt."],
+       portion:"5 oz protein · ½ avocado (+ ½ cup rice optional)",
+       note:"This is your anti-rut option — rotate the protein so you're not eating chicken every day. Coconut aminos stands in for soy sauce."}},
+  ],
+  Snack: [
+    {name:"Apple + almond butter", desc:"The reliable 3pm hunger-killer.", pickFor:["rest","mod"], cal:190, p:4, c:28, f:9,
+     recipe:{
+       serves:"1", time:"2 min",
+       ingredients:["1 medium apple","1 tbsp almond butter"],
+       steps:["Slice the apple.","Dip in (or spread on) 1 tbsp almond butter. Done."],
+       portion:"1 apple · 1 tbsp almond butter",
+       note:"The one to default to — zero prep, travels, kills a 3pm crash."}},
+    {name:"Roasted chickpeas", desc:"Crunchy, batch-made, shelf-stable.", pickFor:["mod"], cal:180, p:8, c:27, f:4,
+     recipe:{
+       serves:"1 (from a batch)", time:"2 min (pre-roasted)",
+       ingredients:["~½ cup roasted chickpeas (from your batch)"],
+       steps:["Grab ½ cup from the batch container. That's it."],
+       portion:"~½ cup",
+       note:"BATCH: drain + rinse 1 can chickpeas, pat very dry, toss with 1 tbsp olive oil + salt, spread on a tray, roast 400°F 25–30 min until crispy. Keeps a few days."}},
+    {name:"Strawberries + almonds", desc:"Light, quick.", pickFor:[], cal:135, p:4, c:12, f:8,
+     recipe:{
+       serves:"1", time:"2 min",
+       ingredients:["1 cup strawberries","~0.5 oz almonds (about 12)"],
+       steps:["Rinse the strawberries.","Pair with a small handful of almonds."],
+       portion:"1 cup berries · ~12 almonds",
+       note:"Lightest snack — good when you're only a little hungry."}},
+    {name:"Banana or dates pre-run", desc:"Fast carbs before a hard/long effort (despite the flag — used occasionally).", pickFor:["hard"], cal:110, p:1, c:28, f:0,
+     recipe:{
+       serves:"1", time:"1 min",
+       ingredients:["1 banana, OR 2–3 medjool dates"],
+       steps:["Eat 15–30 min before a hard or long run for quick, easy-to-digest carbs."],
+       portion:"1 banana or 2–3 dates",
+       note:"Banana is IgE-flagged for you, so this is an occasional pre-run fuel, not an everyday snack. Dates are a clean alternative."}},
+  ],
+};
+
+let current = "run";
+let lvl = "mod";
+let selected = {Breakfast:null, Lunch:null, Snack:null};
+
+function render(){
+  const band = BANDS[lvl];
+
+  let html = `<div class="band ${band.cls}"><div><div class="t">${band.t}</div><div class="d">${band.d}</div></div></div>`;
+
+  for(const meal of Object.keys(MEALS)){
+    html += `<div class="meal"><h2>${meal} <span class="pickone">&mdash; pick one</span></h2>`;
+    // The recommended pick(s) for this level first, then the rest as "or" alternates.
+    const opts = MEALS[meal].slice().sort((a,b)=>{
+      return (b.pickFor.includes(lvl)?1:0) - (a.pickFor.includes(lvl)?1:0);
+    });
+    let shownAlt = false;
+    for(const o of opts){
+      const isPick = o.pickFor.includes(lvl);
+      const isSel = selected[meal] === o.name;
+      if(!isPick && !shownAlt){
+        html += `<div class="orline">or, if you'd rather&hellip;</div>`;
+        shownAlt = true;
+      }
+      let cls = "opt clickable" + (isPick ? " pickrow" : "") + (isSel ? " selected" : "");
+      const macros = `<div class="macros"><span class="cal">${o.cal} cal</span><span>P ${o.p}g</span><span>C ${o.c}g</span><span>F ${o.f}g</span></div>`;
+      html += `<div class="${cls}" data-meal="${meal}" data-name="${o.name}">`
+            + `<span class="check">${isSel?'✓':''}</span>`
+            + `<span class="name">${o.name}</span>${isPick?'<span class="tag pick">RECOMMENDED</span>':''}`
+            + `<div class="desc">${o.desc}</div>${macros}</div>`;
+    }
+    html += `</div>`;
+  }
+
+  if(lvl==="hard"){
+    html += `<div class="note"><b>Refuel:</b> protein + carb within ~45 min of finishing (oats, a rice bowl, or your hash). Don't skip it on long-run days.</div>`;
+  }
+
+  const out = document.getElementById("out");
+  out.innerHTML = html;
+  out.querySelectorAll(".clickable").forEach(el=>{
+    el.onclick = ()=>{
+      const m = el.dataset.meal, n = el.dataset.name;
+      selected[m] = (selected[m] === n) ? null : n;   // tap again to deselect
+      render(); updateTotals();
+    };
+  });
+  updateTotals();
+}
+
+function findOpt(meal, name){ return MEALS[meal].find(o=>o.name===name); }
+
+function updateTotals(){
+  let cal=0,p=0,c=0,f=0, count=0;
+  for(const meal of Object.keys(selected)){
+    const n = selected[meal]; if(!n) continue;
+    const o = findOpt(meal, n); if(!o) continue;
+    cal+=o.cal; p+=o.p; c+=o.c; f+=o.f; count++;
+  }
+  const bar = document.getElementById("totals");
+  if(count===0){
+    bar.innerHTML = `<div class="thint">Select a meal option on the left to build your day's total and see the recipe.</div>`;
+  } else {
+    bar.innerHTML =
+      `<div class="trow"><div class="tcal"><b>${cal}</b><span>calories</span></div>`+
+      `<button class="tclear" onclick="clearPicks()">clear</button></div>`+
+      `<div class="tmac"><div><b>${p}g</b><span>protein</span></div>`+
+      `<div><b>${c}g</b><span>carbs</span></div>`+
+      `<div><b>${f}g</b><span>fat</span></div></div>`;
+  }
+  renderRecipes();
+}
+
+function renderRecipes(){
+  const box = document.getElementById("recipe");
+  let html = "";
+  for(const meal of Object.keys(selected)){
+    const n = selected[meal]; if(!n) continue;
+    const o = findOpt(meal, n); if(!o || !o.recipe) continue;
+    const r = o.recipe;
+    html += `<div class="rcard">`+
+      `<div class="rmeal">${meal}</div>`+
+      `<div class="rname">${o.name}</div>`+
+      `<div class="rmeta">Serves ${r.serves} &middot; ${r.time} &middot; ${o.cal} cal (P ${o.p} / C ${o.c} / F ${o.f})</div>`+
+      `<div class="rsec">Ingredients</div><ul class="ring">`+
+        r.ingredients.map(i=>`<li>${i}</li>`).join("")+`</ul>`+
+      `<div class="rsec">Make it</div><ol class="rsteps">`+
+        r.steps.map(s=>`<li>${s}</li>`).join("")+`</ol>`+
+      `<div class="rsec">Portion</div><div class="rport">${r.portion}</div>`+
+      (r.note?`<div class="rnote">${r.note}</div>`:``)+
+      `</div>`;
+  }
+  if(!html) html = `<div class="rempty">Pick a breakfast, lunch, and snack to see exact ingredients, steps, and portions here.</div>`;
+  box.innerHTML = html;
+}
+
+function clearPicks(){ selected={Breakfast:null,Lunch:null,Snack:null}; render(); }
+
+function buildPickers(){
+  const p = document.getElementById("picker");
+  p.innerHTML = "";
+  for(const w of WORKOUTS){
+    const b = document.createElement("div");
+    b.className = "chip" + (w.id===current?" on":"");
+    b.textContent = w.label;
+    b.onclick = ()=>{
+      current = w.id;
+      lvl = w.def;                       // selecting an activity suggests its default intensity
+      localStorage.setItem("fuel.workout", current);
+      localStorage.setItem("fuel.level", lvl);
+      buildPickers(); render();
+    };
+    p.appendChild(b);
+  }
+
+  const ip = document.getElementById("intensity");
+  ip.innerHTML = "";
+  for(const it of INTENSITIES){
+    const b = document.createElement("div");
+    b.className = "chip" + (it.id===lvl?" on":"");
+    b.textContent = it.label;
+    b.onclick = ()=>{
+      lvl = it.id;                        // manual override wins
+      localStorage.setItem("fuel.level", lvl);
+      buildPickers(); render();
+    };
+    ip.appendChild(b);
+  }
+}
+
+current = localStorage.getItem("fuel.workout") || "run";
+lvl = localStorage.getItem("fuel.level") || "mod";
+buildPickers();
+render();
+
+// Register the offline service worker (enables home-screen / Brick-proof use).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
