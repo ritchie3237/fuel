@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Smoothie Experiment</title>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Smoothie Test">
+<style>
+  :root{ --ink:#1d2127; --muted:#6b7280; --line:#e6e8eb; --bg:#f7f7f5; --card:#fff;
+         --good:#2e7d32; --mild:#e8a33d; --bad:#d9534f; }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       color:var(--ink); margin:0; background:var(--bg);}
+  .wrap{max-width:620px; margin:0 auto; padding:22px 16px 60px;}
+  h1{font-size:24px; margin:0 0 4px;}
+  .sub{color:var(--muted); font-size:14px; margin:0 0 18px; line-height:1.5;}
+  .how{background:#eef4ff; border:1px solid #cfddf7; border-radius:12px; padding:13px 15px; font-size:13px; line-height:1.55; margin-bottom:8px;}
+  .how b{color:#2f5fb0;}
+  .trial{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin:14px 0;}
+  .tnum{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700;}
+  .ttitle{font-size:17px; font-weight:700; margin:2px 0 2px;}
+  .tdo{font-size:14px; line-height:1.5; margin:6px 0 0;}
+  .tdo .chg{background:#fff7ee; border:1px solid #f3dcb6; border-radius:8px; padding:2px 7px; font-weight:600; color:#8a661f;}
+  ul.recipe{margin:8px 0 0; padding-left:18px; font-size:13.5px; line-height:1.5;}
+  .reveal{font-size:13px; color:var(--muted); margin-top:8px;}
+  .reveal b{color:var(--ink);}
+  .res{display:flex; gap:8px; margin:14px 0 10px;}
+  .res button{flex:1; border:1px solid var(--line); background:#fafbfc; border-radius:10px; padding:10px 6px;
+              font-size:13px; font-weight:600; cursor:pointer; color:var(--muted); transition:.12s;}
+  .res button:hover{border-color:#c7ccd1;}
+  .res button.sel.good{background:#eaf5ea; border-color:#bfe0bf; color:var(--good);}
+  .res button.sel.mild{background:#fdf3e3; border-color:#f0d39a; color:#b87d18;}
+  .res button.sel.bad{background:#fdecea; border-color:#f3bdb8; color:var(--bad);}
+  .row{display:flex; gap:10px; align-items:center; margin-bottom:8px;}
+  .row label{font-size:12px; color:var(--muted); width:42px;}
+  input[type=date]{border:1px solid var(--line); border-radius:8px; padding:7px 9px; font-size:13px; font-family:inherit;}
+  textarea{width:100%; border:1px solid var(--line); border-radius:8px; padding:9px; font-size:13px;
+           font-family:inherit; resize:vertical; min-height:46px;}
+  .saved{font-size:12px; color:var(--good); margin-top:6px; height:14px;}
+  .done{border-color:#bfe0bf;}
+  .conclusion{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; margin-top:18px;}
+  .conclusion h2{font-size:14px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin:0 0 8px;}
+  .conclusion li{font-size:13.5px; line-height:1.6; margin:4px 0;}
+  footer{color:#aab; font-size:11px; text-align:center; margin-top:24px;}
+  .resetall{margin-top:14px; background:none; border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+            font-size:12px; color:var(--muted); cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Smoothie Tolerance Experiment</h1>
+  <p class="sub">Goal: find what makes smoothies hurt. Don't reproduce the painful version — start with the gentlest smoothie, then add back <b>one variable at a time</b>. Log each one. Space trials a few days apart.</p>
+
+  <div class="how">
+    <b>How to log:</b> Do the trial, then tap how your stomach felt — 😌 fine, 😬 mild, or 🤕 bad. The first trial that turns 😬/🤕 points at the culprit (see the readout at the bottom). Saves on your device automatically.
+  </div>
+
+  <div id="trials"></div>
+
+  <div class="conclusion">
+    <h2>What a bad trial points to</h2>
+    <ul>
+      <li><b>Trial 0 already hurts</b> → it's the <b>fruit/fiber or the cold-ish blend itself</b>; shrink portion further & try one fruit only, then talk to a dietitian.</li>
+      <li><b>Trial 1 (cold) hurts</b> → <b>temperature</b> is a trigger. Keep smoothies room-temp / not iced.</li>
+      <li><b>Trial 2 (plant milk) hurts</b> → likely the <b>additives</b> (gums, carrageenan, inulin/chicory). Use water or an additive-free milk.</li>
+      <li><b>Trial 3 (big & fast) hurts</b> → it's <b>volume + speed + air</b>. Keep them small and sip slowly.</li>
+      <li><b>Trial 4 (more/other fruit or greens) hurts</b> → it's <b>FODMAP/fiber load</b>. Keep low-FODMAP (strawberry), small amounts, no raw greens.</li>
+    </ul>
+  </div>
+
+  <button class="resetall" onclick="resetAll()">Reset all logs</button>
+  <footer>Not medical advice. If pain is severe or persistent, see a GI doc or dietitian.</footer>
+</div>
+
+<script>
+const TRIALS = [
+  {id:0, tag:"Baseline — start here", title:"The gentle smoothie",
+   change:null,
+   recipe:["8 oz plain water (not plant milk yet)","1 cup fresh strawberries","1 tbsp almond butter",
+           "No ice, no frozen fruit — room temperature","Blend briefly, let foam settle 1 min","Small (~8–10 oz); sip over 15–20 min","Not on a totally empty stomach"],
+   reveal:"If this sits fine, you already have a smoothie that works. Now add back luxuries one at a time below."},
+  {id:1, tag:"Trial 1", title:"Make it cold",
+   change:"Same gentle smoothie, but use frozen strawberries / add ice so it's cold.",
+   recipe:null, reveal:"Tests whether cold temperature is the trigger."},
+  {id:2, tag:"Trial 2", title:"Swap in your plant milk",
+   change:"Back to room-temp, but replace the water with your usual plant/coconut milk.",
+   recipe:null, reveal:"Tests the milk additives. If it hurts, read the label for guar/gellan/xanthan gum, carrageenan, or inulin/chicory root."},
+  {id:3, tag:"Trial 3", title:"Bigger & faster",
+   change:"Gentle recipe again, but double the size (~16–20 oz) and drink it quickly.",
+   recipe:null, reveal:"Tests volume + speed + swallowed air (stomach distension)."},
+  {id:4, tag:"Trial 4", title:"More / other fruit or greens",
+   change:"Gentle recipe, but add a higher-FODMAP item: e.g. ½ banana, some apple/mango, or a handful of raw spinach.",
+   recipe:null, reveal:"Tests the raw fiber / FODMAP load delivered all at once."},
+];
+
+const LEVELS = [
+  {k:"good", label:"😌 Fine"},
+  {k:"mild", label:"😬 Mild"},
+  {k:"bad",  label:"🤕 Bad"},
+];
+
+function load(id){ try{ return JSON.parse(localStorage.getItem("smex."+id)) || {}; }catch(e){ return {}; } }
+function save(id, data){ localStorage.setItem("smex."+id, JSON.stringify(data)); }
+
+function today(){ return new Date().toISOString().slice(0,10); }
+
+function render(){
+  const box = document.getElementById("trials");
+  box.innerHTML = "";
+  for(const t of TRIALS){
+    const d = load(t.id);
+    const card = document.createElement("div");
+    card.className = "trial" + (d.result ? " done" : "");
+    let html = `<div class="tnum">${t.tag}</div><div class="ttitle">${t.title}</div>`;
+    if(t.change) html += `<div class="tdo"><span class="chg">Change:</span> ${t.change}</div>`;
+    if(t.recipe) html += `<ul class="recipe">${t.recipe.map(r=>`<li>${r}</li>`).join("")}</ul>`;
+    html += `<div class="reveal">${t.reveal}</div>`;
+    html += `<div class="res">` + LEVELS.map(l=>
+      `<button class="${l.k} ${d.result===l.k?'sel':''}" data-id="${t.id}" data-k="${l.k}">${l.label}</button>`
+    ).join("") + `</div>`;
+    html += `<div class="row"><label>Date</label><input type="date" data-id="${t.id}" class="dt" value="${d.date||today()}"></div>`;
+    html += `<textarea data-id="${t.id}" class="nt" placeholder="Notes — what you used, how long after, symptoms…">${d.notes||""}</textarea>`;
+    html += `<div class="saved" id="saved-${t.id}">${d.result?'✓ logged':''}</div>`;
+    card.innerHTML = html;
+    box.appendChild(card);
+  }
+  // wire up
+  box.querySelectorAll(".res button").forEach(b=>{
+    b.onclick = ()=>{
+      const id = b.dataset.id; const d = load(id);
+      d.result = b.dataset.k; d.date = d.date || today();
+      save(id, d); render();
+      flash(id);
+    };
+  });
+  box.querySelectorAll(".dt").forEach(i=>{
+    i.onchange = ()=>{ const id=i.dataset.id; const d=load(id); d.date=i.value; save(id,d); flash(id); };
+  });
+  box.querySelectorAll(".nt").forEach(a=>{
+    a.onblur = ()=>{ const id=a.dataset.id; const d=load(id); d.notes=a.value; save(id,d); flash(id); };
+  });
+}
+
+function flash(id){
+  const el = document.getElementById("saved-"+id);
+  if(el){ el.textContent = "✓ saved"; }
+}
+
+function resetAll(){
+  if(!confirm("Clear all smoothie trial logs?")) return;
+  for(const t of TRIALS) localStorage.removeItem("smex."+t.id);
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
