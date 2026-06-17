@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Health Dashboard</title>
 <link rel="manifest" href="garmin.webmanifest">
-<meta name="theme-color" content="#0f1722">
+<meta name="theme-color" content="#f7f7f5">
 <link rel="apple-touch-icon" href="hicon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Health">
 <style>
   :root{
-    --bg:#0f1722; --card:#16212e; --card2:#1b2837; --line:#26354a;
-    --ink:#eef3f8; --muted:#8a9bb0; --accent:#3ddc97; --blue:#5b8def;
-    --amber:#e8a33d; --red:#ef6b66; --violet:#a78bfa;
+    --bg:#f7f7f5; --card:#ffffff; --card2:#f3f4f6; --line:#e6e8eb;
+    --ink:#1d2127; --muted:#6b7280; --accent:#2e7d32; --blue:#3f6fd1;
+    --amber:#c9851f; --red:#d9534f; --violet:#7a5bd0;
   }
   *{box-sizing:border-box;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -30,7 +30,8 @@
   @media(min-width:620px){ .cards{grid-template-columns:repeat(3,1fr);} }
   .charts{grid-template-columns:1fr;}
   @media(min-width:620px){ .charts{grid-template-columns:repeat(2,1fr);} }
-  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 15px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 15px; box-shadow:0 1px 2px rgba(16,24,40,.04);}
+  .grid + .card{margin-top:14px;}
   .kpi .v{font-size:26px; font-weight:800; line-height:1;}
   .kpi .l{font-size:12px; color:var(--muted); margin-top:5px;}
   .kpi .s{font-size:11px; margin-top:3px;}
@@ -45,10 +46,10 @@
   .chartwrap{position:relative; touch-action:pan-y;}
   .chartwrap .dot{position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%);
                   box-shadow:0 0 0 2px var(--card); display:none; pointer-events:none; z-index:4;}
-  .chartwrap .tip{position:absolute; transform:translate(-50%,-135%); background:#0b1119; border:1px solid var(--line);
+  .chartwrap .tip{position:absolute; transform:translate(-50%,-135%); background:var(--ink); color:#fff; border:1px solid rgba(0,0,0,.12);
                   border-radius:8px; padding:4px 9px; font-size:11px; white-space:nowrap; display:none;
-                  pointer-events:none; z-index:5;}
-  .chartwrap .tip b{font-size:13px; font-weight:800;} .chartwrap .tip span{color:var(--muted); margin-left:7px;}
+                  pointer-events:none; z-index:5; box-shadow:0 4px 12px rgba(0,0,0,.14);}
+  .chartwrap .tip b{font-size:13px; font-weight:800;} .chartwrap .tip span{color:#aab1bb; margin-left:7px;}
   .axis{display:flex; justify-content:space-between; color:var(--muted); font-size:10px; margin-top:2px;}
   .chartcard .cap{font-size:11.5px; color:var(--muted); margin-top:7px; line-height:1.45;}
   .layout{display:grid; grid-template-columns:1fr; gap:18px; align-items:start;}
@@ -57,17 +58,17 @@
   @media(min-width:880px){ .right{position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto;} }
   .recs{display:grid; gap:12px; grid-template-columns:1fr;}
   .polbar{display:flex; height:28px; border-radius:8px; overflow:hidden; margin:8px 0; font-size:11px; font-weight:800;}
-  .polbar div{display:flex; align-items:center; justify-content:center; color:#0b1119; min-width:0;}
+  .polbar div{display:flex; align-items:center; justify-content:center; color:#fff; min-width:0;}
   .poleasy{background:var(--accent);} .polgray{background:var(--amber);} .polhard{background:var(--red);}
   .pollegend{font-size:12px; color:var(--muted);} .pollegend b{color:var(--ink);}
   .recbox{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;}
   .recbox h3{font-size:13px; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
   .recbox.keep h3{color:var(--accent);} .recbox.adj h3{color:var(--amber);}
   .recbox ol{margin:0; padding-left:18px;}
-  .recbox li{font-size:13px; line-height:1.55; margin:9px 0; color:#dce6f0;}
+  .recbox li{font-size:13px; line-height:1.55; margin:9px 0; color:#374151;}
   .race{display:flex; gap:14px; flex-wrap:wrap;}
   .race div{flex:1; min-width:64px;} .race .t{font-size:16px; font-weight:800;} .race .d{font-size:11px; color:var(--muted);}
-  footer{color:#5f7088; font-size:11px; margin-top:26px; line-height:1.5;}
+  footer{color:#9aa1ab; font-size:11px; margin-top:26px; line-height:1.5;}
   .loading{color:var(--muted); padding:40px 0; text-align:center;}
 </style>
 </head>
