@@ -42,6 +42,13 @@
   .chartcard .name{font-size:13px; font-weight:600;}
   .chartcard .now{font-size:18px; font-weight:800;}
   .chartcard svg{display:block; width:100%; height:auto;}
+  .chartwrap{position:relative; touch-action:pan-y;}
+  .chartwrap .dot{position:absolute; width:9px; height:9px; border-radius:50%; transform:translate(-50%,-50%);
+                  box-shadow:0 0 0 2px var(--card); display:none; pointer-events:none; z-index:4;}
+  .chartwrap .tip{position:absolute; transform:translate(-50%,-135%); background:#0b1119; border:1px solid var(--line);
+                  border-radius:8px; padding:4px 9px; font-size:11px; white-space:nowrap; display:none;
+                  pointer-events:none; z-index:5;}
+  .chartwrap .tip b{font-size:13px; font-weight:800;} .chartwrap .tip span{color:var(--muted); margin-left:7px;}
   .axis{display:flex; justify-content:space-between; color:var(--muted); font-size:10px; margin-top:2px;}
   .chartcard .cap{font-size:11.5px; color:var(--muted); margin-top:7px; line-height:1.45;}
   .recs{display:grid; gap:12px; grid-template-columns:1fr;}
@@ -76,37 +83,75 @@ function fmtDelta(arr, lowerBetter){
   return {cls: good?"up":"down", t:`${arrow} ${Math.abs(d)} vs start`};
 }
 
-function spark(data, color){
+const CW=300, CH=84, CPX=8, CPY=10;
+function geom(data){
   const vals=data.map(p=>p.v);
   let min=Math.min(...vals), max=Math.max(...vals);
   const range=(max-min)||1; min-=range*0.12; max+=range*0.12;
-  const r2=(max-min)||1;
-  const W=300,H=84,px=8,py=10,n=data.length;
-  const x=i=> px + i*(W-2*px)/(n-1||1);
-  const y=v=> py + (1-(v-min)/r2)*(H-2*py);
-  const pts=data.map((p,i)=>`${x(i).toFixed(1)},${y(p.v).toFixed(1)}`);
-  const line="M"+pts.join(" L");
-  const area=`M${x(0).toFixed(1)},${H} L`+pts.join(" L")+` L${x(n-1).toFixed(1)},${H} Z`;
-  const lastX=x(n-1).toFixed(1), lastY=y(data[n-1].v).toFixed(1);
+  const r2=(max-min)||1, n=data.length;
+  return data.map((p,i)=>{
+    const x = CPX + i*(CW-2*CPX)/(n-1||1);
+    const y = CPY + (1-(p.v-min)/r2)*(CH-2*CPY);
+    return {x, y, d:p.d, v:p.v};
+  });
+}
+function spark(pts, color){
+  const n=pts.length;
+  const coords=pts.map(p=>`${p.x.toFixed(1)},${p.y.toFixed(1)}`);
+  const line="M"+coords.join(" L");
+  const area=`M${pts[0].x.toFixed(1)},${CH} L`+coords.join(" L")+` L${pts[n-1].x.toFixed(1)},${CH} Z`;
+  const last=pts[n-1];
   const id="g"+Math.random().toString(36).slice(2,7);
-  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+  return `<svg viewBox="0 0 ${CW} ${CH}" preserveAspectRatio="none" role="img">
     <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="${color}" stop-opacity="0.28"/>
       <stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
     <path d="${area}" fill="url(#${id})"/>
     <path d="${line}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
-    <circle cx="${lastX}" cy="${lastY}" r="3.4" fill="${color}"/>
+    <circle cx="${last.x.toFixed(1)}" cy="${last.y.toFixed(1)}" r="3.4" fill="${color}"/>
   </svg>`;
 }
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+function fmtDate(d){ const m=d.split("-"); return m.length===2 ? MON[(+m[0])-1]+" "+(+m[1]) : d; }
 
-function chartCard(name, data, now, color, lowerBetter, cap){
-  const d=fmtDelta(data, lowerBetter);
+function chartCard(name, data, now, color, lowerBetter, cap, unit){
+  const dd=fmtDelta(data, lowerBetter);
+  const pts=geom(data);
+  const fr=pts.map(p=>({d:p.d, v:p.v, fx:+(p.x/CW).toFixed(4), fy:+(p.y/CH).toFixed(4)}));
   return `<div class="card chartcard">
     <div class="top"><span class="name">${name}</span><span class="now">${now}</span></div>
-    ${spark(data,color)}
-    <div class="axis"><span>${data[0].d}</span><span class="${d.cls}">${d.t}</span><span>${data[data.length-1].d}</span></div>
+    <div class="chartwrap" data-pts='${JSON.stringify(fr)}' data-unit="${unit||''}" data-color="${color}">
+      ${spark(pts,color)}
+      <div class="dot"></div><div class="tip"></div>
+    </div>
+    <div class="axis"><span>${fmtDate(data[0].d)}</span><span class="${dd.cls}">${dd.t}</span><span>${fmtDate(data[data.length-1].d)}</span></div>
     ${cap?`<div class="cap">${cap}</div>`:""}
   </div>`;
+}
+
+function initCharts(){
+  document.querySelectorAll(".chartwrap").forEach(w=>{
+    const pts=JSON.parse(w.dataset.pts), unit=w.dataset.unit||"";
+    const dot=w.querySelector(".dot"), tip=w.querySelector(".tip");
+    dot.style.background=w.dataset.color;
+    function show(clientX){
+      const r=w.getBoundingClientRect();
+      let fx=(clientX-r.left)/r.width; fx=Math.max(0,Math.min(1,fx));
+      let best=0, bd=2;
+      pts.forEach((p,i)=>{ const dd=Math.abs(p.fx-fx); if(dd<bd){bd=dd; best=i;} });
+      const p=pts[best];
+      dot.style.left=(p.fx*r.width)+"px"; dot.style.top=(p.fy*r.height)+"px"; dot.style.display="block";
+      tip.innerHTML=`<b>${p.v}${unit}</b><span>${fmtDate(p.d)}</span>`;
+      tip.style.left=Math.max(30, Math.min(r.width-30, p.fx*r.width))+"px";
+      tip.style.top=(p.fy*r.height)+"px"; tip.style.display="block";
+    }
+    function hide(){ dot.style.display="none"; tip.style.display="none"; }
+    w.addEventListener("mousemove", e=>show(e.clientX));
+    w.addEventListener("mouseleave", hide);
+    w.addEventListener("touchstart", e=>show(e.touches[0].clientX), {passive:true});
+    w.addEventListener("touchmove", e=>show(e.touches[0].clientX), {passive:true});
+    w.addEventListener("touchend", hide);
+  });
 }
 
 function kpi(v,l,s,scls){ return `<div class="card kpi"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s ${scls||'flat'}">${s}</div>`:""}</div>`; }
@@ -137,12 +182,12 @@ function render(D){
   h += `</div></div>`;
 
   h += `<div class="sec">Trends</div><div class="grid charts">`;
-  h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false, "Plateaued ~53 for six weeks — the weekly intervals target this.");
-  h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false, "Climbing — recovery improving. All days “Balanced.”");
-  h += chartCard("Resting HR (3 wk)", t.rhr, s.rhr, "var(--violet)", true, "Low and stable — strong aerobic signal.");
-  h += chartCard("Sleep score (9 d)", t.sleepScore, s.sleepScoreLast, "var(--blue)", false, "Strong recent week; a few dips tied to short or broken nights.");
-  h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 6.6–8.3 h — aim for consistent 7.5 h+.");
-  h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Falling 30 → 23 — good direction.");
+  h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false, "Plateaued ~53 for six weeks — the weekly intervals target this.", "");
+  h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false, "Climbing — recovery improving. All days “Balanced.”", " ms");
+  h += chartCard("Resting HR (3 wk)", t.rhr, s.rhr, "var(--violet)", true, "Low and stable — strong aerobic signal.", " bpm");
+  h += chartCard("Sleep score (9 d)", t.sleepScore, s.sleepScoreLast, "var(--blue)", false, "Strong recent week; a few dips tied to short or broken nights.", "");
+  h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 6.6–8.3 h — aim for consistent 7.5 h+.", " h");
+  h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Falling 30 → 23 — good direction.", "");
   h += `</div>`;
 
   h += `<div class="sec">What to do</div><div class="recs">`;
@@ -151,7 +196,7 @@ function render(D){
   h += `</div>`;
 
   document.getElementById("app").innerHTML = h;
-  // fix the sleep-hours "now" value (uses last data point)
+  initCharts();
   document.getElementById("foot").innerHTML =
     `Data pulled from Garmin Connect on ${D.generated}. Trends are point-in-time and smoothed. `+
     `This is general wellness guidance, not medical advice — see a clinician for anything concerning.`;
