@@ -24,13 +24,12 @@
   @media(min-width:840px){ .layout{grid-template-columns:1fr 360px;} }
   .right{align-self:start;}
   @media(min-width:840px){ .right{position:sticky; top:18px;} }
-  /* Mobile: dissolve the right column so the totals card joins the main flow,
-     sit it above breakfast, and stick it to the top while scrolling the list. */
+  /* Mobile: dissolve the right column so the totals card joins the main flow
+     and sits above breakfast (not sticky). */
   @media(max-width:839px){
     .right{display:contents;}
     .left{order:1;}
-    #totals{order:-1; position:sticky; top:0; z-index:20; margin-bottom:4px;
-            box-shadow:0 6px 16px rgba(0,0,0,.14);}
+    #totals{order:-1;}
   }
   header h1{font-size:24px; margin:0 0 2px;}
   header p{color:var(--muted); font-size:14px; margin:0 0 18px;}
