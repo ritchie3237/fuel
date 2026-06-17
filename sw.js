@@ -1,9 +1,15 @@
 // Today's Fuel — offline service worker.
 // Bump CACHE when you change app files so phones pull the update.
-const CACHE = "fuel-v9";
+const CACHE = "fuel-v10";
 const ASSETS = [
   "./index.html",
   "./smoothie-experiment.html",
+  "./garmin.html",
+  "./garmin-data.json",
+  "./garmin.webmanifest",
+  "./hicon-192.png",
+  "./hicon-512.png",
+  "./hicon-180.png",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
@@ -32,7 +38,7 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   const isAppCode =
     req.mode === "navigate" ||
-    /\.(html|js|webmanifest)$/.test(new URL(req.url).pathname);
+    /\.(html|js|webmanifest|json)$/.test(new URL(req.url).pathname);
 
   if (isAppCode) {
     // Try the network first; cache the fresh copy; if offline, serve the cache.

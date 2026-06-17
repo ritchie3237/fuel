@@ -1,0 +1,75 @@
+{
+  "generated": "2026-06-17",
+  "athlete": "Mike Ritchie",
+  "snapshot": {
+    "vo2max": 52.8,
+    "vo2maxLabel": "Superior for age",
+    "fitnessAge": 31.6,
+    "chronoAge": 36,
+    "achievableFitnessAge": 30.5,
+    "rhr": 48,
+    "rhr7d": 49,
+    "hrv": 55,
+    "hrvStatus": "Balanced",
+    "readiness": 88,
+    "readinessLevel": "High — well rested",
+    "sleepScoreLast": 82,
+    "sleepAvg": 81,
+    "trainingStatus": "Maintaining",
+    "acwr": 1.1,
+    "acwrStatus": "Optimal",
+    "acwrPercent": 47,
+    "stressLatest": 29,
+    "stressWeek": 23,
+    "stressQualifier": "Balanced",
+    "vigorousDays": 2.6,
+    "vigorousTarget": 3,
+    "bmi": 25.0,
+    "bmiTarget": 21.1,
+    "bmiAsOf": "2025-06-15",
+    "steps": 11640,
+    "stepGoal": 11250,
+    "racePredictions": { "5K": "20:53", "10K": "44:32", "Half": "1:40:21", "Marathon": "3:40:55" }
+  },
+  "trends": {
+    "vo2max": [
+      {"d":"04-21","v":54},{"d":"05-01","v":54},{"d":"05-14","v":53},{"d":"05-21","v":53},
+      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53}
+    ],
+    "hrv": [
+      {"d":"05-18","v":51},{"d":"05-25","v":47},{"d":"05-29","v":46},{"d":"06-02","v":51},
+      {"d":"06-06","v":51},{"d":"06-10","v":50},{"d":"06-12","v":53},{"d":"06-14","v":53},{"d":"06-16","v":55}
+    ],
+    "rhr": [
+      {"d":"05-31","v":53},{"d":"06-03","v":49},{"d":"06-06","v":48},{"d":"06-08","v":49},
+      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48}
+    ],
+    "sleepScore": [
+      {"d":"06-08","v":72},{"d":"06-09","v":81},{"d":"06-10","v":83},{"d":"06-11","v":77},
+      {"d":"06-12","v":69},{"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},{"d":"06-16","v":82}
+    ],
+    "sleepHours": [
+      {"d":"06-08","v":8.2},{"d":"06-09","v":6.6},{"d":"06-10","v":8.0},{"d":"06-11","v":7.1},
+      {"d":"06-12","v":8.3},{"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},{"d":"06-16","v":7.0}
+    ],
+    "stressWeekly": [
+      {"d":"05-06","v":30},{"d":"05-13","v":30},{"d":"05-20","v":30},
+      {"d":"05-27","v":30},{"d":"06-03","v":26},{"d":"06-10","v":23}
+    ]
+  },
+  "recommendations": {
+    "continue": [
+      "Recovery is genuinely trending up. Your HRV weekly average climbed 47 → 55 ms (“Balanced” every day) while weekly stress fell 30 → 23. Whatever shifted the last 2–3 weeks, keep it.",
+      "Resting HR is excellent and stable (46–53, 7-day avg 49) — a strong aerobic-fitness signal. Keep easy days truly easy (Zone 2) so this stays low.",
+      "Last week’s sleep was strong (85 / 94 / 89 / 82). Protect that bedtime — it’s clearly feeding the high readiness scores.",
+      "Training load sits in the optimal band (ACWR 1.1, 47%). You’re absorbing the work, so it’s safe to keep progressing ~10%/week."
+    ],
+    "change": [
+      "VO2max has plateaued near 53 (precise 52.8) for ~6 weeks. That’s exactly why Thursday’s 5×3-min intervals exist — but it takes 4–6 weeks of consistent weekly quality work to move. Hold one hard session per week and be patient.",
+      "Garmin flags “Aerobic Low Shortage” — you need more easy Z2 volume, not more intensity. Ramp weekly mileage toward the 20s–30s as planned; that aerobic base is what raises the VO2max ceiling alongside the intervals.",
+      "Sleep duration swings a lot (6.6 h → 8.3 h), and your lower-scoring nights (69, 72, 77) had less deep + REM and more awakenings. Aim for a consistent 7.5 h+ with a steady bedtime — consistency beats the occasional long night.",
+      "Vigorous days average 2.6/week vs Garmin’s target of 3. The structured weekly intervals will close that gap and nudge your fitness age (31.6) toward its achievable 30.5.",
+      "Your BMI input (25.0) is the #1 lever Garmin lists for fitness age — but it’s using a weight from June 2025. Log a current weigh-in to Garmin so this metric (and your weight-loss goal) actually tracks; right now there’s no recent weight on file."
+    ]
+  }
+}

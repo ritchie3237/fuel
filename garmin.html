@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Health Dashboard</title>
+<link rel="manifest" href="garmin.webmanifest">
+<meta name="theme-color" content="#0f1722">
+<link rel="apple-touch-icon" href="hicon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Health">
+<style>
+  :root{
+    --bg:#0f1722; --card:#16212e; --card2:#1b2837; --line:#26354a;
+    --ink:#eef3f8; --muted:#8a9bb0; --accent:#3ddc97; --blue:#5b8def;
+    --amber:#e8a33d; --red:#ef6b66; --violet:#a78bfa;
+  }
+  *{box-sizing:border-box;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       margin:0; background:var(--bg); color:var(--ink); -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px; margin:0 auto; padding:22px 16px 60px;}
+  header h1{font-size:23px; margin:0 0 2px;}
+  header p{color:var(--muted); font-size:13px; margin:0 0 18px;}
+  .sec{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); font-weight:700; margin:24px 0 10px;}
+  .grid{display:grid; gap:12px;}
+  .kpis{grid-template-columns:repeat(2,1fr);}
+  @media(min-width:620px){ .kpis{grid-template-columns:repeat(4,1fr);} }
+  .cards{grid-template-columns:repeat(2,1fr);}
+  @media(min-width:620px){ .cards{grid-template-columns:repeat(3,1fr);} }
+  .charts{grid-template-columns:1fr;}
+  @media(min-width:620px){ .charts{grid-template-columns:repeat(2,1fr);} }
+  .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 15px;}
+  .kpi .v{font-size:26px; font-weight:800; line-height:1;}
+  .kpi .l{font-size:12px; color:var(--muted); margin-top:5px;}
+  .kpi .s{font-size:11px; margin-top:3px;}
+  .up{color:var(--accent);} .down{color:var(--red);} .flat{color:var(--muted);}
+  .mini .l{font-size:12px; color:var(--muted);}
+  .mini .v{font-size:18px; font-weight:700; margin-top:3px;}
+  .mini .s{font-size:11px; color:var(--muted); margin-top:2px;}
+  .chartcard .top{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px;}
+  .chartcard .name{font-size:13px; font-weight:600;}
+  .chartcard .now{font-size:18px; font-weight:800;}
+  .chartcard svg{display:block; width:100%; height:auto;}
+  .axis{display:flex; justify-content:space-between; color:var(--muted); font-size:10px; margin-top:2px;}
+  .chartcard .cap{font-size:11.5px; color:var(--muted); margin-top:7px; line-height:1.45;}
+  .recs{display:grid; gap:12px; grid-template-columns:1fr;}
+  @media(min-width:620px){ .recs{grid-template-columns:1fr 1fr;} }
+  .recbox{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;}
+  .recbox h3{font-size:13px; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
+  .recbox.keep h3{color:var(--accent);} .recbox.adj h3{color:var(--amber);}
+  .recbox ol{margin:0; padding-left:18px;}
+  .recbox li{font-size:13px; line-height:1.55; margin:9px 0; color:#dce6f0;}
+  .race{display:flex; gap:14px; flex-wrap:wrap;}
+  .race div{flex:1; min-width:64px;} .race .t{font-size:16px; font-weight:800;} .race .d{font-size:11px; color:var(--muted);}
+  footer{color:#5f7088; font-size:11px; margin-top:26px; line-height:1.5;}
+  .loading{color:var(--muted); padding:40px 0; text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Health Dashboard</h1>
+    <p id="sub">Loading your Garmin data…</p>
+  </header>
+  <div id="app"><div class="loading">Loading…</div></div>
+  <footer id="foot"></footer>
+</div>
+
+<script>
+function fmtDelta(arr, lowerBetter){
+  const f=arr[0].v, l=arr[arr.length-1].v, d=+(l-f).toFixed(1);
+  if(d===0) return {cls:"flat", t:"no change"};
+  const good = lowerBetter ? d<0 : d>0;
+  const arrow = d>0?"▲":"▼";
+  return {cls: good?"up":"down", t:`${arrow} ${Math.abs(d)} vs start`};
+}
+
+function spark(data, color){
+  const vals=data.map(p=>p.v);
+  let min=Math.min(...vals), max=Math.max(...vals);
+  const range=(max-min)||1; min-=range*0.12; max+=range*0.12;
+  const r2=(max-min)||1;
+  const W=300,H=84,px=8,py=10,n=data.length;
+  const x=i=> px + i*(W-2*px)/(n-1||1);
+  const y=v=> py + (1-(v-min)/r2)*(H-2*py);
+  const pts=data.map((p,i)=>`${x(i).toFixed(1)},${y(p.v).toFixed(1)}`);
+  const line="M"+pts.join(" L");
+  const area=`M${x(0).toFixed(1)},${H} L`+pts.join(" L")+` L${x(n-1).toFixed(1)},${H} Z`;
+  const lastX=x(n-1).toFixed(1), lastY=y(data[n-1].v).toFixed(1);
+  const id="g"+Math.random().toString(36).slice(2,7);
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">
+    <defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="${color}" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#${id})"/>
+    <path d="${line}" fill="none" stroke="${color}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="${lastX}" cy="${lastY}" r="3.4" fill="${color}"/>
+  </svg>`;
+}
+
+function chartCard(name, data, now, color, lowerBetter, cap){
+  const d=fmtDelta(data, lowerBetter);
+  return `<div class="card chartcard">
+    <div class="top"><span class="name">${name}</span><span class="now">${now}</span></div>
+    ${spark(data,color)}
+    <div class="axis"><span>${data[0].d}</span><span class="${d.cls}">${d.t}</span><span>${data[data.length-1].d}</span></div>
+    ${cap?`<div class="cap">${cap}</div>`:""}
+  </div>`;
+}
+
+function kpi(v,l,s,scls){ return `<div class="card kpi"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s ${scls||'flat'}">${s}</div>`:""}</div>`; }
+function mini(l,v,s){ return `<div class="card mini"><div class="l">${l}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
+
+function render(D){
+  const s=D.snapshot, t=D.trends;
+  document.getElementById("sub").textContent = `${D.athlete} · as of ${D.generated}`;
+
+  let h = `<div class="sec">Where you stand</div><div class="grid kpis">`;
+  h += kpi(s.vo2max, "VO2max", s.vo2maxLabel, "flat");
+  h += kpi(s.fitnessAge, "Fitness age", `${(s.chronoAge-s.fitnessAge).toFixed(1)} yrs younger`, "up");
+  h += kpi(s.readiness, "Readiness", s.readinessLevel, "up");
+  h += kpi(s.rhr, "Resting HR", `7-day avg ${s.rhr7d}`, "flat");
+  h += `</div>`;
+
+  h += `<div class="sec">Snapshot</div><div class="grid cards">`;
+  h += mini("Training status", s.trainingStatus, `Load ratio ${s.acwr} · ${s.acwrStatus}`);
+  h += mini("HRV (weekly avg)", s.hrv+" ms", s.hrvStatus);
+  h += mini("Sleep", s.sleepScoreLast, `9-day avg ${s.sleepAvg}`);
+  h += mini("Stress", s.stressLatest, `${s.stressQualifier} · week ${s.stressWeek}`);
+  h += mini("Vigorous days", s.vigorousDays+"/wk", `target ${s.vigorousTarget}`);
+  h += mini("Steps today", s.steps.toLocaleString(), `goal ${s.stepGoal.toLocaleString()}`);
+  h += `</div>`;
+
+  h += `<div class="sec">Race predictions</div><div class="card"><div class="race">`;
+  for(const [k,v] of Object.entries(s.racePredictions)) h += `<div><div class="t">${v}</div><div class="d">${k}</div></div>`;
+  h += `</div></div>`;
+
+  h += `<div class="sec">Trends</div><div class="grid charts">`;
+  h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false, "Plateaued ~53 for six weeks — the weekly intervals target this.");
+  h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false, "Climbing — recovery improving. All days “Balanced.”");
+  h += chartCard("Resting HR (3 wk)", t.rhr, s.rhr, "var(--violet)", true, "Low and stable — strong aerobic signal.");
+  h += chartCard("Sleep score (9 d)", t.sleepScore, s.sleepScoreLast, "var(--blue)", false, "Strong recent week; a few dips tied to short or broken nights.");
+  h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 6.6–8.3 h — aim for consistent 7.5 h+.");
+  h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Falling 30 → 23 — good direction.");
+  h += `</div>`;
+
+  h += `<div class="sec">What to do</div><div class="recs">`;
+  h += `<div class="recbox keep"><h3>✅ Keep doing</h3><ol>${D.recommendations.continue.map(x=>`<li>${x}</li>`).join("")}</ol></div>`;
+  h += `<div class="recbox adj"><h3>⚙️ Adjust / watch</h3><ol>${D.recommendations.change.map(x=>`<li>${x}</li>`).join("")}</ol></div>`;
+  h += `</div>`;
+
+  document.getElementById("app").innerHTML = h;
+  // fix the sleep-hours "now" value (uses last data point)
+  document.getElementById("foot").innerHTML =
+    `Data pulled from Garmin Connect on ${D.generated}. Trends are point-in-time and smoothed. `+
+    `This is general wellness guidance, not medical advice — see a clinician for anything concerning.`;
+}
+
+fetch("garmin-data.json?ts="+Date.now())
+  .then(r=>r.json())
+  .then(render)
+  .catch(e=>{ document.getElementById("app").innerHTML =
+    `<div class="loading">Couldn’t load data. If you’re offline, reopen once you have a connection.</div>`; });
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=> navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+</script>
+</body>
+</html>
