@@ -61,6 +61,17 @@
   .tclear{background:none; border:1px solid #4a4f57; border-radius:8px; padding:6px 12px;
           font-size:12px; color:#cfd4da; cursor:pointer;}
   .tclear:hover{background:#2a2e34;}
+  .tbar{height:7px; background:#3a3f47; border-radius:99px; overflow:hidden; margin:12px 0 6px;}
+  .tbar i{display:block; height:100%; background:#5b8def; border-radius:99px; transition:width .25s;}
+  .tbar.prot i{background:#46b06a;}
+  .tleft{font-size:13px; color:#e8ebee;} .tleft b{color:#fff;}
+  .tleft.over{color:#f3b0ad;} .tleft.over b{color:#f3b0ad;}
+  .tprow{display:flex; justify-content:space-between; align-items:baseline; margin-top:14px; font-size:13px; color:#aab1bb;}
+  .tprow b{color:#fff; font-size:15px;} .tprow .hit{color:#7fd69a;}
+  .tcf{margin-top:10px; font-size:12px; color:#aab1bb; font-variant-numeric:tabular-nums;}
+  .viewall{margin-top:10px; width:100%; background:#fff; border:1px solid var(--line); border-radius:10px;
+           padding:10px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer;}
+  .viewall:hover{background:#f3f6f9; color:var(--ink);}
   .recipebox{display:flex; flex-direction:column; gap:12px;}
   .rempty{color:var(--muted); font-size:13px; border:1px dashed var(--line); border-radius:12px; padding:18px; text-align:center;}
   .rcard{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:15px 16px;}
@@ -238,6 +249,11 @@ const MEALS = {
 let current = "run";
 let lvl = "mod";
 let selected = {Breakfast:null, Lunch:null, Snack:null};
+let expanded = {Breakfast:false, Lunch:false, Snack:false};
+
+// Full-day targets (editable). The app covers breakfast+lunch+snack; dinner fills the rest.
+const GOAL_CAL = 2300;   // calories for a modest deficit at your training volume
+const GOAL_PROT = 150;   // grams of protein
 
 function render(){
   const band = BANDS[lvl];
@@ -246,12 +262,20 @@ function render(){
 
   for(const meal of Object.keys(MEALS)){
     html += `<div class="meal"><h2>${meal} <span class="pickone">&mdash; pick one</span></h2>`;
-    // The recommended pick(s) for this level first, then the rest as "or" alternates.
+    // Recommended pick(s) for this level first, then backups.
     const opts = MEALS[meal].slice().sort((a,b)=>{
       return (b.pickFor.includes(lvl)?1:0) - (a.pickFor.includes(lvl)?1:0);
     });
+    // Show the recommendation + 2 backups (3 total). Always keep the selected one visible.
+    let list = opts.slice(0, 3);
+    const selName = selected[meal];
+    if(selName && !list.some(o=>o.name===selName)){
+      const so = opts.find(o=>o.name===selName); if(so) list.push(so);
+    }
+    if(expanded[meal]) list = opts;
+
     let shownAlt = false;
-    for(const o of opts){
+    for(const o of list){
       const isPick = o.pickFor.includes(lvl);
       const isSel = selected[meal] === o.name;
       if(!isPick && !shownAlt){
@@ -266,6 +290,11 @@ function render(){
             + `<div class="desc">${o.desc}</div>${macros}`
             + (isSel ? recipeInline(o) : '')
             + `</div>`;
+    }
+    if(opts.length > 3){
+      html += `<button class="viewall" data-meal="${meal}">`
+            + (expanded[meal] ? 'Show fewer' : `View all ${opts.length} ${meal.toLowerCase()} options`)
+            + `</button>`;
     }
     html += `</div>`;
   }
@@ -283,6 +312,9 @@ function render(){
       render(); updateTotals();
     };
   });
+  out.querySelectorAll(".viewall").forEach(el=>{
+    el.onclick = ()=>{ expanded[el.dataset.meal] = !expanded[el.dataset.meal]; render(); };
+  });
   updateTotals();
 }
 
@@ -298,14 +330,24 @@ function updateTotals(){
   const bar = document.getElementById("totals");
   if(count===0){
     bar.innerHTML = `<div class="thint">Tap a meal option to open its recipe and build your day's total here.</div>`;
-  } else {
-    bar.innerHTML =
-      `<div class="trow"><div class="tcal"><b>${cal}</b><span>calories</span></div>`+
-      `<button class="tclear" onclick="clearPicks()">clear</button></div>`+
-      `<div class="tmac"><div><b>${p}g</b><span>protein</span></div>`+
-      `<div><b>${c}g</b><span>carbs</span></div>`+
-      `<div><b>${f}g</b><span>fat</span></div></div>`;
+    return;
   }
+  const calPct = Math.min(100, Math.round(cal/GOAL_CAL*100));
+  const protPct = Math.min(100, Math.round(p/GOAL_PROT*100));
+  const left = GOAL_CAL - cal;
+  const leftLine = left >= 0
+    ? `&asymp; <b>${left}</b> cal left for dinner`
+    : `<b>${-left}</b> cal over &mdash; ease up at dinner`;
+  const protLeft = Math.max(0, GOAL_PROT - p);
+  bar.innerHTML =
+    `<div class="trow"><div class="tcal"><b>${cal}</b><span>of ${GOAL_CAL} cal goal</span></div>`+
+    `<button class="tclear" onclick="clearPicks()">clear</button></div>`+
+    `<div class="tbar"><i style="width:${calPct}%"></i></div>`+
+    `<div class="tleft ${left<0?'over':''}">${leftLine}</div>`+
+    `<div class="tprow"><span>Protein</span><span class="${p>=GOAL_PROT?'hit':''}"><b>${p}g</b> of ${GOAL_PROT}g`+
+      `${protLeft?` &middot; ${protLeft}g to go`:` &check; goal met`}</span></div>`+
+    `<div class="tbar prot"><i style="width:${protPct}%"></i></div>`+
+    `<div class="tcf">Carbs ${c}g &middot; Fat ${f}g</div>`;
 }
 
 // Full recipe, rendered inline directly under the option you tapped.
