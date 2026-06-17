@@ -59,6 +59,18 @@
       {"d":"05-27","v":30},{"d":"06-03","v":26},{"d":"06-10","v":23}
     ]
   },
+  "running": {
+    "ytd": 294,
+    "runsYtd": 64,
+    "thisWeek": 9.1,
+    "last7": 21.1,
+    "avg4": 14.1,
+    "weekly": [
+      {"d":"03-30","v":15.1},{"d":"04-06","v":15.1},{"d":"04-13","v":10.1},{"d":"04-20","v":19.1},
+      {"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},
+      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":9.1}
+    ]
+  },
   "recommendations": {
     "continue": [
       "Recovery is genuinely trending up. Your HRV weekly average climbed 47 → 55 ms (“Balanced” every day) while weekly stress fell 30 → 23. Whatever shifted the last 2–3 weeks, keep it.",

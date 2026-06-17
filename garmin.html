@@ -132,6 +132,30 @@ function chartCard(name, data, now, color, lowerBetter, cap, unit){
   </div>`;
 }
 
+function barCard(name, series, unit, target, color, headline, cap){
+  const W=300, H=84, px=8, py=10, bottom=H-py;
+  const maxv=Math.max(...series.map(p=>p.v), target*1.1, 1);
+  const n=series.length, slot=(W-2*px)/n, bw=slot*0.62;
+  let bars="", pts=[];
+  series.forEach((p,i)=>{
+    const cx=px+slot*(i+0.5);
+    const bh=(p.v/maxv)*(H-2*py), top=bottom-bh;
+    bars+=`<rect x="${(cx-bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,bh).toFixed(1)}" rx="1.5" fill="${color}" opacity="0.9"/>`;
+    pts.push({d:p.d, v:p.v, fx:+(cx/W).toFixed(4), fy:+(top/H).toFixed(4)});
+  });
+  const ty=(bottom-(target/maxv)*(H-2*py)).toFixed(1);
+  const tline=`<line x1="${px}" y1="${ty}" x2="${W-px}" y2="${ty}" stroke="var(--amber)" stroke-width="1" stroke-dasharray="3 3" opacity="0.75"/>`;
+  return `<div class="card chartcard">
+    <div class="top"><span class="name">${name}</span><span class="now">${headline}</span></div>
+    <div class="chartwrap" data-pts='${JSON.stringify(pts)}' data-unit="${unit}" data-color="${color}">
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${tline}${bars}</svg>
+      <div class="dot"></div><div class="tip"></div>
+    </div>
+    <div class="axis"><span>${fmtDate(series[0].d)}</span><span style="color:var(--amber)">— ${target} mi target —</span><span>${fmtDate(series[series.length-1].d)}</span></div>
+    ${cap?`<div class="cap">${cap}</div>`:""}
+  </div>`;
+}
+
 function initCharts(){
   document.querySelectorAll(".chartwrap").forEach(w=>{
     const pts=JSON.parse(w.dataset.pts), unit=w.dataset.unit||"";
@@ -193,6 +217,18 @@ function render(D){
   h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 6.6–8.3 h — aim for consistent 7.5 h+.", " h");
   h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Falling 30 → 23 — good direction.", "");
   h += `</div>`;
+
+  const r=D.running;
+  if(r){
+    h += `<div class="sec">Running</div><div class="grid cards">`;
+    h += mini("Miles YTD", r.ytd.toLocaleString(), `${r.runsYtd} runs in 2026`);
+    h += mini("Last 7 days", r.last7+" mi", "rolling 7-day");
+    h += mini("4-wk avg", r.avg4+" mi", "per week · baseline");
+    h += mini("This week", r.thisWeek+" mi", "so far (partial)");
+    h += `</div>`;
+    h += barCard("Weekly mileage (12 wk)", r.weekly, " mi", 20, "var(--blue)", `${r.avg4} mi/wk avg`,
+      "Dashed line = 20 mi, the low end of your 20s–30s goal. Big week-to-week swings and a ~14 mi/wk average = the clearest place to add easy Z2 volume.");
+  }
 
   h += `</div>`; // close .left
   h += `<aside class="right"><div class="sec">What to do</div><div class="recs">`;
