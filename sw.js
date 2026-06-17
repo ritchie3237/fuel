@@ -1,6 +1,6 @@
 // Today's Fuel — offline service worker.
 // Bump CACHE when you change app files so phones pull the update.
-const CACHE = "fuel-v6";
+const CACHE = "fuel-v7";
 const ASSETS = [
   "./index.html",
   "./manifest.webmanifest",
@@ -23,17 +23,42 @@ self.addEventListener("activate", (e) => {
   self.clients.claim();
 });
 
-// Stale-while-revalidate: serve cached copy instantly (works offline/bricked),
-// fetch a fresh copy in the background so the next open has the latest.
+// Network-first for the page/app code (so updates show immediately when online),
+// falling back to cache when offline/bricked. Other assets stay cache-first.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
-  e.respondWith(
-    caches.open(CACHE).then(async (cache) => {
-      const cached = await cache.match(e.request, { ignoreSearch: true });
-      const network = fetch(e.request)
+
+  const req = e.request;
+  const isAppCode =
+    req.mode === "navigate" ||
+    /\.(html|js|webmanifest)$/.test(new URL(req.url).pathname);
+
+  if (isAppCode) {
+    // Try the network first; cache the fresh copy; if offline, serve the cache.
+    e.respondWith(
+      fetch(req)
         .then((res) => {
           if (res && res.status === 200 && res.type === "basic") {
-            cache.put(e.request, res.clone());
+            const copy = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, copy));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.open(CACHE).then((c) => c.match(req, { ignoreSearch: true }))
+        )
+    );
+    return;
+  }
+
+  // Images / icons: cache-first (they rarely change), update in background.
+  e.respondWith(
+    caches.open(CACHE).then(async (cache) => {
+      const cached = await cache.match(req, { ignoreSearch: true });
+      const network = fetch(req)
+        .then((res) => {
+          if (res && res.status === 200 && res.type === "basic") {
+            cache.put(req, res.clone());
           }
           return res;
         })
