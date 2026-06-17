@@ -56,6 +56,10 @@
   .right{align-self:start;}
   @media(min-width:880px){ .right{position:sticky; top:16px; max-height:calc(100vh - 32px); overflow:auto;} }
   .recs{display:grid; gap:12px; grid-template-columns:1fr;}
+  .polbar{display:flex; height:28px; border-radius:8px; overflow:hidden; margin:8px 0; font-size:11px; font-weight:800;}
+  .polbar div{display:flex; align-items:center; justify-content:center; color:#0b1119; min-width:0;}
+  .poleasy{background:var(--accent);} .polgray{background:var(--amber);} .polhard{background:var(--red);}
+  .pollegend{font-size:12px; color:var(--muted);} .pollegend b{color:var(--ink);}
   .recbox{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 16px;}
   .recbox h3{font-size:13px; margin:0 0 10px; display:flex; align-items:center; gap:8px;}
   .recbox.keep h3{color:var(--accent);} .recbox.adj h3{color:var(--amber);}
@@ -228,6 +232,19 @@ function render(D){
     h += `</div>`;
     h += barCard("Weekly mileage (12 wk)", r.weekly, " mi", 20, "var(--blue)", `${r.avg4} mi/wk avg`,
       "Dashed line = 20 mi, the low end of your 20s–30s goal. Big week-to-week swings and a ~14 mi/wk average = the clearest place to add easy Z2 volume.");
+    const pl=r.polarized;
+    if(pl){
+      h += `<div class="card chartcard" style="margin-top:12px;">`;
+      h += `<div class="top"><span class="name">Polarized split · ${pl.window}</span><span class="now">${pl.easyPct}% easy</span></div>`;
+      h += `<div class="polbar">`;
+      if(pl.easyPct) h += `<div class="poleasy" style="width:${pl.easyPct}%">${pl.easyPct}%</div>`;
+      if(pl.grayPct) h += `<div class="polgray" style="width:${pl.grayPct}%">${pl.grayPct}%</div>`;
+      if(pl.hardPct) h += `<div class="polhard" style="width:${pl.hardPct}%">${pl.hardPct}%</div>`;
+      h += `</div>`;
+      h += `<div class="pollegend"><b>Easy</b> ${pl.easyPct}% (${pl.easyMi} mi) · <b>Gray</b> ${pl.grayPct}% (${pl.grayMi} mi) · <b>Hard</b> ${pl.hardPct}% (${pl.hardMi} mi)</div>`;
+      h += `<div class="cap">Polarized ideal ≈ <b>80% easy / 20% hard</b> with almost no gray. Over half your miles sit in the gray zone (avg HR ~139–151) — neither easy enough to recover nor hard enough to drive adaptation. Fix: genuinely slow your easy days (HR &lt;135). Classified by each run's average HR — approximate.</div>`;
+      h += `</div>`;
+    }
   }
 
   h += `</div>`; // close .left
