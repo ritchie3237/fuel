@@ -196,7 +196,7 @@ function render(D){
   let h = `<div class="layout"><div class="left"><div class="sec">Where you stand</div><div class="grid kpis">`;
   h += kpi(s.vo2max, "VO2max", s.vo2maxLabel, "flat");
   h += kpi(s.fitnessAge, "Fitness age", `${(s.chronoAge-s.fitnessAge).toFixed(1)} yrs younger`, "up");
-  h += kpi(s.readiness, "Readiness", s.readinessLevel, "up");
+  h += kpi(s.readiness, "Readiness", s.readinessLevel, s.readiness>=70?"up":s.readiness>=50?"flat":"down");
   h += kpi(s.rhr, "Resting HR", `7-day avg ${s.rhr7d}`, "flat");
   h += `</div>`;
 

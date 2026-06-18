@@ -1,25 +1,25 @@
 {
-  "generated": "2026-06-17",
+  "generated": "2026-06-18",
   "athlete": "Mike Ritchie",
   "snapshot": {
-    "vo2max": 52.8,
+    "vo2max": 52.7,
     "vo2maxLabel": "Superior for age",
     "fitnessAge": 31.6,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
     "rhr": 48,
-    "rhr7d": 49,
-    "hrv": 55,
+    "rhr7d": 48,
+    "hrv": 56,
     "hrvStatus": "Balanced",
-    "readiness": 88,
-    "readinessLevel": "High — well rested",
-    "sleepScoreLast": 82,
-    "sleepAvg": 81,
-    "trainingStatus": "Maintaining",
-    "acwr": 1.1,
-    "acwrStatus": "Optimal",
-    "acwrPercent": 47,
-    "stressLatest": 29,
+    "readiness": 34,
+    "readinessLevel": "Low — recovering from today's intervals",
+    "sleepScoreLast": 89,
+    "sleepAvg": 83,
+    "trainingStatus": "Productive",
+    "acwr": 1.5,
+    "acwrStatus": "High",
+    "acwrPercent": 66,
+    "stressLatest": 28,
     "stressWeek": 23,
     "stressQualifier": "Balanced",
     "vigorousDays": 2.6,
@@ -29,30 +29,30 @@
     "bmi": 24.2,
     "bmiTarget": 21.1,
     "bmiAsOf": "2026-06-18",
-    "steps": 11640,
-    "stepGoal": 11250,
-    "racePredictions": { "5K": "20:53", "10K": "44:32", "Half": "1:40:21", "Marathon": "3:40:55" }
+    "steps": 14229,
+    "stepGoal": 11290,
+    "racePredictions": { "5K": "20:52", "10K": "44:30", "Half": "1:40:20", "Marathon": "3:40:49" }
   },
   "trends": {
     "vo2max": [
       {"d":"04-21","v":54},{"d":"05-01","v":54},{"d":"05-14","v":53},{"d":"05-21","v":53},
-      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53}
+      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53},{"d":"06-18","v":53}
     ],
     "hrv": [
       {"d":"05-18","v":51},{"d":"05-25","v":47},{"d":"05-29","v":46},{"d":"06-02","v":51},
-      {"d":"06-06","v":51},{"d":"06-10","v":50},{"d":"06-12","v":53},{"d":"06-14","v":53},{"d":"06-16","v":55}
+      {"d":"06-06","v":51},{"d":"06-10","v":50},{"d":"06-12","v":53},{"d":"06-14","v":53},{"d":"06-16","v":55},{"d":"06-18","v":56}
     ],
     "rhr": [
       {"d":"05-31","v":53},{"d":"06-03","v":49},{"d":"06-06","v":48},{"d":"06-08","v":49},
-      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48}
+      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},{"d":"06-18","v":48}
     ],
     "sleepScore": [
-      {"d":"06-08","v":72},{"d":"06-09","v":81},{"d":"06-10","v":83},{"d":"06-11","v":77},
-      {"d":"06-12","v":69},{"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},{"d":"06-16","v":82}
+      {"d":"06-09","v":81},{"d":"06-10","v":83},{"d":"06-11","v":77},{"d":"06-12","v":69},
+      {"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},{"d":"06-16","v":82},{"d":"06-18","v":89}
     ],
     "sleepHours": [
-      {"d":"06-08","v":8.2},{"d":"06-09","v":6.6},{"d":"06-10","v":8.0},{"d":"06-11","v":7.1},
-      {"d":"06-12","v":8.3},{"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},{"d":"06-16","v":7.0}
+      {"d":"06-09","v":6.6},{"d":"06-10","v":8.0},{"d":"06-11","v":7.1},{"d":"06-12","v":8.3},
+      {"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},{"d":"06-16","v":7.0},{"d":"06-18","v":8.5}
     ],
     "stressWeekly": [
       {"d":"05-06","v":30},{"d":"05-13","v":30},{"d":"05-20","v":30},
@@ -60,36 +60,35 @@
     ]
   },
   "running": {
-    "ytd": 294,
-    "runsYtd": 64,
-    "thisWeek": 9.1,
-    "last7": 21.1,
+    "ytd": 300,
+    "runsYtd": 65,
+    "thisWeek": 15.0,
+    "last7": 27.1,
     "avg4": 14.1,
     "weekly": [
       {"d":"03-30","v":15.1},{"d":"04-06","v":15.1},{"d":"04-13","v":10.1},{"d":"04-20","v":19.1},
       {"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},
-      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":9.1}
+      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":15.0}
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 22, "grayPct": 52, "hardPct": 27,
-      "easyMi": 13.1, "grayMi": 31.2, "hardMi": 16.1
+      "easyPct": 20, "grayPct": 56, "hardPct": 24,
+      "easyMi": 13.1, "grayMi": 37.1, "hardMi": 16.1
     }
   },
   "recommendations": {
     "continue": [
-      "Recovery is genuinely trending up. Your HRV weekly average climbed 47 → 55 ms (“Balanced” every day) while weekly stress fell 30 → 23. Whatever shifted the last 2–3 weeks, keep it.",
-      "Resting HR is excellent and stable (46–53, 7-day avg 49) — a strong aerobic-fitness signal. Keep easy days truly easy (Zone 2) so this stays low.",
-      "Last week’s sleep was strong (85 / 94 / 89 / 82). Protect that bedtime — it’s clearly feeding the high readiness scores.",
-      "Training load sits in the optimal band (ACWR 1.1, 47%). You’re absorbing the work, so it’s safe to keep progressing ~10%/week."
+      "Training status just flipped to “Productive” — your VO2 work is registering. HRV is still climbing (56 ms, balanced) and resting HR is low (48). The engine is responding; hold one hard quality day per week.",
+      "You absorbed the buildup well — 8.5 h sleep last night (score 89), balanced stress, low resting HR. Recovery capacity is solid.",
+      "Last 7 days hit ~27 mi — your highest in a while and a real step toward the 20s–30s. Good direction; keep the added volume easy.",
+      "Resting HR is excellent and stable (46–53, 7-day avg 48) — a strong aerobic-fitness signal. Keep easy days truly easy so it stays low."
     ],
     "change": [
-      "Your polarized split is inverted — over the last 30 days only 22% of your miles were truly easy while 52% sat in the gray zone (avg HR ~139–151) and 27% hard. Polarized training wants ~80% easy / ~20% hard with almost no gray. This is the #1 fix and the likely root of the VO2max plateau: slow your easy runs to HR <135 so they actually recover you — which lets your hard days go genuinely hard. The gray-zone miles are tiring you without building base or driving adaptation.",
-      "VO2max has plateaued near 53 (precise 52.8) for ~6 weeks. That’s exactly why Thursday’s 5×3-min intervals exist — but it takes 4–6 weeks of consistent weekly quality work to move. Hold one hard session per week and be patient.",
-      "Garmin flags “Aerobic Low Shortage” — you need more easy Z2 volume, not more intensity. Ramp weekly mileage toward the 20s–30s as planned; that aerobic base is what raises the VO2max ceiling alongside the intervals.",
-      "Sleep duration swings a lot (6.6 h → 8.3 h), and your lower-scoring nights (69, 72, 77) had less deep + REM and more awakenings. Aim for a consistent 7.5 h+ with a steady bedtime — consistency beats the occasional long night.",
-      "Vigorous days average 2.6/week vs Garmin’s target of 3. The structured weekly intervals will close that gap and nudge your fitness age (31.6) toward its achievable 30.5.",
-      "Weight is now current — logged 174.4 lbs on Jun 17 (BMI ~24.3, down from the stale 25.0). That’s ~11 lbs above your low-160s goal; the Fuel app’s ~2,300 cal / 150 g protein plan is built for a sustainable ~1 lb/week. Keep logging weigh-ins so BMI and fitness age keep tracking — Garmin recomputes fitness age within a day or so."
+      "Your polarized split is inverted — over the last 30 days only 20% of your miles were truly easy while 56% sat in the gray zone (avg HR ~139–151) and 24% hard. Polarized training wants ~80% easy / ~20% hard with almost no gray. This is the #1 fix and the likely root of the VO2max plateau: slow your easy runs to HR <135 so they actually recover you — which lets your hard days go genuinely hard. (Note: today's interval session is counted as “gray” here because it's classified by each run's average HR — a known limitation; it was a true hard session.)",
+      "Load spiked after today's intervals — ACWR jumped to 1.5 (“High”) and post-workout readiness dropped to 34. That's normal for a hard session, but the next 2–3 days should be genuinely easy. Your scheduled Friday easy-Z2 and Sunday long runs are exactly right — resist adding intensity until ACWR settles back toward ~1.0.",
+      "Garmin still flags “Aerobic Low Shortage” — you need more easy Z2 volume, not more intensity. Keep ramping weekly mileage toward the 20s–30s; that aerobic base is what raises the VO2max ceiling alongside the intervals.",
+      "Sleep duration still swings (6.6 h → 8.5 h). Last night was great; aim for a consistent 7.5 h+ with a steady bedtime — consistency beats the occasional long night.",
+      "Weight is trending down — 173.2 lb (BMI 24.2), down 1.2 lb from your first log on Jun 17. ~10 lb above your low-160s goal; hold the sustainable ~1 lb/week pace and keep logging weigh-ins so BMI and fitness age keep tracking."
     ]
   }
 }
