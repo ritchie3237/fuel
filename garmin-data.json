@@ -1,24 +1,24 @@
 {
-  "generated": "2026-06-18",
+  "generated": "2026-06-20",
   "athlete": "Mike Ritchie",
   "snapshot": {
-    "vo2max": 52.7,
+    "vo2max": 52.5,
     "vo2maxLabel": "Superior for age",
     "fitnessAge": 31.6,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
     "rhr": 48,
     "rhr7d": 48,
-    "hrv": 56,
+    "hrv": 55,
     "hrvStatus": "Balanced",
-    "readiness": 34,
-    "readinessLevel": "Low — recovering from today's intervals",
-    "sleepScoreLast": 89,
-    "sleepAvg": 83,
-    "trainingStatus": "Productive",
-    "acwr": 1.5,
-    "acwrStatus": "High",
-    "acwrPercent": 66,
+    "readiness": 48,
+    "readinessLevel": "Low — recovering from today's long run",
+    "sleepScoreLast": 73,
+    "sleepAvg": 82,
+    "trainingStatus": "Maintaining",
+    "acwr": 1.2,
+    "acwrStatus": "Optimal",
+    "acwrPercent": 52,
     "stressLatest": 28,
     "stressWeek": 23,
     "stressQualifier": "Balanced",
@@ -31,28 +31,29 @@
     "bmiAsOf": "2026-06-18",
     "steps": 14229,
     "stepGoal": 11290,
-    "racePredictions": { "5K": "20:52", "10K": "44:30", "Half": "1:40:20", "Marathon": "3:40:49" }
+    "racePredictions": { "5K": "20:52", "10K": "44:30", "Half": "1:40:20", "Marathon": "3:40:49" },
+    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:40:49", "pace": "6:51/mi" }
   },
   "trends": {
     "vo2max": [
       {"d":"04-21","v":54},{"d":"05-01","v":54},{"d":"05-14","v":53},{"d":"05-21","v":53},
-      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53},{"d":"06-18","v":53}
+      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53},{"d":"06-20","v":53}
     ],
     "hrv": [
       {"d":"05-18","v":51},{"d":"05-25","v":47},{"d":"05-29","v":46},{"d":"06-02","v":51},
-      {"d":"06-06","v":51},{"d":"06-10","v":50},{"d":"06-12","v":53},{"d":"06-14","v":53},{"d":"06-16","v":55},{"d":"06-18","v":56}
+      {"d":"06-06","v":51},{"d":"06-10","v":50},{"d":"06-12","v":53},{"d":"06-14","v":53},{"d":"06-16","v":55},{"d":"06-20","v":55}
     ],
     "rhr": [
       {"d":"05-31","v":53},{"d":"06-03","v":49},{"d":"06-06","v":48},{"d":"06-08","v":49},
-      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},{"d":"06-18","v":48}
+      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},{"d":"06-20","v":48}
     ],
     "sleepScore": [
-      {"d":"06-09","v":81},{"d":"06-10","v":83},{"d":"06-11","v":77},{"d":"06-12","v":69},
-      {"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},{"d":"06-16","v":82},{"d":"06-18","v":89}
+      {"d":"06-10","v":83},{"d":"06-11","v":77},{"d":"06-12","v":69},{"d":"06-13","v":85},
+      {"d":"06-14","v":94},{"d":"06-15","v":89},{"d":"06-16","v":82},{"d":"06-18","v":89},{"d":"06-20","v":73}
     ],
     "sleepHours": [
-      {"d":"06-09","v":6.6},{"d":"06-10","v":8.0},{"d":"06-11","v":7.1},{"d":"06-12","v":8.3},
-      {"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},{"d":"06-16","v":7.0},{"d":"06-18","v":8.5}
+      {"d":"06-10","v":8.0},{"d":"06-11","v":7.1},{"d":"06-12","v":8.3},{"d":"06-13","v":7.1},
+      {"d":"06-14","v":8.2},{"d":"06-15","v":7.2},{"d":"06-16","v":7.0},{"d":"06-18","v":8.5}
     ],
     "stressWeekly": [
       {"d":"05-06","v":30},{"d":"05-13","v":30},{"d":"05-20","v":30},
@@ -60,35 +61,35 @@
     ]
   },
   "running": {
-    "ytd": 300,
-    "runsYtd": 65,
-    "thisWeek": 15.0,
-    "last7": 27.1,
+    "ytd": 308,
+    "runsYtd": 66,
+    "thisWeek": 23.1,
+    "last7": 30.1,
     "avg4": 14.1,
     "weekly": [
       {"d":"03-30","v":15.1},{"d":"04-06","v":15.1},{"d":"04-13","v":10.1},{"d":"04-20","v":19.1},
       {"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},
-      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":15.0}
+      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":23.1}
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 20, "grayPct": 56, "hardPct": 24,
-      "easyMi": 13.1, "grayMi": 37.1, "hardMi": 16.1
+      "easyPct": 28, "grayPct": 50, "hardPct": 22,
+      "easyMi": 21.1, "grayMi": 37.1, "hardMi": 16.1
     }
   },
   "recommendations": {
     "continue": [
-      "Training status just flipped to “Productive” — your VO2 work is registering. HRV is still climbing (56 ms, balanced) and resting HR is low (48). The engine is responding; hold one hard quality day per week.",
-      "You absorbed the buildup well — 8.5 h sleep last night (score 89), balanced stress, low resting HR. Recovery capacity is solid.",
-      "Last 7 days hit ~27 mi — your highest in a while and a real step toward the 20s–30s. Good direction; keep the added volume easy.",
-      "Resting HR is excellent and stable (46–53, 7-day avg 48) — a strong aerobic-fitness signal. Keep easy days truly easy so it stays low."
+      "Today's long run is the model — 8 mi at avg HR 128, genuinely easy Zone 2. THIS is exactly what builds the aerobic base for a sub-3 marathon. Do more of precisely this and your easy % will keep climbing.",
+      "Load settled back to optimal — ACWR 1.2 after Thursday's interval spike. You recovered the hard session well; the engine is handling the buildup.",
+      "Last 7 days hit ~30 mi — a recent high and right on the trajectory a sub-3 build needs. Keep stacking easy volume.",
+      "HRV is steady at 55 ms (balanced) and resting HR low (48) — recovery markers stay green, so it's safe to keep progressing ~10%/week."
     ],
     "change": [
-      "Your polarized split is inverted — over the last 30 days only 20% of your miles were truly easy while 56% sat in the gray zone (avg HR ~139–151) and 24% hard. Polarized training wants ~80% easy / ~20% hard with almost no gray. This is the #1 fix and the likely root of the VO2max plateau: slow your easy runs to HR <135 so they actually recover you — which lets your hard days go genuinely hard. (Note: today's interval session is counted as “gray” here because it's classified by each run's average HR — a known limitation; it was a true hard session.)",
-      "Load spiked after today's intervals — ACWR jumped to 1.5 (“High”) and post-workout readiness dropped to 34. That's normal for a hard session, but the next 2–3 days should be genuinely easy. Your scheduled Friday easy-Z2 and Sunday long runs are exactly right — resist adding intensity until ACWR settles back toward ~1.0.",
-      "Garmin still flags “Aerobic Low Shortage” — you need more easy Z2 volume, not more intensity. Keep ramping weekly mileage toward the 20s–30s; that aerobic base is what raises the VO2max ceiling alongside the intervals.",
-      "Sleep duration still swings (6.6 h → 8.5 h). Last night was great; aim for a consistent 7.5 h+ with a steady bedtime — consistency beats the occasional long night.",
-      "Weight is trending down — 173.2 lb (BMI 24.2), down 1.2 lb from your first log on Jun 17. ~10 lb above your low-160s goal; hold the sustainable ~1 lb/week pace and keep logging weigh-ins so BMI and fitness age keep tracking."
+      "Polarized split is improving — easy miles rose to 28% (from 20%) thanks to today's run, but 50% is still gray (avg HR ~139–151). For a sub-3 build you want ~80% easy / ~20% hard. Keep forcing easy days to HR <135; it's the highest-leverage habit between now and Oct 2027.",
+      "Build the aerobic base — the #1 driver toward sub-3. You're averaging ~14 mi/wk (30 in the last 7); the multi-month plan is to ramp consistently toward 40–50 mi/wk, almost all easy. Garmin still flags “Aerobic Low Shortage.”",
+      "VO2max sits at 52.5; sub-3 generally needs it climbing toward the upper 50s. The weekly VO2/threshold session plus rising easy volume is what moves it — be patient, it's a 4–6 week-per-step metric.",
+      "Weight is trending down — 173.2 lb (BMI 24.2), -1.2 from your first log. Getting toward your low-160s also helps marathon pace (less to carry). Hold the ~1 lb/week pace.",
+      "Sleep dipped last night (73). Keep a consistent 7.5 h+ bedtime — recovery is what lets you absorb rising mileage without breaking down."
     ]
   }
 }

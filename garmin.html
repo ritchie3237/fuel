@@ -213,6 +213,11 @@ function render(D){
   h += `<div class="sec">Race predictions</div><div class="card"><div class="race">`;
   for(const [k,v] of Object.entries(s.racePredictions)) h += `<div><div class="t">${v}</div><div class="d">${k}</div></div>`;
   h += `</div></div>`;
+  if(s.goal){
+    h += `<div class="card" style="margin-top:12px;border-color:#cbb3ee;background:#faf7ff;">`+
+      `<div style="font-size:15px;font-weight:800;">🎯 Goal: ${s.goal.text} &mdash; ${s.goal.race}</div>`+
+      `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;">Needs ~${s.goal.pace} for 26.2. Current projection <b>${s.goal.current}</b>. The work between now and then: build easy aerobic volume + raise VO2max — base first, marathon-specific later.</div></div>`;
+  }
 
   h += `<div class="sec">Trends</div><div class="grid charts">`;
   h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false, "Plateaued ~53 for six weeks — the weekly intervals target this.", "");
