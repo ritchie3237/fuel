@@ -55,11 +55,14 @@
       padding: 1.25rem;
     }
     .row { display: flex; gap: .9rem; flex-wrap: wrap; }
-    .row > .field { flex: 1 1 160px; }
+    .row > .field { flex: 1 1 160px; min-width: 0; }
+    .row > .field.half { flex: 1 1 120px; }
     .field { margin-bottom: 1rem; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .3rem; }
     input, select, textarea {
       width: 100%;
+      min-width: 0;
+      max-width: 100%;
       padding: .6rem .7rem;
       font-size: 1rem;
       border: 1px solid var(--line);
@@ -67,6 +70,15 @@
       background: #fff;
       color: var(--ink);
     }
+    /* Date inputs: cap the width (a date never needs a full row) and
+       normalize iOS Safari's native rendering so they match text inputs. */
+    input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      max-width: 13rem;
+      min-height: 2.55rem;
+    }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
     textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
     input:focus, select:focus, textarea:focus {
       outline: 2px solid var(--lake);
@@ -96,7 +108,8 @@
       font-size: .85rem;
       font-weight: 600;
       cursor: pointer;
-      padding: 0;
+      padding: .25rem .5rem;
+      margin-right: -.5rem;
     }
     .addbtn {
       background: none;
@@ -284,9 +297,9 @@
         '<div class="req-head"><span class="req-title"></span>' +
         '<button type="button" class="removeReq">Remove</button></div>' +
         '<div class="row">' +
-        '<div class="field"><label for="start-' + reqSeq + '">Start date</label>' +
+        '<div class="field half"><label for="start-' + reqSeq + '">Start date</label>' +
         '<input type="date" id="start-' + reqSeq + '" class="req-start" required /></div>' +
-        '<div class="field"><label for="end-' + reqSeq + '">End date</label>' +
+        '<div class="field half"><label for="end-' + reqSeq + '">End date</label>' +
         '<input type="date" id="end-' + reqSeq + '" class="req-end" required /></div>' +
         '<div class="field"><label for="type-' + reqSeq + '">Primary or backup?</label>' +
         '<select id="type-' + reqSeq + '" class="req-type">' +

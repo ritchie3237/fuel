@@ -54,6 +54,11 @@
       border-radius: 8px;
       background: #fff;
       color: var(--ink);
+      max-width: 100%;
+    }
+    /* 16px controls on phones: keeps iOS Safari from zooming in on focus. */
+    @media (max-width: 640px) {
+      select, button { font-size: 1rem; }
     }
     button { cursor: pointer; font-weight: 600; }
     button:hover { border-color: var(--lake); }
@@ -133,9 +138,9 @@
     .prop h3 { margin: .1rem 0 .5rem; font-size: 1rem; color: var(--pine); }
     .prop-note { font-size: .85rem; color: var(--muted); margin: .2rem 0 .8rem; }
     .prop-note b { color: var(--ink); }
-    .prop-row { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin: .45rem 0; }
+    .prop-row { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin: .45rem 0; min-width: 0; }
     .prop-name { font-weight: 700; min-width: 110px; }
-    .prop-choice { max-width: 360px; }
+    .prop-choice { flex: 1 1 220px; min-width: 0; width: auto; max-width: min(360px, 100%); }
     .prop-status { font-size: .85rem; }
     .prop-status.ok { color: var(--ok-ink); }
     .prop-status.bad { color: var(--err-ink); font-weight: 700; }
