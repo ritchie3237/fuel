@@ -19,6 +19,7 @@
 var NOTIFY_EMAIL = "ritchie3237@gmail.com";
 var REVIEW_URL = "https://ritchie3237.github.io/fuel/plp/review.html";
 var SHEET_NAME = "Submissions";
+var SCHEDULE_CALENDAR = "PLP Off-Season Schedule";
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
@@ -26,6 +27,8 @@ function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
     if (d._honey) return jsonOut({ ok: true }); // silently drop spam bots
+
+    if (d.action === "publish_schedule") return publishSchedule(d);
 
     var required = ["name", "email", "season"];
     for (var i = 0; i < required.length; i++) {
@@ -100,6 +103,62 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Publishes a finalized season schedule to the "PLP Off-Season Schedule"
+ * Google Calendar (created on first use). Existing PLP events inside that
+ * season's window are replaced, so republishing is safe.
+ */
+function publishSchedule(d) {
+  if (!d.season) return jsonOut({ ok: false, error: "Missing season" });
+  if (!(d.stays && d.stays.length)) return jsonOut({ ok: false, error: "No stays to publish" });
+  var w = seasonWindowFromLabel(d.season);
+  if (!w) return jsonOut({ ok: false, error: "Unrecognized season: " + d.season });
+
+  var cal = getScheduleCalendar();
+  var cleared = 0;
+  cal.getEvents(w.min, addDays(w.max, 1)).forEach(function (ev) {
+    if (ev.getTitle().indexOf("PLP ") === 0) { ev.deleteEvent(); cleared++; }
+  });
+
+  var created = 0;
+  d.stays.forEach(function (s) {
+    if (!s.name || !s.start_date || !s.end_date) return;
+    var title = (s.exclusive === "Yes" ? "PLP Exclusive - " : "PLP Non-Exclusive - ") + s.name;
+    var desc = "Published from PLP McGee Scheduling — " + d.season +
+      (s.exclusive === "No" && s.people ? " · " + s.people + " people" : "");
+    // All-day events use an exclusive end date, so add one day.
+    cal.createAllDayEvent(title, parseDay(s.start_date), addDays(parseDay(s.end_date), 1),
+      { description: desc });
+    created++;
+  });
+
+  return jsonOut({ ok: true, calendar: SCHEDULE_CALENDAR, cleared: cleared, created: created });
+}
+
+function getScheduleCalendar() {
+  var cals = CalendarApp.getCalendarsByName(SCHEDULE_CALENDAR);
+  return cals.length ? cals[0] : CalendarApp.createCalendar(SCHEDULE_CALENDAR);
+}
+
+function parseDay(s) {
+  var p = String(s).split("-");
+  return new Date(+p[0], +p[1] - 1, +p[2]);
+}
+
+function addDays(d, n) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+function seasonWindowFromLabel(label) {
+  var m = /^(Spring|Fall)\s+(\d{4})$/.exec(String(label));
+  if (!m) return null;
+  var y = +m[2];
+  if (m[1] === "Spring") return { min: new Date(y, 4, 1), max: new Date(y, 5, 30) };
+  var ld = new Date(y, 8, 1);
+  while (ld.getDay() !== 1) ld.setDate(ld.getDate() + 1);
+  return { min: new Date(y, 8, ld.getDate() + 1), max: new Date(y, 9, 31) };
 }
 
 function doGet() {

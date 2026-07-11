@@ -22,7 +22,8 @@ script, so these steps are yours; everything else is already wired up.
    - **Who has access: Anyone**
 
    Click **Deploy**. Google will ask you to authorize the script (it needs
-   permission to edit your sheet and send email as you) — click through
+   permission to edit your sheet, send email as you, and manage your
+   calendars for schedule publishing) — click through
    **Advanced → Go to (project name)** if it warns the app is unverified;
    that warning appears because you wrote the script yourself.
 

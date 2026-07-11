@@ -140,7 +140,18 @@
     .prop-status.ok { color: var(--ok-ink); }
     .prop-status.bad { color: var(--err-ink); font-weight: 700; }
     .prop-status.skip { color: var(--muted); font-style: italic; }
-    .prop-reset { margin-top: .8rem; }
+    .prop-actions { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin-top: .9rem; }
+    .prop-publish {
+      background: var(--pine);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+    }
+    .prop-publish:hover { background: var(--pine-dark); border: none; }
+    .prop-publish:disabled { opacity: .6; cursor: default; }
+    .pub-status { font-size: .85rem; }
+    .pub-status.ok { color: var(--ok-ink); font-weight: 600; }
+    .pub-status.err { color: var(--err-ink); font-weight: 600; }
     .note { font-size: .82rem; color: var(--muted); margin-top: .9rem; }
     a { color: var(--lake); }
   </style>
@@ -492,8 +503,11 @@
           '<span class="chip shared"></span>shared (fine)' +
           '<span class="chip conflict"></span>clash' +
           "</div>" +
+          '<div class="prop-actions">' +
+          '<button type="button" class="prop-publish" data-season="' + esc(s) + '">Publish to Google Calendar</button>' +
           '<button type="button" class="prop-reset" data-season="' + esc(s) + '">Reset to auto proposal</button>' +
-          "</div>";
+          '<span class="pub-status"></span>' +
+          "</div></div>";
       }).join("");
 
       Array.prototype.forEach.call(el.querySelectorAll(".prop-choice"), function (sel) {
@@ -508,6 +522,54 @@
           var st = propState[this.getAttribute("data-season")];
           st.choice = autoSolve(st.units);
           renderProposals(filterEl.value);
+        });
+      });
+      Array.prototype.forEach.call(el.querySelectorAll(".prop-publish"), function (b) {
+        b.addEventListener("click", function () {
+          var s = this.getAttribute("data-season");
+          var st = propState[s];
+          var rows = chosenRows(st);
+          var statusEl = this.parentNode.querySelector(".pub-status");
+          var btn = this;
+
+          function setStatus(cls, text) { statusEl.className = "pub-status " + cls; statusEl.textContent = text; }
+
+          if (!rows.length) { setStatus("err", "Nothing is scheduled — pick some stays first."); return; }
+          var clash = false;
+          for (var i = 0; i < rows.length && !clash; i++)
+            for (var j = i + 1; j < rows.length && !clash; j++)
+              clash = rowConflict(rows[i], rows[j]);
+          if (clash) { setStatus("err", "Resolve the clashes first — publishing is blocked while stays conflict."); return; }
+          if (!window.confirm("Publish " + rows.length + " stay" + (rows.length > 1 ? "s" : "") +
+            " for " + s + " to the '" + "PLP Off-Season Schedule" + "' Google Calendar?\n\n" +
+            "Any existing PLP events in that season will be replaced.")) return;
+
+          btn.disabled = true;
+          setStatus("", "Publishing…");
+          fetch(ENDPOINT, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "publish_schedule",
+              season: s,
+              stays: rows.map(function (r) {
+                return { name: r.name, start_date: r.start_date, end_date: r.end_date,
+                  exclusive: r.exclusive, people: r.people };
+              })
+            })
+          })
+            .then(function (res) { if (!res.ok) throw new Error("HTTP " + res.status); return res.json(); })
+            .then(function (data) {
+              if (!data.ok) throw new Error(data.error || "Backend error");
+              setStatus("ok", "✓ Published " + data.created + " stay" + (data.created > 1 ? "s" : "") +
+                " to \"" + data.calendar + "\"" +
+                (data.cleared ? " (replaced " + data.cleared + " previous)" : "") + ".");
+            })
+            .catch(function (err) {
+              var hint = /Missing name/.test(err.message)
+                ? " (The Apps Script looks out of date — paste the latest Code.gs and deploy a new version.)" : "";
+              setStatus("err", "Couldn't publish: " + err.message + hint);
+            })
+            .finally(function () { btn.disabled = false; });
         });
       });
     }
