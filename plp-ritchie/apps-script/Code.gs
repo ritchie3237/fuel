@@ -225,7 +225,7 @@ function getSubmissions(sheet) {
   var out = [];
   for (var i = 1; i < values.length; i++) {
     var v = values[i];
-    if (!v[2]) continue;
+    if (!v[2] || String(v[0]) === "ID") continue; // skip blanks and stray header rows
     out.push({
       id: String(v[0]),
       submitted: v[1] instanceof Date ? v[1].toISOString() : String(v[1]),
