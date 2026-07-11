@@ -79,6 +79,44 @@
     .muted { color: var(--muted); font-size: .85rem; }
     #status { padding: 1.5rem; text-align: center; color: var(--muted); }
     #status.error { color: var(--err-ink); }
+    .cal {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .cal h3 { margin: .1rem 0 .6rem; font-size: 1rem; color: var(--pine); }
+    .cal-months { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+    .cal-month { flex: 1 1 260px; max-width: 340px; }
+    .cal-month h4 { margin: 0 0 .4rem; font-size: .88rem; text-align: center; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-dow { font-size: .66rem; text-align: center; color: var(--muted); font-weight: 700; padding: 2px 0; }
+    .cal-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .78rem;
+      border-radius: 6px;
+      border: 1px solid transparent;
+    }
+    .cal-day.off { color: #c9c4b6; }
+    .cal-day.open { background: var(--ok-bg); color: var(--ok-ink); border-color: #bcd9c2; }
+    .cal-day.busy1 { background: #dbe9f3; color: #1f4d6b; border-color: #b5d0e2; }
+    .cal-day.busy2 { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); font-weight: 700; }
+    .cal-legend { font-size: .8rem; color: var(--muted); margin-top: .7rem; }
+    .cal-legend .chip {
+      display: inline-block;
+      width: .85em; height: .85em;
+      border-radius: 3px;
+      margin: 0 .3em 0 .9em;
+      vertical-align: -1px;
+      border: 1px solid transparent;
+    }
+    .cal-legend .chip.open { background: var(--ok-bg); border-color: #bcd9c2; }
+    .cal-legend .chip.busy1 { background: #dbe9f3; border-color: #b5d0e2; }
+    .cal-legend .chip.busy2 { background: var(--warn-bg); border-color: var(--warn-line); }
     .note { font-size: .82rem; color: var(--muted); margin-top: .9rem; }
     a { color: var(--lake); }
   </style>
@@ -96,6 +134,8 @@
       <button id="refreshBtn" type="button">Refresh</button>
       <span class="summary" id="summary"></span>
     </div>
+
+    <div id="calendars"></div>
 
     <div class="tablewrap">
       <div id="status">Loading requests…</div>
@@ -120,8 +160,10 @@
     </div>
 
     <p class="note">
-      Rows highlighted in amber have date ranges that overlap another request.
-      Requests are sorted by start date. <a href="index.html">Back to the request form</a>.
+      The calendars show every day of each season's window: green days are still open
+      (no requests), blue days have one request, amber days are contested. In the table,
+      rows highlighted in amber overlap another request; rows are sorted by start date.
+      <a href="index.html">Back to the request form</a>.
     </p>
   </main>
 
@@ -154,8 +196,98 @@
       });
     }
 
+    // ----- Calendar view: every day of the season window, empty dates flagged -----
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+    function dayIso(y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); }
+
+    // Labor Day = first Monday of September.
+    function laborDay(year) {
+      var d = new Date(year, 8, 1);
+      while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+      return d;
+    }
+
+    // "Spring 2027" / "Fall 2026" -> season window and months to draw.
+    function seasonMeta(seasonStr) {
+      var m = /^(Spring|Fall)\s+(\d{4})$/.exec(seasonStr);
+      if (!m) return null;
+      var year = parseInt(m[2], 10);
+      if (m[1] === "Spring") {
+        return { label: seasonStr, year: year, months: [4, 5],
+          min: dayIso(year, 4, 1), max: dayIso(year, 5, 30) };
+      }
+      var ld = laborDay(year);
+      return { label: seasonStr, year: year, months: [8, 9],
+        min: dayIso(year, 8, ld.getDate() + 1), max: dayIso(year, 9, 31) };
+    }
+
+    var MONTH_NAMES = ["January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"];
+    var DOW = ["S", "M", "T", "W", "T", "F", "S"];
+
+    function renderMonth(meta, month, reqs) {
+      var html = '<div class="cal-month"><h4>' + MONTH_NAMES[month] + " " + meta.year + "</h4>" +
+        '<div class="cal-grid">' +
+        DOW.map(function (d) { return '<div class="cal-dow">' + d + "</div>"; }).join("");
+      var first = new Date(meta.year, month, 1);
+      var daysInMonth = new Date(meta.year, month + 1, 0).getDate();
+      for (var b = 0; b < first.getDay(); b++) html += "<div></div>";
+      for (var d = 1; d <= daysInMonth; d++) {
+        var isoDay = dayIso(meta.year, month, d);
+        if (isoDay < meta.min || isoDay > meta.max) {
+          html += '<div class="cal-day off" data-date="' + isoDay + '">' + d + "</div>";
+          continue;
+        }
+        var covering = reqs.filter(function (r) {
+          return r.start_date <= isoDay && isoDay <= r.end_date;
+        });
+        var cls = covering.length === 0 ? "open" : covering.length === 1 ? "busy1" : "busy2";
+        var title = covering.length
+          ? covering.map(function (r) {
+              return r.name + " (" + r.type +
+                (r.exclusive === "Yes" ? ", exclusive" : r.people ? ", " + r.people + " people" : "") + ")";
+            }).join(" · ")
+          : "Open — no requests";
+        html += '<div class="cal-day ' + cls + '" data-date="' + isoDay +
+          '" title="' + esc(title).replace(/"/g, "&quot;") + '">' + d + "</div>";
+      }
+      return html + "</div></div>";
+    }
+
+    function renderCalendars(seasonFilter) {
+      var el = document.getElementById("calendars");
+      var seasons = [];
+      var seen = {};
+      all.forEach(function (r) {
+        if (!seen[r.season]) { seen[r.season] = true; seasons.push(r.season); }
+      });
+      if (seasonFilter) seasons = seasons.filter(function (s) { return s === seasonFilter; });
+      seasons.sort(function (a, b) {
+        var ma = seasonMeta(a), mb = seasonMeta(b);
+        if (!ma || !mb) return 0;
+        return ma.min < mb.min ? -1 : 1;
+      });
+
+      el.innerHTML = seasons.map(function (s) {
+        var meta = seasonMeta(s);
+        if (!meta) return "";
+        var reqs = all.filter(function (r) { return r.season === s; });
+        return '<div class="cal"><h3>' + esc(s) + " calendar</h3>" +
+          '<div class="cal-months">' +
+          meta.months.map(function (mo) { return renderMonth(meta, mo, reqs); }).join("") +
+          "</div>" +
+          '<div class="cal-legend">Hover a day to see who requested it. Key:' +
+          '<span class="chip open"></span>open — no requests' +
+          '<span class="chip busy1"></span>1 request' +
+          '<span class="chip busy2"></span>2+ requests (overlap)' +
+          "</div></div>";
+      }).join("");
+    }
+
     function render() {
       var season = filterEl.value;
+      renderCalendars(season);
       var rows = all.filter(function (r) { return !season || r.season === season; });
       rows.sort(function (a, b) {
         return a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : 0;
