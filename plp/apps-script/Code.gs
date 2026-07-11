@@ -17,6 +17,8 @@
  */
 
 var NOTIFY_EMAIL = "ritchie3237@gmail.com";
+var GROUP_EMAIL = "plpcamp@googlegroups.com";
+var FORM_URL = "https://ritchie3237.github.io/fuel/plp/";
 var REVIEW_URL = "https://ritchie3237.github.io/fuel/plp/review.html";
 var SHEET_NAME = "Submissions";
 var SCHEDULE_CALENDAR = "PLP Off-Season Schedule";
@@ -104,6 +106,60 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Group announcement mailer. Run setupTriggers() ONCE from the editor to
+ * install a daily noon check; on the first Monday of January/May it emails
+ * the family group that submissions are open, and on the fourth Monday
+ * (exactly 3 weeks later) that one week remains.
+ */
+function setupTriggers() {
+  ScriptApp.getProjectTriggers().forEach(function (t) {
+    if (t.getHandlerFunction() === "dailyGroupMailer") ScriptApp.deleteTrigger(t);
+  });
+  ScriptApp.newTrigger("dailyGroupMailer").timeBased().everyDays(1).atHour(12).create();
+}
+
+function dailyGroupMailer() {
+  var today = new Date();
+  if (today.getDay() !== 1) return; // Mondays only
+  var m = today.getMonth();
+  var nth = Math.floor((today.getDate() - 1) / 7) + 1; // which Monday of the month
+  if (m === 0 && nth === 1) announceOpen("Spring");
+  if (m === 4 && nth === 1) announceOpen("Fall");
+  if (m === 0 && nth === 4) announceOneWeekLeft("Spring");
+  if (m === 4 && nth === 4) announceOneWeekLeft("Fall");
+}
+
+function announceOpen(season) {
+  var windowText = season === "Spring" ? "May and June" : "the day after Labor Day through October";
+  var seasonLabel = season === "Spring" ? "Spring (May & June)" : "Fall (Sept & Oct)";
+  var deadline = Utilities.formatDate(addDays(new Date(), 28), Session.getScriptTimeZone(), "EEEE, MMMM d");
+  var body =
+    "<p><b>" + season + " off-season requests are now open for the Pocono Lake Preserve house!</b></p>" +
+    "<p>The " + season.toLowerCase() + " off-season covers <b>" + windowText + "</b>.</p>" +
+    '<p>👉 <b>Submit your date requests here: <a href="' + FORM_URL + '">' + FORM_URL + "</a></b></p>" +
+    "<p>Fill in your name, email, and your date request(s) — you can add multiple options and mark " +
+    "each Primary or Backup, say whether you'd want the house exclusively to yourselves, and add comments.</p>" +
+    "<p>⏳ <b>Submissions are due in 4 weeks — by " + deadline + ".</b> After the window closes, all " +
+    "requests are reviewed together, conflicts get sorted out (backups help!), and the final schedule " +
+    "is published to the shared PLP Off-Season Schedule calendar.</p>";
+  MailApp.sendEmail({ to: GROUP_EMAIL,
+    subject: "PLP Off-Season Scheduling OPEN — " + seasonLabel, htmlBody: body });
+}
+
+function announceOneWeekLeft(season) {
+  var seasonLabel = season === "Spring" ? "spring (May & June)" : "fall (after Labor Day – October)";
+  var deadline = Utilities.formatDate(addDays(new Date(), 7), Session.getScriptTimeZone(), "EEEE, MMMM d");
+  var body =
+    "<p><b>Only 1 week remains to submit your " + seasonLabel + " date requests for the Pocono Lake " +
+    "Preserve house!</b></p>" +
+    "<p>The window closes on <b>" + deadline + "</b>. If you haven't put in your dates yet:</p>" +
+    '<p>👉 <b>Submit now: <a href="' + FORM_URL + '">' + FORM_URL + "</a></b></p>" +
+    "<p>Include backup options if your dates are flexible — it makes the schedule work better for everyone.</p>";
+  MailApp.sendEmail({ to: GROUP_EMAIL,
+    subject: "PLP " + season + " Submissions — 1 WEEK LEFT", htmlBody: body });
 }
 
 // Receipt to the submitter. Failures here (e.g. a typo'd address) must not
