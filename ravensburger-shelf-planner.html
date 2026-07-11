@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ravensburger Shelf Planner</title>
+<style>
+  :root {
+    --rv-blue: #0f4c81;
+    --rv-blue-dark: #0a3a63;
+    --rv-red: #e7000e;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --line: #d9dfe7;
+    --text: #1a1a1a;
+    --muted: #5a6572;
+    --ok: #147a3d;
+    --warn: #b26a00;
+    --bad: #b00020;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", Arial, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  header { background: var(--rv-blue); color: #fff; padding: 14px 22px; display: flex; align-items: center; gap: 14px; }
+  header .tri { width: 0; height: 0; border-left: 14px solid transparent; border-right: 14px solid transparent; border-bottom: 24px solid var(--rv-red); }
+  header h1 { font-size: 19px; margin: 0; font-weight: 600; letter-spacing: .3px; }
+  header .sub { font-size: 12px; opacity: .85; margin-top: 2px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 16px 22px 60px; }
+  .cols { display: grid; grid-template-columns: 340px 1fr; gap: 16px; align-items: start; }
+  @media (max-width: 980px) { .cols { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  .card h2 { font-size: 14px; margin: 0 0 10px; color: var(--rv-blue); text-transform: uppercase; letter-spacing: .5px; }
+  button { background: var(--rv-blue); color: #fff; border: 0; border-radius: 5px; padding: 7px 13px; font-size: 13px; cursor: pointer; font-family: inherit; }
+  button:hover { background: var(--rv-blue-dark); }
+  button.ghost { background: #fff; color: var(--rv-blue); border: 1px solid var(--rv-blue); }
+  button.ghost:hover { background: #eef4fa; }
+  button.danger { background: var(--bad); }
+  button.small { padding: 4px 9px; font-size: 12px; }
+  .btnrow { display: flex; flex-wrap: wrap; gap: 8px; }
+  input[type=number], input[type=text], select { border: 1px solid var(--line); border-radius: 4px; padding: 5px 7px; font-size: 13px; font-family: inherit; width: 100%; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 2px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .note { font-size: 12px; color: var(--muted); line-height: 1.45; }
+  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: #e8eef5; color: var(--rv-blue); margin: 1px 2px 1px 0; }
+  .pill.warn { background: #fff3e0; color: var(--warn); }
+  .pill.ok { background: #e5f3ea; color: var(--ok); }
+  .pill.bad { background: #fde8ec; color: var(--bad); }
+  table.data { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.data th, table.data td { border-bottom: 1px solid var(--line); padding: 4px 6px; text-align: left; }
+  table.data th { color: var(--muted); font-weight: 600; }
+  .scroll { max-height: 260px; overflow: auto; }
+  /* ---- planogram ---- */
+  #bay { position: relative; margin: 8px auto 0; background: #fbf8f2; border: 3px solid #8b7355; border-top-width: 6px; border-radius: 3px 3px 0 0; }
+  .level { position: absolute; left: 0; right: 0; border-top: 5px solid #a8896a; background: rgba(255,255,255,.35); }
+  .level.dragover { background: #e3edf7; }
+  .level .lvl-tag { position: absolute; left: -3px; top: -5px; transform: translateX(-100%); background: var(--rv-blue); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 3px 0 0 3px; white-space: nowrap; }
+  .plinth { position: absolute; left: 0; right: 0; bottom: 0; background: #6b5842; }
+  .plinth span { color: #fff; font-size: 10px; padding-left: 6px; opacity: .8; }
+  .block { position: absolute; bottom: 0; border: 1px solid rgba(0,0,0,.35); border-radius: 2px 2px 0 0; overflow: hidden; cursor: grab; display: flex; flex-direction: column; justify-content: flex-end; }
+  .block:active { cursor: grabbing; }
+  .block.sel { outline: 3px solid var(--rv-red); z-index: 5; }
+  .block .fc { position: absolute; top: 0; bottom: 0; border-right: 1px dashed rgba(0,0,0,.25); }
+  .block .lbl { position: relative; font-size: 9px; line-height: 1.15; padding: 1px 2px; background: rgba(255,255,255,.82); border-top: 1px solid rgba(0,0,0,.15); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .block .star { position: absolute; top: 1px; right: 2px; font-size: 10px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .legend .key { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--muted); }
+  .legend .sw { width: 12px; height: 12px; border-radius: 2px; border: 1px solid rgba(0,0,0,.3); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; margin-top: 4px; }
+  .stat { background: #eef2f7; border-radius: 6px; padding: 8px 10px; text-align: center; }
+  .stat b { display: block; font-size: 19px; color: var(--rv-blue); }
+  .stat span { font-size: 11px; color: var(--muted); }
+  #editor { position: fixed; right: 18px; bottom: 18px; width: 300px; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.18); padding: 14px; z-index: 50; display: none; }
+  #editor h3 { margin: 0 0 8px; font-size: 14px; color: var(--rv-blue); }
+  dialog { border: 1px solid var(--line); border-radius: 8px; padding: 18px; max-width: 420px; }
+  dialog::backdrop { background: rgba(15,76,129,.35); }
+  .banner { background: #fff8e6; border: 1px solid #f0d48a; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #6a5300; margin-bottom: 12px; line-height: 1.45; }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #222; color: #fff; padding: 9px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 99; }
+  @media print {
+    header .btnrow, .cols > .side, .banner, #editor, .card.no-print { display: none !important; }
+    .cols { grid-template-columns: 1fr; }
+    body { background: #fff; }
+    .card { border: 0; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="tri"></div>
+  <div style="flex:1">
+    <h1>Ravensburger Shelf Planner</h1>
+    <div class="sub">True-to-scale planogram &amp; shelf assignment &middot; BRIO Flora pilot &middot; Retail Stores</div>
+  </div>
+  <div class="btnrow">
+    <button id="btnGenerate">&#9881; Auto-generate</button>
+    <button class="ghost" id="btnPng" style="background:#fff">Export PNG</button>
+    <button class="ghost" id="btnPrint" style="background:#fff">Print</button>
+    <button class="ghost" id="btnXlsx" style="background:#fff">Export Excel</button>
+  </div>
+</header>
+<main>
+  <div class="banner" id="demoBanner">
+    <b>Demo data note:</b> the built-in demo assortment is a representative reconstruction of the BRIO Flora pilot
+    (21 products, one &mdash; article 63625000 &mdash; deliberately without package dimensions). The real Flora order file
+    from Nina (~38&nbsp;MB, with images) lives in the Ravensburger inbox &mdash; load it via <b>Load order file</b> to replace the demo.
+  </div>
+  <div class="cols">
+    <div class="side">
+      <div class="card">
+        <h2>1 &middot; Load</h2>
+        <div class="btnrow">
+          <button id="btnDemo" class="small">Load demo (Flora)</button>
+          <button id="btnLoadOrder" class="ghost small">Load order file (.xlsx / .csv)</button>
+          <button id="btnLoadMatrix" class="ghost small">Load category matrix</button>
+          <button id="btnLoadTop100" class="ghost small">Load Top100</button>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx,.csv" style="display:none">
+        <p class="note" style="margin-bottom:0">
+          The order file needs: article number, title, order quantity and package dimensions (W&times;H&times;D).
+          Anything with missing sizes is held aside &mdash; never guessed.
+          Category matrix (<i>Matrix_Shelves.xlsx</i>) extends the article&rarr;category map;
+          Top100 (<i>Top100_regulare items.xlsx</i>) flags best-sellers by EAN / article for eye-level priority.
+        </p>
+        <div id="loadStatus" style="margin-top:8px"></div>
+      </div>
+
+      <div class="card">
+        <h2>2 &middot; Fixture</h2>
+        <div class="grid3">
+          <div><label>Usable width (cm)</label><input type="number" step="0.1" id="cfgWidth"></div>
+          <div><label>Shelf depth (cm)</label><input type="number" step="0.1" id="cfgDepth"></div>
+          <div><label>Plinth (cm)</label><input type="number" step="0.1" id="cfgPlinth"></div>
+        </div>
+        <div style="margin-top:8px"><label>Clear level heights, bottom &rarr; top (cm, comma-separated)</label>
+          <input type="text" id="cfgLevels"></div>
+        <div class="grid2" style="margin-top:8px">
+          <div><label>Eye level</label><select id="cfgEye"></select></div>
+          <div style="align-self:end"><button class="small ghost" id="btnApplyCfg" style="width:100%">Apply &amp; regenerate</button></div>
+        </div>
+        <p class="note" style="margin-bottom:0">Defaults from the measured store fixture: 76.2&nbsp;cm usable width,
+        5 levels at 33.4&nbsp;/&nbsp;36&nbsp;/&nbsp;36&nbsp;/&nbsp;36&nbsp;/&nbsp;34&nbsp;cm clear height, 197.1&nbsp;cm total incl. 7&nbsp;cm plinth.
+        Depth is not in the front-view diagram &mdash; 40&nbsp;cm assumed, confirm with Nina (it drives backstock depth).</p>
+      </div>
+
+      <div class="card">
+        <h2>3 &middot; Verify</h2>
+        <div id="verifySummary" class="note"></div>
+        <div class="scroll" style="margin-top:6px">
+          <table class="data" id="productTable"></table>
+        </div>
+        <div id="heldBox"></div>
+        <div class="btnrow" style="margin-top:10px">
+          <button class="small ghost" id="btnAddProduct">+ Add product manually</button>
+          <button class="small danger" id="btnClear">Reset all</button>
+        </div>
+      </div>
+
+      <div class="card no-print">
+        <h2>Merchandising rules applied</h2>
+        <p class="note" style="margin:0">
+          &bull; Facings driven by order quantity (more ordered &rarr; more front columns)<br>
+          &bull; Front variety first: every product gets a facing, remaining units go behind as backstock<br>
+          &bull; Eye-level priority for top-sellers, larger and higher-value items; smaller/cheaper lower<br>
+          &bull; Left&rarr;right by shelf category (matrix order), then by article number<br>
+          &bull; No more than two identical designs side by side<br>
+          &bull; Shelf-space utilization reported per level and in total
+        </p>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h2>Planogram <span class="note" style="text-transform:none;font-weight:400">&mdash; drag products between levels, click a product to edit</span></h2>
+        <div id="bayWrap" style="padding-left:70px; overflow-x:auto">
+          <div id="bay"></div>
+        </div>
+        <div class="legend" id="legend"></div>
+        <div class="stats" id="stats"></div>
+        <div id="unplacedBox"></div>
+      </div>
+      <div class="card">
+        <h2>Shelf assignment (Excel preview)</h2>
+        <div class="scroll" style="max-height:340px">
+          <table class="data" id="assignTable"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="editor">
+  <h3 id="edTitle"></h3>
+  <div id="edInfo" class="note" style="margin-bottom:8px"></div>
+  <div class="grid2">
+    <div><label>Facings</label><input type="number" id="edFacings" min="1" max="12"></div>
+    <div><label>Level</label><select id="edLevel"></select></div>
+  </div>
+  <div class="btnrow" style="margin-top:10px">
+    <button class="small" id="edApply">Apply</button>
+    <button class="small danger" id="edRemove">Remove from shelf</button>
+    <button class="small ghost" id="edClose">Close</button>
+  </div>
+</div>
+
+<dialog id="dlgAdd">
+  <h3 style="margin-top:0;color:var(--rv-blue)">Add product</h3>
+  <div class="grid2">
+    <div><label>Article no.</label><input type="text" id="apArticle"></div>
+    <div><label>EAN (optional)</label><input type="text" id="apEan"></div>
+  </div>
+  <div style="margin-top:8px"><label>Title</label><input type="text" id="apTitle"></div>
+  <div class="grid2" style="margin-top:8px">
+    <div><label>Order qty</label><input type="number" id="apQty" min="1" value="1"></div>
+    <div><label>Price &euro; (optional)</label><input type="number" step="0.01" id="apPrice"></div>
+  </div>
+  <div class="grid3" style="margin-top:8px">
+    <div><label>Width cm</label><input type="number" step="0.1" id="apW"></div>
+    <div><label>Height cm</label><input type="number" step="0.1" id="apH"></div>
+    <div><label>Depth cm</label><input type="number" step="0.1" id="apD"></div>
+  </div>
+  <div style="margin-top:8px"><label>Category</label><select id="apCat"></select></div>
+  <div class="btnrow" style="margin-top:12px">
+    <button id="apOk">Add</button>
+    <button class="ghost" id="apCancel">Cancel</button>
+  </div>
+</dialog>
+
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   Ravensburger Shelf Planner — single-file, no server, no internet.
+   Pipeline: Load -> Clean & verify -> Auto-generate -> Edit -> Export.
+   ===================================================================== */
+
+/* ---------------- default fixture (measured store bay) -------------- */
+const DEFAULT_CONFIG = {
+  widthCm: 76.2,          // usable shelf width
+  depthCm: 40,            // ASSUMED — not in front-view diagram, confirm with Nina
+  plinthCm: 7,
+  levels: [33.4, 36, 36, 36, 34], // clear heights, bottom -> top (197.1 cm total incl. plinth)
+  eyeLevel: 3             // 0-based from bottom; level 4 of 5 ≈ 120–155 cm
+};
+
+/* ---------------- category matrix (order = left->right) ------------- */
+/* Seed taxonomy per Matrix_Shelves.xlsx structure: 8 shelf categories in
+   fixed order plus an article->category map. Loading the real matrix
+   file replaces/extends this map (9,743 articles). */
+let CATEGORIES = [
+  'Für unsere Kleinsten',
+  'BRIO World',
+  'Spiele',
+  'Puzzles',
+  'tiptoi',
+  'GraviTrax',
+  'Kreatives Gestalten',
+  'Bücher & Sonstiges'
+];
+let categoryMap = {};   // article -> category
+let top100 = new Set(); // EANs and article numbers of best-sellers
+
+/* ---------------- demo assortment (BRIO Flora pilot) ----------------
+   Representative reconstruction of the 21-product Flora order:
+   [article, title, qty, W, H, D (cm), price €, ean]
+   Article 63625000 has no dimensions in the source order file —
+   it is held aside rather than guessed, exactly like the real file.   */
+const DEMO_PRODUCTS = [
+  ['63601000','BRIO Flora Rassel Blume',       12,  8,12, 4,  7.99,'7312350636017'],
+  ['63602000','BRIO Flora Greifling Marienkäfer',12,8,12, 4,  8.99,'7312350636024'],
+  ['63603000','BRIO Flora Beißring Blatt',     10,  8,13, 4,  9.99,'7312350636031'],
+  ['63604000','BRIO Flora Stapelblume',         8, 12,12, 6, 14.99,'7312350636048'],
+  ['63605000','BRIO Flora Steckspiel Garten',   8, 14,11, 6, 17.99,'7312350636055'],
+  ['63606000','BRIO Flora Nachziehschnecke',    6, 13,10, 7, 19.99,'7312350636062'],
+  ['63607000','BRIO Flora Nachziehschmetterling',6,13,10, 7, 19.99,'7312350636079'],
+  ['63608000','BRIO Flora Motorikschleife Blume',4,16,14, 9, 24.99,'7312350636086'],
+  ['63609000','BRIO Flora Xylophon Raupe',      6, 18,10, 5, 22.99,'7312350636093'],
+  ['63610000','BRIO Flora Hammerspiel',         6, 16,12, 7, 21.99,'7312350636109'],
+  ['63611000','BRIO Flora Sortierbox Garten',   5, 14,14, 9, 24.99,'7312350636116'],
+  ['63612000','BRIO Flora Lauflernwagen',       3, 24,20,12, 49.99,'7312350636123'],
+  ['63613000','BRIO Flora Bauklötze 25 Teile',  6, 18,13, 7, 29.99,'7312350636130'],
+  ['63614000','BRIO Flora Kugelbahn Blüte',     3, 20,16,10, 39.99,'7312350636147'],
+  ['63615000','BRIO Flora Spieltrapez',         3, 22,18, 8, 44.99,'7312350636154'],
+  ['63616000','BRIO Flora Puzzle Gartenfreunde',10,15,15, 4, 12.99,'7312350636161'],
+  ['63617000','BRIO Flora Puzzle Schmetterlinge',10,15,15,4, 12.99,'7312350636178'],
+  ['63618000','BRIO Flora Memo Blumen',         8, 13,13, 4, 14.99,'7312350636185'],
+  ['63619000','BRIO Flora Angelspiel Teich',    6, 16,12, 5, 18.99,'7312350636192'],
+  ['63620000','BRIO Flora Stapelturm Marienkäfer',8,10,15,10,16.99,'7312350636208'],
+  ['63625000','BRIO Flora Spielhaus Garten',    4, null,null,null, 59.99,'7312350636253']
+];
+DEMO_PRODUCTS.forEach(p => categoryMap[p[0]] = 'Für unsere Kleinsten');
+
+/* ------------------------------ state ------------------------------- */
+let cfg = JSON.parse(JSON.stringify(DEFAULT_CONFIG));
+let products = [];         // {id, article, title, qty, w,h,d, price, ean, category, topSeller, missingDims}
+let layout = null;         // {levels: [ [ {pid, facings} ] ], unplaced: [pid] }
+let selBlock = null;       // {lvl, idx}
+let nextId = 1;
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.style.opacity = 1; clearTimeout(t._h); t._h = setTimeout(() => t.style.opacity = 0, 2600); }
+
+function catIndex(cat) { const i = CATEGORIES.indexOf(cat); return i < 0 ? CATEGORIES.length : i; }
+function catColor(cat) {
+  const i = catIndex(cat);
+  const hues = [210, 0, 140, 45, 275, 100, 330, 180, 20];
+  return `hsl(${hues[i % hues.length]}, 55%, 78%)`;
+}
+function byId(pid) { return products.find(p => p.id === pid); }
+function unitsDeep(p) { return Math.max(1, Math.floor(cfg.depthCm / p.d)); }
+
+/* --------------------------- load & clean --------------------------- */
+function loadDemo() {
+  products = DEMO_PRODUCTS.map(r => makeProduct({
+    article: r[0], title: r[1], qty: r[2], w: r[3], h: r[4], d: r[5], price: r[6], ean: r[7]
+  }));
+  toast('Flora demo loaded: ' + products.length + ' products');
+  generate();
+}
+
+function makeProduct(o) {
+  const missing = !(o.w > 0 && o.h > 0 && o.d > 0);
+  const article = String(o.article || '').trim();
+  return {
+    id: nextId++, article,
+    title: String(o.title || 'Unnamed').trim(),
+    qty: Math.max(1, Math.round(+o.qty || 1)),
+    w: missing ? null : +o.w, h: missing ? null : +o.h, d: missing ? null : +o.d,
+    price: +o.price || null, ean: String(o.ean || '').trim() || null,
+    category: categoryMap[article] || 'Unzugeordnet',
+    topSeller: top100.has(article) || (o.ean && top100.has(String(o.ean))),
+    missingDims: missing
+  };
+}
+
+function refreshFlags() { // re-evaluate after matrix / top100 load
+  for (const p of products) {
+    p.category = categoryMap[p.article] || p.category || 'Unzugeordnet';
+    p.topSeller = top100.has(p.article) || (p.ean && top100.has(p.ean));
+  }
+}
+
+/* ---------------------- placement algorithm ------------------------- */
+/* Rules (Nina's brief):
+   1. facings ~ order quantity, given backstock depth
+   2. front variety: every dimensioned product gets at least one facing
+   3. eye-level priority: top-sellers > price > size
+   4. within a level: category order left->right, then article number
+   5. max two identical facings adjacent                              */
+function generate() {
+  const eligible = products.filter(p => !p.missingDims);
+  layout = { levels: cfg.levels.map(() => []), unplaced: [] };
+
+  // priority: who deserves eye level
+  const prio = p => (p.topSeller ? 10000 : 0) + (p.price || 0) * 20 + (p.w * p.h * p.d) / 100;
+  const sorted = [...eligible].sort((a, b) => prio(b) - prio(a));
+
+  // level fill order: eye level first, then adjacent, then outward/down
+  const eye = Math.min(cfg.eyeLevel, cfg.levels.length - 1);
+  const order = [...cfg.levels.keys()].sort((a, b) =>
+    (Math.abs(a - eye) - Math.abs(b - eye)) || (b - a));
+
+  const remaining = cfg.levels.map(h => cfg.widthCm);
+  const GAP = 1.0, FGAP = 0.4;
+  const widthOf = (p, f) => f * p.w + (f - 1) * FGAP;
+
+  // pass 1: one facing each (front variety)
+  for (const p of sorted) {
+    p._facings = 0;
+    const lvl = order.find(l => p.h <= cfg.levels[l] - 1 && remaining[l] >= p.w + GAP);
+    if (lvl === undefined) { layout.unplaced.push(p.id); continue; }
+    layout.levels[lvl].push({ pid: p.id, facings: 1 });
+    remaining[lvl] -= p.w + GAP;
+    p._facings = 1; p._lvl = lvl;
+  }
+  // pass 2: grow facings toward order quantity (capped at 2 per block; extra
+  // demand becomes additional blocks so identical designs never exceed 2 in a row)
+  let grew = true;
+  while (grew) {
+    grew = false;
+    for (const p of sorted) {
+      if (!p._facings) continue;
+      const want = Math.ceil(p.qty / unitsDeep(p));
+      if (p._facings >= want) continue;
+      const blocks = layout.levels[p._lvl].filter(b => b.pid === p.id);
+      const last = blocks[blocks.length - 1];
+      const cost = (last && last.facings < 2) ? p.w + FGAP : p.w + GAP;
+      if (remaining[p._lvl] < cost) continue;
+      if (last && last.facings < 2) last.facings++;
+      else layout.levels[p._lvl].push({ pid: p.id, facings: 1 });
+      remaining[p._lvl] -= cost;
+      p._facings++; grew = true;
+    }
+  }
+  sortLevels();
+  selBlock = null;
+  renderAll();
+  save();
+}
+
+function sortLevels() {
+  for (const lvl of layout.levels) {
+    lvl.sort((a, b) => {
+      const pa = byId(a.pid), pb = byId(b.pid);
+      return catIndex(pa.category) - catIndex(pb.category)
+        || pa.article.localeCompare(pb.article, undefined, { numeric: true });
+    });
+    // rule 5 fix-up: same product split across blocks -> keep a different
+    // design between them where possible
+    for (let i = 0; i + 1 < lvl.length; i++) {
+      if (lvl[i].pid === lvl[i + 1].pid && lvl[i].facings + lvl[i + 1].facings > 2) {
+        const j = lvl.findIndex((b, k) => k > i + 1 && b.pid !== lvl[i].pid);
+        if (j > 0) { const [moved] = lvl.splice(j, 1); lvl.splice(i + 1, 0, moved); }
+      }
+    }
+  }
+}
+
+/* per-block unit math: order qty split across the product's facings */
+function blockUnits(lvlBlocks, block) {
+  const p = byId(block.pid);
+  const totalFacings = layout.levels.flat().filter(b => b.pid === p.id)
+    .reduce((s, b) => s + b.facings, 0);
+  const cap = totalFacings * unitsDeep(p);
+  const placed = Math.min(p.qty, cap);
+  const perFacing = placed / totalFacings;
+  return {
+    placed: Math.round(perFacing * block.facings),
+    behindEach: Math.max(0, Math.round(perFacing) - 1),
+    deep: unitsDeep(p), totalFacings, totalPlaced: placed
+  };
+}
+
+/* ------------------------------ render ------------------------------ */
+const PXCM = 6.2; // screen pixels per cm
+
+function renderAll() { renderVerify(); renderBay(); renderStats(); renderAssign(); renderLegend(); }
+
+function renderBay() {
+  const bay = $('bay');
+  bay.innerHTML = '';
+  if (!layout) return;
+  const W = cfg.widthCm * PXCM;
+  const totalH = (cfg.levels.reduce((a, b) => a + b, 0) + cfg.plinthCm + cfg.levels.length * 1.2) * PXCM;
+  bay.style.width = W + 'px';
+  bay.style.height = totalH + 'px';
+
+  let yBottom = cfg.plinthCm * PXCM; // from bay bottom
+  cfg.levels.forEach((h, li) => {
+    const div = document.createElement('div');
+    div.className = 'level';
+    div.dataset.lvl = li;
+    div.style.bottom = yBottom + 'px';
+    div.style.height = h * PXCM + 'px';
+    const used = layout.levels[li].reduce((s, b) => s + byId(b.pid).w * b.facings + 1, 0);
+    const pct = Math.min(100, Math.round(used / cfg.widthCm * 100));
+    div.innerHTML = `<span class="lvl-tag">L${li + 1} · ${h} cm · ${pct}%${li === cfg.eyeLevel ? ' · 👁 eye' : ''}</span>`;
+    div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('dragover'); });
+    div.addEventListener('dragleave', () => div.classList.remove('dragover'));
+    div.addEventListener('drop', e => onDrop(e, li, div));
+    let x = 4;
+    layout.levels[li].forEach((b, bi) => {
+      const p = byId(b.pid);
+      const bw = (b.facings * p.w + (b.facings - 1) * 0.4) * PXCM;
+      const el = document.createElement('div');
+      el.className = 'block' + (selBlock && selBlock.lvl === li && selBlock.idx === bi ? ' sel' : '');
+      el.style.left = x + 'px';
+      el.style.width = bw + 'px';
+      el.style.height = p.h * PXCM + 'px';
+      el.style.background = catColor(p.category);
+      el.draggable = true;
+      const u = blockUnits(layout.levels[li], b);
+      el.title = `${p.article} — ${p.title}\n${b.facings} facing(s) · ${u.behindEach} behind each · ${u.deep} deep max\nQty ${p.qty} · ${p.category}` + (p.topSeller ? '\n★ Top-100 seller' : '');
+      let fc = '';
+      for (let f = 1; f < b.facings; f++)
+        fc += `<i class="fc" style="left:${(f * (p.w + 0.4) - 0.4) * PXCM}px"></i>`;
+      el.innerHTML = fc +
+        (p.topSeller ? '<span class="star">★</span>' : '') +
+        `<span class="lbl">${esc(p.article.slice(-5))} ×${b.facings}${u.behindEach ? '·↩' + u.behindEach : ''}</span>`;
+      el.addEventListener('click', ev => { ev.stopPropagation(); selectBlock(li, bi); });
+      el.addEventListener('dragstart', ev => {
+        ev.dataTransfer.setData('text/plain', JSON.stringify({ lvl: li, idx: bi }));
+      });
+      div.appendChild(el);
+      x += bw + 1 * PXCM;
+    });
+    bay.appendChild(div);
+    yBottom += (h + 1.2) * PXCM;
+  });
+  const plinth = document.createElement('div');
+  plinth.className = 'plinth';
+  plinth.style.height = cfg.plinthCm * PXCM + 'px';
+  plinth.innerHTML = `<span>plinth ${cfg.plinthCm} cm · usable width ${cfg.widthCm} cm</span>`;
+  bay.appendChild(plinth);
+}
+
+function onDrop(e, li, div) {
+  e.preventDefault(); div.classList.remove('dragover');
+  let src; try { src = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+  const block = layout.levels[src.lvl]?.[src.idx];
+  if (!block) return;
+  const p = byId(block.pid);
+  if (p.h > cfg.levels[li] - 1) { toast('Too tall for level ' + (li + 1)); return; }
+  layout.levels[src.lvl].splice(src.idx, 1);
+  layout.levels[li].push(block);
+  sortLevels();
+  selBlock = null;
+  renderAll(); save();
+}
+
+function selectBlock(lvl, idx) {
+  selBlock = { lvl, idx };
+  const b = layout.levels[lvl][idx], p = byId(b.pid);
+  const u = blockUnits(layout.levels[lvl], b);
+  $('edTitle').textContent = p.article + ' — ' + p.title;
+  $('edInfo').innerHTML =
+    `${p.w}×${p.h}×${p.d} cm · qty ${p.qty} · ${esc(p.category)}` +
+    (p.topSeller ? ' · <b>★ Top-100</b>' : '') +
+    `<br>${u.totalFacings} facing(s) total · ${u.behindEach} behind each front unit · fits ${u.deep} deep`;
+  $('edFacings').value = b.facings;
+  const sel = $('edLevel');
+  sel.innerHTML = cfg.levels.map((h, i) =>
+    `<option value="${i}" ${i === lvl ? 'selected' : ''}>Level ${i + 1} (${h} cm)</option>`).join('');
+  $('editor').style.display = 'block';
+  renderBay();
+}
+
+$('edApply').onclick = () => {
+  if (!selBlock) return;
+  const b = layout.levels[selBlock.lvl][selBlock.idx];
+  b.facings = Math.max(1, Math.min(12, +$('edFacings').value || 1));
+  const tgt = +$('edLevel').value;
+  if (tgt !== selBlock.lvl) {
+    layout.levels[selBlock.lvl].splice(selBlock.idx, 1);
+    layout.levels[tgt].push(b);
+  }
+  sortLevels(); selBlock = null;
+  $('editor').style.display = 'none';
+  renderAll(); save();
+};
+$('edRemove').onclick = () => {
+  if (!selBlock) return;
+  const b = layout.levels[selBlock.lvl].splice(selBlock.idx, 1)[0];
+  if (!layout.levels.flat().some(x => x.pid === b.pid)) layout.unplaced.push(b.pid);
+  selBlock = null; $('editor').style.display = 'none';
+  renderAll(); save();
+};
+$('edClose').onclick = () => { selBlock = null; $('editor').style.display = 'none'; renderBay(); };
+document.addEventListener('click', e => {
+  if (!$('editor').contains(e.target) && selBlock && !e.target.closest('.block')) {
+    selBlock = null; $('editor').style.display = 'none'; renderBay();
+  }
+});
+
+function renderLegend() {
+  const used = new Set(products.map(p => p.category));
+  $('legend').innerHTML = [...CATEGORIES, 'Unzugeordnet'].filter(c => used.has(c))
+    .map(c => `<span class="key"><span class="sw" style="background:${catColor(c)}"></span>${esc(c)}</span>`).join('');
+}
+
+function renderStats() {
+  const el = $('stats');
+  if (!layout) { el.innerHTML = ''; return; }
+  const blocks = layout.levels.flat();
+  const facings = blocks.reduce((s, b) => s + b.facings, 0);
+  let units = 0;
+  const seen = new Set();
+  for (const b of blocks) if (!seen.has(b.pid)) {
+    seen.add(b.pid);
+    units += blockUnits(null, b).totalPlaced;
+  }
+  const areaUsed = blocks.reduce((s, b) => { const p = byId(b.pid); return s + b.facings * p.w * p.h; }, 0);
+  const areaTotal = cfg.levels.reduce((s, h) => s + h * cfg.widthCm, 0);
+  el.innerHTML =
+    stat(blocks.length, 'rows (placements)') + stat(facings, 'facings') +
+    stat(units, 'total units incl. backstock') +
+    stat(Math.round(areaUsed / areaTotal * 100) + '%', 'shelf-space utilization') +
+    stat(seen.size + ' / ' + products.length, 'products placed');
+  const un = layout.unplaced.map(byId).filter(Boolean);
+  $('unplacedBox').innerHTML = un.length
+    ? `<p class="note" style="margin-bottom:0"><b>Not placed (no space / too tall):</b> ` +
+      un.map(p => `<span class="pill bad">${esc(p.article)} ${esc(p.title)}</span>`).join(' ') + '</p>'
+    : '';
+  function stat(v, l) { return `<div class="stat"><b>${v}</b><span>${l}</span></div>`; }
+}
+
+function renderVerify() {
+  const ok = products.filter(p => !p.missingDims);
+  const held = products.filter(p => p.missingDims);
+  $('verifySummary').innerHTML = products.length
+    ? `<span class="pill ok">${ok.length} ready</span>` +
+      (held.length ? `<span class="pill warn">${held.length} held aside (missing sizes)</span>` : '') +
+      `<span class="pill">${products.filter(p => p.topSeller).length} top-100</span>` +
+      `<span class="pill">${new Set(products.map(p => p.category)).size} categories</span>`
+    : '<i>No data loaded yet — load an order file or the Flora demo.</i>';
+  $('productTable').innerHTML = products.length
+    ? '<tr><th>Article</th><th>Title</th><th>Qty</th><th>W×H×D</th><th>Cat</th></tr>' +
+      products.map(p => `<tr${p.missingDims ? ' style="background:#fff3e0"' : ''}>
+        <td>${esc(p.article)}${p.topSeller ? ' ★' : ''}</td><td>${esc(p.title)}</td><td>${p.qty}</td>
+        <td>${p.missingDims ? '<b style="color:var(--warn)">missing</b>' : p.w + '×' + p.h + '×' + p.d}</td>
+        <td>${esc(p.category.slice(0, 14))}</td></tr>`).join('')
+    : '';
+  $('heldBox').innerHTML = held.length
+    ? '<p class="note" style="margin-bottom:4px"><b>Held aside — add package sizes to place them:</b></p>' +
+      held.map(p => `<div class="grid3" style="margin-bottom:4px">
+        <input type="number" step="0.1" placeholder="W" id="hw${p.id}">
+        <input type="number" step="0.1" placeholder="H" id="hh${p.id}">
+        <div style="display:flex;gap:4px"><input type="number" step="0.1" placeholder="D" id="hd${p.id}">
+        <button class="small" onclick="fixDims(${p.id})">OK</button></div></div>`).join('')
+    : '';
+}
+window.fixDims = function (id) {
+  const p = byId(id);
+  const w = +$('hw' + id).value, h = +$('hh' + id).value, d = +$('hd' + id).value;
+  if (!(w > 0 && h > 0 && d > 0)) { toast('Enter all three dimensions'); return; }
+  p.w = w; p.h = h; p.d = d; p.missingDims = false;
+  toast(p.article + ' dimensioned — regenerating');
+  generate();
+};
+
+function renderAssign() {
+  const rows = assignmentRows();
+  $('assignTable').innerHTML =
+    '<tr>' + ASSIGN_HEADERS.map(h => '<th>' + esc(h) + '</th>').join('') + '</tr>' +
+    rows.map(r => '<tr>' + r.map(c => '<td>' + esc(c) + '</td>').join('') + '</tr>').join('');
+}
+
+const ASSIGN_HEADERS = ['Level', 'Slot', 'Article No', 'Title', 'Category', 'Facings',
+  'Units deep (max)', 'Behind each facing', 'Units this row', 'W cm', 'H cm', 'D cm', 'Price €', 'Top-100'];
+
+function assignmentRows() {
+  if (!layout) return [];
+  const rows = [];
+  for (let li = cfg.levels.length - 1; li >= 0; li--) { // top level first, like reading the bay
+    layout.levels[li].forEach((b, slot) => {
+      const p = byId(b.pid);
+      const u = blockUnits(layout.levels[li], b);
+      rows.push([li + 1, slot + 1, p.article, p.title, p.category, b.facings,
+        u.deep, u.behindEach, u.placed, p.w, p.h, p.d, p.price ?? '', p.topSeller ? 'YES' : '']);
+    });
+  }
+  return rows;
+}
+
+/* --------------------------- XLSX writer ----------------------------
+   Minimal OOXML .xlsx: a zip (stored, CRC32) with workbook + one sheet
+   using inline strings. Opens directly in Excel — fully editable.     */
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < u8.length; i++) c = CRC_TABLE[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+function zipStore(files) { // files: [{name, data:Uint8Array}]
+  const enc = new TextEncoder();
+  const parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name), crc = crc32(f.data), n = f.data.length;
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, n, true); lh.setUint32(22, n, true);
+    lh.setUint16(26, name.length, true);
+    parts.push(new Uint8Array(lh.buffer), name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, n, true); ch.setUint32(24, n, true);
+    ch.setUint16(28, name.length, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + n;
+  }
+  const cdSize = central.reduce((s, a) => s + a.length, 0);
+  const eocd = new DataView(new ArrayBuffer(22));
+  eocd.setUint32(0, 0x06054b50, true);
+  eocd.setUint16(8, files.length, true); eocd.setUint16(10, files.length, true);
+  eocd.setUint32(12, cdSize, true); eocd.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, new Uint8Array(eocd.buffer)],
+    { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+}
+function xmlEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function sheetXml(rows) {
+  let xml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+  rows.forEach((row, ri) => {
+    xml += `<row r="${ri + 1}">`;
+    row.forEach((v, ci) => {
+      const ref = colName(ci) + (ri + 1);
+      if (v === '' || v === null || v === undefined) return;
+      if (typeof v === 'number' && isFinite(v)) xml += `<c r="${ref}"><v>${v}</v></c>`;
+      else xml += `<c r="${ref}" t="inlineStr"><is><t xml:space="preserve">${xmlEsc(v)}</t></is></c>`;
+    });
+    xml += '</row>';
+  });
+  return xml + '</sheetData></worksheet>';
+}
+function colName(i) { let s = ''; i++; while (i) { s = String.fromCharCode(65 + (i - 1) % 26) + s; i = Math.floor((i - 1) / 26); } return s; }
+function exportXlsx() {
+  if (!layout) { toast('Generate a layout first'); return; }
+  const enc = new TextEncoder();
+  const meta = [
+    ['Ravensburger Shelf Assignment'], [],
+    ['Fixture', `${cfg.widthCm} cm usable width · levels ${cfg.levels.join(' / ')} cm · depth ${cfg.depthCm} cm · plinth ${cfg.plinthCm} cm`],
+    ['Generated', new Date().toISOString().slice(0, 10)], []
+  ];
+  const rows = [...meta, ASSIGN_HEADERS, ...assignmentRows().map(r =>
+    r.map(v => (typeof v === 'number' || v === '' ? v : String(v))))];
+  const files = [
+    { name: '[Content_Types].xml', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>') },
+    { name: '_rels/.rels', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>') },
+    { name: 'xl/workbook.xml', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Shelf Assignment" sheetId="1" r:id="rId1"/></sheets></workbook>') },
+    { name: 'xl/_rels/workbook.xml.rels', data: enc.encode('<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>') },
+    { name: 'xl/worksheets/sheet1.xml', data: enc.encode(sheetXml(rows)) }
+  ];
+  downloadBlob(zipStore(files), 'Ravensburger_Shelf_Assignment.xlsx');
+  toast('Excel shelf assignment exported');
+}
+
+/* --------------------------- XLSX reader ----------------------------
+   Zip central directory + DecompressionStream('deflate-raw'); parses
+   sharedStrings + sheet1. Needs a modern browser (Chrome/Edge/Safari/FF). */
+async function readXlsx(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= 0; i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  if (eocd < 0) throw new Error('Not a valid .xlsx (zip) file');
+  const count = dv.getUint16(eocd + 10, true);
+  let ptr = dv.getUint32(eocd + 16, true);
+  const entries = {};
+  for (let i = 0; i < count; i++) {
+    if (dv.getUint32(ptr, true) !== 0x02014b50) break;
+    const method = dv.getUint16(ptr + 10, true);
+    const csize = dv.getUint32(ptr + 20, true);
+    const nameLen = dv.getUint16(ptr + 28, true);
+    const extraLen = dv.getUint16(ptr + 30, true);
+    const commentLen = dv.getUint16(ptr + 32, true);
+    const lho = dv.getUint32(ptr + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(ptr + 46, ptr + 46 + nameLen));
+    entries[name] = { method, csize, lho };
+    ptr += 46 + nameLen + extraLen + commentLen;
+  }
+  async function file(name) {
+    const e = entries[name];
+    if (!e) return null;
+    const nl = dv.getUint16(e.lho + 26, true), xl = dv.getUint16(e.lho + 28, true);
+    const data = u8.subarray(e.lho + 30 + nl + xl, e.lho + 30 + nl + xl + e.csize);
+    if (e.method === 0) return new TextDecoder().decode(data);
+    const ab = await new Response(
+      new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
+    ).arrayBuffer();
+    return new TextDecoder().decode(ab);
+  }
+  // shared strings
+  const shared = [];
+  const ssXml = await file('xl/sharedStrings.xml');
+  if (ssXml) {
+    const doc = new DOMParser().parseFromString(ssXml, 'application/xml');
+    for (const si of doc.getElementsByTagName('si'))
+      shared.push([...si.getElementsByTagName('t')].map(t => t.textContent).join(''));
+  }
+  // all sheets (matrix files can have several)
+  const sheets = [];
+  for (const name of Object.keys(entries).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort()) {
+    const xml = await file(name);
+    const doc = new DOMParser().parseFromString(xml, 'application/xml');
+    const grid = [];
+    for (const row of doc.getElementsByTagName('row')) {
+      const r = [];
+      for (const c of row.getElementsByTagName('c')) {
+        const ref = c.getAttribute('r') || '';
+        const ci = colIndex(ref.replace(/\d+/g, ''));
+        const t = c.getAttribute('t');
+        let val = '';
+        if (t === 'inlineStr') val = c.textContent;
+        else {
+          const v = c.getElementsByTagName('v')[0];
+          if (v) val = t === 's' ? (shared[+v.textContent] ?? '') : v.textContent;
+        }
+        r[ci] = val;
+      }
+      grid.push(r);
+    }
+    sheets.push(grid);
+  }
+  return sheets;
+}
+function colIndex(letters) { let n = 0; for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64); return Math.max(0, n - 1); }
+
+function parseCsv(text) {
+  const rows = [];
+  let row = [], cell = '', q = false;
+  const sep = (text.split(';').length > text.split(',').length) ? ';' : ',';
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) { if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += c; }
+    else if (c === '"') q = true;
+    else if (c === sep) { row.push(cell); cell = ''; }
+    else if (c === '\n' || c === '\r') { if (c === '\r' && text[i + 1] === '\n') i++; row.push(cell); rows.push(row); row = []; cell = ''; }
+    else cell += c;
+  }
+  if (cell || row.length) { row.push(cell); rows.push(row); }
+  return [rows];
+}
+
+/* ----------------- column detection for order files ----------------- */
+const COL_PATTERNS = {
+  article: /artikel|article|item.?(no|nr|num)|art\.?.?nr/i,
+  ean: /\bean\b|gtin|barcode/i,
+  title: /bezeichnung|titel|title|name|beschreibung|description|produkt/i,
+  qty: /menge|anzahl|qty|quantity|bestell|order.?(qty|menge)?$|stück|stueck|units/i,
+  w: /breite|width|\bw\b|\bb\b.?\(?(cm|mm)?\)?$/i,
+  h: /höhe|hoehe|height|\bh\b/i,
+  d: /tiefe|länge|laenge|depth|length|\bt\b|\bd\b|\bl\b/i,
+  price: /preis|price|uvp|\bvk\b|€|eur/i,
+  category: /kategorie|category|warengruppe|sortiment/i
+};
+function detectOrderColumns(grid) {
+  for (let ri = 0; ri < Math.min(grid.length, 25); ri++) {
+    const row = grid[ri] || [];
+    const map = {};
+    for (const [key, re] of Object.entries(COL_PATTERNS))
+      for (let ci = 0; ci < row.length; ci++)
+        if (row[ci] && re.test(String(row[ci])) && !(key in map)) map[key] = ci;
+    if ('article' in map && ('title' in map || 'qty' in map)) return { headerRow: ri, map, headers: row };
+  }
+  return null;
+}
+function loadOrderGrid(grid) {
+  const det = detectOrderColumns(grid);
+  if (!det) throw new Error('Could not find header row (need at least article + title/qty columns)');
+  const { headerRow, map, headers } = det;
+  const mmCols = new Set(Object.entries(map)
+    .filter(([k, ci]) => 'whd'.includes(k) && /mm/i.test(String(headers[ci]))).map(([k]) => k));
+  const out = [];
+  for (let ri = headerRow + 1; ri < grid.length; ri++) {
+    const row = grid[ri] || [];
+    const art = String(row[map.article] ?? '').trim();
+    if (!art || !/\d/.test(art)) continue;
+    const num = k => { const v = parseFloat(String(row[map[k]] ?? '').replace(',', '.')); return isFinite(v) ? v : null; };
+    let w = map.w != null ? num('w') : null, h = map.h != null ? num('h') : null, d = map.d != null ? num('d') : null;
+    // auto-detect mm (headers say mm, or values are implausibly large for cm)
+    for (const [k, set] of [['w', v => w = v], ['h', v => h = v], ['d', v => d = v]]) {
+      let v = { w, h, d }[k];
+      if (v != null && (mmCols.has(k) || v > 120)) set(v / 10);
+    }
+    out.push(makeProduct({
+      article: art,
+      title: map.title != null ? row[map.title] : art,
+      qty: map.qty != null ? num('qty') || 1 : 1,
+      w, h, d,
+      price: map.price != null ? num('price') : null,
+      ean: map.ean != null ? row[map.ean] : null
+    }));
+    if (map.category != null && row[map.category]) {
+      const cat = String(row[map.category]).trim();
+      if (cat) { categoryMap[art] = cat; if (!CATEGORIES.includes(cat)) CATEGORIES.push(cat); }
+    }
+  }
+  if (!out.length) throw new Error('No product rows found under the header');
+  products = out;
+  refreshFlags();
+  $('demoBanner').style.display = 'none';
+  toast(`Order file loaded: ${products.length} products (${products.filter(p => p.missingDims).length} missing sizes)`);
+  generate();
+}
+
+/* --------------- matrix / top100 ingestion (heuristic) --------------- */
+function loadMatrixSheets(sheets) {
+  let mapped = 0;
+  const newCats = [];
+  for (const grid of sheets) {
+    for (const row of grid) {
+      if (!row) continue;
+      const cells = row.filter(c => c !== undefined && String(c).trim() !== '');
+      if (!cells.length) continue;
+      const artIdx = row.findIndex(c => /^\d{5,}$/.test(String(c ?? '').trim()));
+      if (artIdx >= 0) {
+        const cat = row.map((c, i) => i === artIdx ? '' : String(c ?? '').trim())
+          .find(c => c && !/^\d+([.,]\d+)?$/.test(c));
+        if (cat) {
+          categoryMap[String(row[artIdx]).trim()] = cat;
+          if (!CATEGORIES.includes(cat) && !newCats.includes(cat)) newCats.push(cat);
+          mapped++;
+        }
+      } else if (cells.length === 1 && !/^\d+([.,]\d+)?$/.test(String(cells[0]))) {
+        const cat = String(cells[0]).trim(); // single-column block = category order list
+        if (cat.length < 60 && !CATEGORIES.includes(cat) && !newCats.includes(cat)) newCats.push(cat);
+      }
+    }
+  }
+  CATEGORIES.push(...newCats);
+  refreshFlags();
+  toast(`Matrix loaded: ${mapped} article→category mappings, ${CATEGORIES.length} categories`);
+  if (layout) generate(); else renderAll();
+}
+function loadTop100Sheets(sheets) {
+  let n = 0;
+  for (const grid of sheets) for (const row of grid) for (const c of (row || [])) {
+    const s = String(c ?? '').trim();
+    if (/^\d{12,14}$/.test(s) || /^\d{7,9}$/.test(s)) { top100.add(s); n++; }
+  }
+  refreshFlags();
+  toast(`Top100 loaded: ${n} EAN/article keys — top sellers go to eye level`);
+  if (layout) generate(); else renderAll();
+}
+
+/* --------------------------- file plumbing --------------------------- */
+let fileMode = 'order';
+$('btnLoadOrder').onclick = () => { fileMode = 'order'; $('fileInput').click(); };
+$('btnLoadMatrix').onclick = () => { fileMode = 'matrix'; $('fileInput').click(); };
+$('btnLoadTop100').onclick = () => { fileMode = 'top100'; $('fileInput').click(); };
+$('fileInput').onchange = async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  $('loadStatus').innerHTML = `<span class="pill">Reading ${esc(f.name)}…</span>`;
+  try {
+    let sheets;
+    if (/\.csv$/i.test(f.name)) sheets = parseCsv(await f.text());
+    else {
+      if (typeof DecompressionStream === 'undefined')
+        throw new Error('This browser cannot unzip .xlsx — save the file as CSV and load that instead.');
+      sheets = await readXlsx(await f.arrayBuffer());
+    }
+    if (fileMode === 'order') loadOrderGrid(sheets[0]);
+    else if (fileMode === 'matrix') loadMatrixSheets(sheets);
+    else loadTop100Sheets(sheets);
+    $('loadStatus').innerHTML = `<span class="pill ok">${esc(f.name)} ✓</span>`;
+  } catch (err) {
+    $('loadStatus').innerHTML = `<span class="pill bad">${esc(err.message)}</span>`;
+    toast('Load failed: ' + err.message);
+  }
+};
+
+/* ------------------------------ config ------------------------------ */
+function cfgToUi() {
+  $('cfgWidth').value = cfg.widthCm;
+  $('cfgDepth').value = cfg.depthCm;
+  $('cfgPlinth').value = cfg.plinthCm;
+  $('cfgLevels').value = cfg.levels.join(', ');
+  $('cfgEye').innerHTML = cfg.levels.map((h, i) =>
+    `<option value="${i}" ${i === cfg.eyeLevel ? 'selected' : ''}>Level ${i + 1} (${h} cm)</option>`).join('');
+}
+$('btnApplyCfg').onclick = () => {
+  const levels = $('cfgLevels').value.split(',').map(s => parseFloat(s.trim())).filter(v => v > 0);
+  if (!levels.length) { toast('Enter at least one level height'); return; }
+  cfg.widthCm = +$('cfgWidth').value || DEFAULT_CONFIG.widthCm;
+  cfg.depthCm = +$('cfgDepth').value || DEFAULT_CONFIG.depthCm;
+  cfg.plinthCm = +$('cfgPlinth').value || 0;
+  cfg.levels = levels;
+  cfg.eyeLevel = Math.min(+$('cfgEye').value || 0, levels.length - 1);
+  cfgToUi();
+  generate();
+};
+
+/* --------------------------- add product ---------------------------- */
+$('btnAddProduct').onclick = () => {
+  $('apCat').innerHTML = [...CATEGORIES, 'Unzugeordnet'].map(c => `<option>${esc(c)}</option>`).join('');
+  $('dlgAdd').showModal();
+};
+$('apCancel').onclick = () => $('dlgAdd').close();
+$('apOk').onclick = () => {
+  const art = $('apArticle').value.trim();
+  if (!art) { toast('Article number required'); return; }
+  categoryMap[art] = $('apCat').value;
+  products.push(makeProduct({
+    article: art, title: $('apTitle').value, qty: $('apQty').value,
+    w: $('apW').value, h: $('apH').value, d: $('apD').value,
+    price: $('apPrice').value, ean: $('apEan').value
+  }));
+  $('dlgAdd').close();
+  ['apArticle', 'apEan', 'apTitle', 'apW', 'apH', 'apD', 'apPrice'].forEach(i => $(i).value = '');
+  generate();
+};
+
+/* ----------------------------- exports ------------------------------ */
+function downloadBlob(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+$('btnXlsx').onclick = exportXlsx;
+$('btnPrint').onclick = () => window.print();
+$('btnPng').onclick = () => {
+  if (!layout) { toast('Generate a layout first'); return; }
+  const S = 8; // px per cm in export
+  const M = 70, HEAD = 60;
+  const totalH = cfg.levels.reduce((a, b) => a + b, 0) + cfg.plinthCm + cfg.levels.length * 1.2;
+  const cv = document.createElement('canvas');
+  cv.width = cfg.widthCm * S + M * 2;
+  cv.height = totalH * S + HEAD + 30;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = '#0f4c81'; ctx.font = 'bold 20px Arial';
+  ctx.fillText('Ravensburger Shelf Planner — Planogram', M, 28);
+  ctx.fillStyle = '#555'; ctx.font = '12px Arial';
+  ctx.fillText(`${cfg.widthCm} cm usable · levels ${cfg.levels.join(' / ')} cm · depth ${cfg.depthCm} cm · ${new Date().toISOString().slice(0, 10)}`, M, 46);
+  const bayTop = HEAD, bayBot = HEAD + totalH * S;
+  ctx.fillStyle = '#8b7355';
+  ctx.fillRect(M - 6, bayTop - 6, cfg.widthCm * S + 12, 6);
+  ctx.fillRect(M - 6, bayTop, 6, totalH * S + 6);
+  ctx.fillRect(M + cfg.widthCm * S, bayTop, 6, totalH * S + 6);
+  ctx.fillStyle = '#6b5842';
+  ctx.fillRect(M, bayBot - cfg.plinthCm * S, cfg.widthCm * S, cfg.plinthCm * S);
+  let yB = cfg.plinthCm;
+  cfg.levels.forEach((h, li) => {
+    const yTopPx = bayBot - (yB + h) * S;
+    const yBasePx = bayBot - yB * S;
+    ctx.fillStyle = '#a8896a';
+    ctx.fillRect(M, yBasePx, cfg.widthCm * S, Math.max(2, 1.2 * S * 0.6));
+    ctx.fillStyle = '#0f4c81'; ctx.font = 'bold 11px Arial'; ctx.textAlign = 'right';
+    ctx.fillText(`L${li + 1} · ${h}cm${li === cfg.eyeLevel ? ' 👁' : ''}`, M - 10, yTopPx + 14);
+    ctx.textAlign = 'left';
+    let x = M + 3;
+    for (const b of layout.levels[li]) {
+      const p = byId(b.pid);
+      const bw = (b.facings * p.w + (b.facings - 1) * 0.4) * S;
+      const bh = p.h * S;
+      ctx.fillStyle = catColor(p.category);
+      ctx.fillRect(x, yBasePx - bh, bw, bh);
+      ctx.strokeStyle = 'rgba(0,0,0,.45)';
+      ctx.strokeRect(x, yBasePx - bh, bw, bh);
+      for (let f = 1; f < b.facings; f++) {
+        ctx.beginPath();
+        ctx.setLineDash([3, 3]);
+        const fx = x + (f * (p.w + 0.4) - 0.4) * S;
+        ctx.moveTo(fx, yBasePx - bh); ctx.lineTo(fx, yBasePx);
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+      ctx.fillStyle = '#111'; ctx.font = '10px Arial';
+      const u = blockUnits(null, b);
+      ctx.save();
+      ctx.beginPath(); ctx.rect(x, yBasePx - bh, bw, bh); ctx.clip();
+      ctx.fillText(p.article.slice(-5) + ' ×' + b.facings, x + 3, yBasePx - 5);
+      if (bh > 26) ctx.fillText(p.title.replace('BRIO Flora ', '').slice(0, Math.floor(bw / 6)), x + 3, yBasePx - 17);
+      ctx.restore();
+      if (p.topSeller) { ctx.fillStyle = '#e7000e'; ctx.fillText('★', x + bw - 12, yBasePx - bh + 12); }
+      x += bw + 1 * S;
+    }
+    yB += h + 1.2;
+  });
+  cv.toBlob(b => downloadBlob(b, 'Ravensburger_Planogram.png'));
+  toast('Planogram PNG exported');
+};
+
+/* --------------------------- persistence ---------------------------- */
+function save() {
+  try {
+    localStorage.setItem('rvShelfPlanner', JSON.stringify({
+      cfg, products, layout, CATEGORIES, categoryMap, top100: [...top100], nextId
+    }));
+  } catch (e) { /* storage full or blocked — non-fatal */ }
+}
+function restore() {
+  try {
+    const s = JSON.parse(localStorage.getItem('rvShelfPlanner'));
+    if (!s || !s.products) return false;
+    cfg = s.cfg; products = s.products; layout = s.layout;
+    CATEGORIES = s.CATEGORIES; categoryMap = s.categoryMap;
+    top100 = new Set(s.top100); nextId = s.nextId || 1000;
+    return true;
+  } catch { return false; }
+}
+$('btnClear').onclick = () => {
+  if (!confirm('Reset everything back to the empty state?')) return;
+  localStorage.removeItem('rvShelfPlanner');
+  location.reload();
+};
+$('btnDemo').onclick = loadDemo;
+$('btnGenerate').onclick = () => { if (products.length) generate(); else toast('Load data first'); };
+
+/* ------------------------------- boot ------------------------------- */
+cfgToUi();
+if (restore()) { cfgToUi(); renderAll(); }
+else loadDemo(); // Flora pilot pre-loaded, per the brief
+</script>
+</body>
+</html>
