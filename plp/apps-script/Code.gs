@@ -97,11 +97,42 @@ function doPost(e) {
       '<p><a href="' + REVIEW_URL + '">Review all requests</a></p>';
 
     MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: subject, htmlBody: body });
+    sendConfirmation(d);
     return jsonOut({ ok: true });
   } catch (err) {
     return jsonOut({ ok: false, error: String(err) });
   } finally {
     lock.releaseLock();
+  }
+}
+
+// Receipt to the submitter. Failures here (e.g. a typo'd address) must not
+// break the submission, which is already stored and reported.
+function sendConfirmation(d) {
+  try {
+    var lines = d.requests.map(function (r) {
+      return "<li><b>" + esc(r.start_date) + " to " + esc(r.end_date) + "</b> (" + esc(r.type) +
+        (r.exclusive === "Yes" ? ", exclusive use" : ", open to sharing" +
+          (r.people ? " · " + esc(r.people) + " people" : "")) + ")</li>";
+    }).join("");
+    var body =
+      "<p>Hi " + esc(d.name) + ",</p>" +
+      "<p>Your date request" + (d.requests.length > 1 ? "s for" : " for") + " the Pocono Lake Preserve house " +
+      (d.requests.length > 1 ? "were" : "was") + " received for <b>" + esc(d.season) + "</b>:</p>" +
+      "<ul>" + lines + "</ul>" +
+      (d.comments ? "<p>Your comments: " + esc(d.comments) + "</p>" : "") +
+      "<p><b>What happens next:</b> once the submission window closes, all requests are reviewed " +
+      "together, any conflicts get sorted out (backup options help!), and the final schedule is " +
+      "published to the shared <b>PLP Off-Season Schedule</b> Google Calendar.</p>" +
+      "<p>Need to change something? Just reply to this email or submit an updated request at " +
+      '<a href="https://ritchie3237.github.io/fuel/plp/">the scheduling page</a>.</p>';
+    MailApp.sendEmail({
+      to: d.email,
+      subject: "PLP request received — " + d.season,
+      htmlBody: body
+    });
+  } catch (err) {
+    // Swallow: submitter typo'd their email or quota hit; the request itself is safe.
   }
 }
 

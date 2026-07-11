@@ -159,6 +159,11 @@
         <li><strong>Spring off-season:</strong> May and June</li>
         <li><strong>Fall off-season:</strong> September (starting the day after Labor Day) and October</li>
       </ul>
+      <p>
+        You'll get a confirmation email when you submit. Once the submission window closes,
+        all requests are reviewed together and the final schedule is published to the shared
+        <strong>PLP Off-Season Schedule</strong> Google Calendar.
+      </p>
     </section>
 
     <form id="requestForm" novalidate>
@@ -429,7 +434,8 @@
           if (!data.ok) throw new Error(data.error || "Backend error");
           showMsg("ok", "Thanks, " + name + "! Your " + requests.length + " date request" +
             (requests.length > 1 ? "s were" : " was") + " sent for " + seasonEl.value + " " +
-            yearEl.value + ". You'll hear back once everything's reviewed.");
+            yearEl.value + ". A confirmation email is on its way to you, and you'll hear " +
+            "back once everything's reviewed.");
           form.reset();
           reqsEl.innerHTML = "";
           addRequestBlock();
