@@ -27,6 +27,7 @@
  */
 
 var NOTIFY_EMAIL = "ritchie3237@gmail.com";
+var GROUP_EMAIL = "plp-ritchies@googlegroups.com";
 var SITE_URL = "https://ritchie3237.github.io/fuel/plp-ritchie/";
 var SHEET_NAME = "Submissions";
 var CAPACITY = 12; // days with MORE than this many people get flagged
@@ -156,6 +157,42 @@ function deleteBlock(d) {
     }
   }
   return jsonOut({ ok: false, error: "Entry not found (maybe already removed)" });
+}
+
+/**
+ * Emails GROUP_EMAIL a reminder to submit summer dates. Fired by a weekly
+ * time-driven trigger (every Monday morning); does nothing except on the
+ * first Monday of January through May. Mirrors the recurring calendar
+ * event so everyone gets an inbox nudge even without email reminders on.
+ */
+function sendMonthlyNudge() {
+  var now = new Date();
+  if (now.getMonth() > 4) return;                       // January-May only
+  if (now.getDay() !== 1 || now.getDate() > 7) return;  // first Monday only
+
+  var season = activeSeason(now);
+  var w = seasonWindow(season);
+  var tz = Session.getScriptTimeZone();
+  var windowText = Utilities.formatDate(w.start, tz, "MMMM d") + " through " +
+    Utilities.formatDate(w.end, tz, "MMMM d, yyyy");
+
+  MailApp.sendEmail({
+    to: GROUP_EMAIL,
+    subject: "PLP Ritchie house — time to share your summer " + season + " dates!",
+    htmlBody:
+      "<p>It's time to share your summer dates at the PLP Ritchie house! 🌲</p>" +
+      '<p>Go to <a href="' + SITE_URL + '">' + SITE_URL + "</a> and enter:</p>" +
+      "<ul>" +
+      "<li>the dates you plan to be at the house (add as many separate date blocks as you need)</li>" +
+      "<li>how many people are coming, including you</li>" +
+      "<li>the names of who's coming</li>" +
+      "</ul>" +
+      "<p>This summer's window is <b>" + windowText + "</b>. The calendar on that page " +
+      "updates live, so you can see how many people will be there on any given day — days " +
+      "with more than " + CAPACITY + " people get flagged so we can plan ahead. Plans " +
+      "change later? You can remove your own entry right on the page and resubmit.</p>" +
+      "<p>The earlier you post your dates, the easier it is for everyone else to plan around them!</p>"
+  });
 }
 
 function doGet() {
