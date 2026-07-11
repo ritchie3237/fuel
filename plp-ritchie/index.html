@@ -48,18 +48,32 @@
     .card h2 { margin: 0 0 .5rem; font-size: 1.05rem; color: var(--pine); }
     form.card { padding: 1.25rem; }
     .row { display: flex; gap: .9rem; flex-wrap: wrap; }
-    .row > .field { flex: 1 1 160px; }
-    .field { margin-bottom: 1rem; }
+    .row > .field { flex: 1 1 160px; min-width: 0; }
+    .field { margin-bottom: 1rem; min-width: 0; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .3rem; }
     input, select, textarea {
       width: 100%;
+      min-width: 0;
       padding: .6rem .7rem;
-      font-size: 1rem;
+      font-size: 1rem; /* 16px+ so iOS doesn't zoom on focus */
       border: 1px solid var(--line);
       border-radius: 8px;
       background: #fff;
       color: var(--ink);
     }
+    /* Date inputs: strip the platform chrome (iOS renders its own oversized,
+       center-aligned control otherwise) and keep a stable height when empty. */
+    input[type="date"] {
+      -webkit-appearance: none;
+      appearance: none;
+      min-height: 2.8rem;
+    }
+    input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+    /* Start/end sit side by side even on phones — a full-width date pill
+       looks broken. The headcount stays compact for the same reason. */
+    .row > .field.date-field { flex: 1 1 110px; }
+    .row > .field.people-field { flex: 0 1 150px; min-width: 140px; }
+    .row > .field.names-field { flex: 1 1 170px; }
     textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
     input:focus, select:focus, textarea:focus {
       outline: 2px solid var(--lake);
@@ -160,17 +174,24 @@
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      gap: .75rem;
+      flex-wrap: wrap;
+      gap: .25rem .75rem;
       padding: .55rem 0;
       border-bottom: 1px solid var(--line);
       font-size: .92rem;
     }
+    .sub > span { min-width: 0; overflow-wrap: anywhere; }
     .sub:last-child { border-bottom: none; }
     .sub .who { font-weight: 600; }
     .sub .meta { color: var(--muted); font-size: .85rem; }
     .sub button {
       background: none; border: none; color: var(--err-ink);
-      font-size: .82rem; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap;
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      padding: .2rem .4rem; margin: -.2rem -.4rem; white-space: nowrap;
+    }
+    @media (max-width: 420px) {
+      .row { gap: .7rem; }
+      input, select, textarea { padding: .6rem .5rem; }
     }
     .archive-pick { margin-bottom: .75rem; }
     .loading { color: var(--muted); font-size: .9rem; }
@@ -333,17 +354,19 @@
         '<div class="req-head"><span class="req-title"></span>' +
         '<button type="button" class="removeReq">Remove</button></div>' +
         '<div class="row">' +
-        '<div class="field"><label for="start-' + blockSeq + '">Start date</label>' +
+        '<div class="field date-field"><label for="start-' + blockSeq + '">Start date</label>' +
         '<input type="date" id="start-' + blockSeq + '" class="req-start" required ' +
         'min="' + iso(WINDOW.start) + '" max="' + iso(WINDOW.end) + '" /></div>' +
-        '<div class="field"><label for="end-' + blockSeq + '">End date</label>' +
+        '<div class="field date-field"><label for="end-' + blockSeq + '">End date</label>' +
         '<input type="date" id="end-' + blockSeq + '" class="req-end" required ' +
         'min="' + iso(WINDOW.start) + '" max="' + iso(WINDOW.end) + '" /></div>' +
-        '<div class="field"><label for="people-' + blockSeq + '">How many people? (including you)</label>' +
-        '<input type="number" id="people-' + blockSeq + '" class="req-people" min="1" max="40" step="1" placeholder="e.g. 4" required /></div>' +
         "</div>" +
-        '<div class="field"><label for="names-' + blockSeq + '">Who’s coming? <span style="font-weight:400;color:var(--muted)">(names, optional)</span></label>' +
-        '<input type="text" id="names-' + blockSeq + '" class="req-names" maxlength="300" placeholder="e.g. Sam, Alex, the twins" /></div>';
+        '<div class="row">' +
+        '<div class="field people-field"><label for="people-' + blockSeq + '">How many? <span style="font-weight:400;color:var(--muted)">(incl. you)</span></label>' +
+        '<input type="number" id="people-' + blockSeq + '" class="req-people" min="1" max="40" step="1" placeholder="e.g. 4" required /></div>' +
+        '<div class="field names-field"><label for="names-' + blockSeq + '">Who’s coming? <span style="font-weight:400;color:var(--muted)">(names, optional)</span></label>' +
+        '<input type="text" id="names-' + blockSeq + '" class="req-names" maxlength="300" placeholder="e.g. Sam, Alex, the twins" /></div>' +
+        "</div>";
       div.querySelector(".removeReq").addEventListener("click", function () {
         div.remove();
         refreshBlocks();
