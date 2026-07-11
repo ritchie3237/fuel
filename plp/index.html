@@ -190,28 +190,13 @@
       <p class="section-label">Date request(s)</p>
       <p class="hint" style="margin-top:0">
         Mark each one <strong>Primary</strong> (your preferred dates) or <strong>Backup</strong>
-        (an alternative if your primary can't be accommodated). Add as many as you like.
+        (an alternative if your primary can't be accommodated), and say whether you'd want the
+        house exclusively to yourselves for those dates &mdash; exclusive means no other family
+        staying at the house. Add as many requests as you like.
       </p>
       <div id="requests"></div>
       <button type="button" class="addbtn" id="addReq">+ Add another date request</button>
       <p class="hint" id="windowHint"></p>
-
-      <div class="field">
-        <label for="exclusive">Would you like your dates to be exclusive?</label>
-        <select id="exclusive" name="exclusive" required>
-          <option value="" disabled selected>Choose one&hellip;</option>
-          <option value="Yes">Yes &mdash; we'd like the house to ourselves</option>
-          <option value="No">No &mdash; we're fine sharing with overlapping guests</option>
-        </select>
-        <p class="hint">Exclusive means no other family staying at the house during your dates.</p>
-      </div>
-
-      <div class="field" id="peopleField" style="display:none">
-        <label for="people">How many people will be there?</label>
-        <input type="number" id="people" name="people" min="1" max="30" step="1"
-          placeholder="e.g. 4" />
-        <p class="hint">Since you're open to sharing, this helps figure out how many can fit.</p>
-      </div>
 
       <div class="field">
         <label for="comments">Comments <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
@@ -243,9 +228,6 @@
     var seasonEl = document.getElementById("season");
     var yearEl = document.getElementById("year");
     var reqsEl = document.getElementById("requests");
-    var exclusiveEl = document.getElementById("exclusive");
-    var peopleField = document.getElementById("peopleField");
-    var peopleEl = document.getElementById("people");
     var hintEl = document.getElementById("windowHint");
     var msgEl = document.getElementById("formMsg");
     var btn = document.getElementById("submitBtn");
@@ -304,10 +286,29 @@
         '<div class="field"><label for="type-' + reqSeq + '">Primary or backup?</label>' +
         '<select id="type-' + reqSeq + '" class="req-type">' +
         '<option value="Primary">Primary</option><option value="Backup">Backup</option>' +
-        "</select></div></div>";
+        "</select></div></div>" +
+        '<div class="row">' +
+        '<div class="field"><label for="excl-' + reqSeq + '">Exclusive use for these dates?</label>' +
+        '<select id="excl-' + reqSeq + '" class="req-excl" required>' +
+        '<option value="" disabled selected>Choose one&hellip;</option>' +
+        '<option value="Yes">Yes &mdash; house to ourselves</option>' +
+        '<option value="No">No &mdash; sharing is fine</option>' +
+        "</select></div>" +
+        '<div class="field req-people-field" style="display:none">' +
+        '<label for="people-' + reqSeq + '">How many people will be there?</label>' +
+        '<input type="number" id="people-' + reqSeq + '" class="req-people" min="1" max="30" step="1" placeholder="e.g. 4" />' +
+        "</div></div>";
       div.querySelector(".removeReq").addEventListener("click", function () {
         div.remove();
         refreshBlocks();
+      });
+      div.querySelector(".req-excl").addEventListener("change", function () {
+        var shared = this.value === "No";
+        var pf = div.querySelector(".req-people-field");
+        var pi = div.querySelector(".req-people");
+        pf.style.display = shared ? "" : "none";
+        pi.required = shared;
+        if (!shared) pi.value = "";
       });
       reqsEl.appendChild(div);
       applyWindowTo(div);
@@ -349,15 +350,6 @@
       addRequestBlock();
     });
 
-    // ----- Headcount only applies when the time is shared (not exclusive) -----
-    function togglePeople() {
-      var shared = exclusiveEl.value === "No";
-      peopleField.style.display = shared ? "" : "none";
-      peopleEl.required = shared;
-      if (!shared) peopleEl.value = "";
-    }
-    exclusiveEl.addEventListener("change", togglePeople);
-
     function showMsg(kind, text) {
       msgEl.className = "msg " + kind;
       msgEl.textContent = text;
@@ -386,10 +378,13 @@
           showMsg("err", "In " + label + ", the end date can't be before the start date.");
           return null;
         }
+        var excl = blocks[i].querySelector(".req-excl").value;
         requests.push({
           start_date: s,
           end_date: e,
-          type: blocks[i].querySelector(".req-type").value
+          type: blocks[i].querySelector(".req-type").value,
+          exclusive: excl,
+          people: excl === "No" ? blocks[i].querySelector(".req-people").value : ""
         });
       }
       return requests;
@@ -412,8 +407,6 @@
         name: name,
         email: document.getElementById("email").value.trim(),
         season: seasonEl.value + " " + yearEl.value,
-        exclusive: exclusiveEl.value,
-        people: exclusiveEl.value === "No" ? peopleEl.value : "",
         comments: document.getElementById("comments").value.trim(),
         requests: requests,
         _honey: form.elements._honey.value
@@ -440,7 +433,6 @@
           form.reset();
           reqsEl.innerHTML = "";
           addRequestBlock();
-          togglePeople();
           yearEl.selectedIndex = 0;
           updateWindow();
         })
@@ -456,7 +448,6 @@
 
     addRequestBlock();
     updateWindow();
-    togglePeople();
   </script>
 </body>
 </html>

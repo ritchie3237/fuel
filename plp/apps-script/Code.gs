@@ -27,7 +27,7 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     if (d._honey) return jsonOut({ ok: true }); // silently drop spam bots
 
-    var required = ["name", "email", "season", "exclusive"];
+    var required = ["name", "email", "season"];
     for (var i = 0; i < required.length; i++) {
       if (!d[required[i]]) return jsonOut({ ok: false, error: "Missing " + required[i] });
     }
@@ -36,19 +36,19 @@ function doPost(e) {
     }
     for (var j = 0; j < d.requests.length; j++) {
       var r = d.requests[j];
-      if (!r.start_date || !r.end_date || !r.type) {
+      if (!r.start_date || !r.end_date || !r.type || !r.exclusive) {
         return jsonOut({ ok: false, error: "Incomplete date request " + (j + 1) });
       }
-    }
-    if (d.exclusive === "No" && !d.people) {
-      return jsonOut({ ok: false, error: "Missing people count" });
+      if (r.exclusive === "No" && !r.people) {
+        return jsonOut({ ok: false, error: "Missing people count for date request " + (j + 1) });
+      }
     }
 
     var sheet = getSheet();
     var existing = getSubmissions(sheet);
     var ts = new Date();
-    var people = d.exclusive === "No" ? String(d.people) : "";
     var totalOverlaps = 0;
+    var anyExclusive = false;
     var reqLines = [];
 
     d.requests.forEach(function (r) {
@@ -56,12 +56,15 @@ function doPost(e) {
         return o.start_date <= r.end_date && r.start_date <= o.end_date;
       });
       totalOverlaps += overlaps.length;
+      var people = r.exclusive === "No" ? String(r.people) : "";
+      if (r.exclusive === "Yes") anyExclusive = true;
 
       sheet.appendRow([ts, d.name, d.email, d.season, r.start_date, r.end_date,
-        r.type, d.exclusive, people, d.comments || ""]);
+        r.type, r.exclusive, people, d.comments || ""]);
 
       var line = "<li><b>" + esc(r.start_date) + " to " + esc(r.end_date) + "</b> (" +
-        esc(r.type) + ")";
+        esc(r.type) +
+        (r.exclusive === "Yes" ? ", exclusive" : ", sharing OK · " + esc(people) + " people") + ")";
       if (overlaps.length) {
         line += '<ul style="color:#8c2f2f">';
         overlaps.forEach(function (o) {
@@ -76,15 +79,13 @@ function doPost(e) {
 
     var subject = "PLP Request: " + d.name + " — " + d.season +
       " (" + d.requests.length + " date option" + (d.requests.length > 1 ? "s" : "") + ")" +
-      (d.exclusive === "Yes" ? " [EXCLUSIVE]" : "") +
+      (anyExclusive ? " [EXCLUSIVE]" : "") +
       (totalOverlaps ? " ⚠ OVERLAPS " + totalOverlaps + " request" + (totalOverlaps > 1 ? "s" : "") : "");
 
     var body =
       '<h3 style="margin:0 0 10px">New PLP date request</h3>' +
       '<table cellpadding="6" style="border-collapse:collapse;border:1px solid #ccc">' +
       row("Name", d.name) + row("Email", d.email) + row("Season", d.season) +
-      row("Exclusive use", d.exclusive) +
-      (d.exclusive === "No" ? row("How many people", people) : "") +
       row("Comments", d.comments || "—") +
       "</table>" +
       "<h4>Date request" + (d.requests.length > 1 ? "s" : "") + "</h4>" +
