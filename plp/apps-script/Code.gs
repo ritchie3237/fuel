@@ -26,7 +26,7 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     if (d._honey) return jsonOut({ ok: true }); // silently drop spam bots
 
-    var required = ["name", "email", "season", "start_date", "end_date"];
+    var required = ["name", "email", "season", "start_date", "end_date", "exclusive"];
     for (var i = 0; i < required.length; i++) {
       if (!d[required[i]]) return jsonOut({ ok: false, error: "Missing " + required[i] });
     }
@@ -37,10 +37,12 @@ function doPost(e) {
       return r.start_date <= d.end_date && d.start_date <= r.end_date;
     });
 
-    sheet.appendRow([new Date(), d.name, d.email, d.season, d.start_date, d.end_date]);
+    sheet.appendRow([new Date(), d.name, d.email, d.season, d.start_date, d.end_date,
+      d.exclusive, d.comments || ""]);
 
     var subject = "PLP Request: " + d.name + " — " + d.season +
       " (" + d.start_date + " to " + d.end_date + ")" +
+      (d.exclusive === "Yes" ? " [EXCLUSIVE]" : "") +
       (overlaps.length ? " ⚠ OVERLAPS " + overlaps.length + " request" + (overlaps.length > 1 ? "s" : "") : "");
 
     var body =
@@ -48,6 +50,8 @@ function doPost(e) {
       '<table cellpadding="6" style="border-collapse:collapse;border:1px solid #ccc">' +
       row("Name", d.name) + row("Email", d.email) + row("Season", d.season) +
       row("Start date", d.start_date) + row("End date", d.end_date) +
+      row("Exclusive use", d.exclusive) +
+      row("Comments", d.comments || "—") +
       "</table>";
 
     if (overlaps.length) {
@@ -82,7 +86,8 @@ function getSheet() {
   var ss = SpreadsheetApp.getActive();
   var sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
   if (sh.getLastRow() === 0) {
-    sh.appendRow(["Submitted", "Name", "Email", "Season", "Start date", "End date"]);
+    sh.appendRow(["Submitted", "Name", "Email", "Season", "Start date", "End date",
+      "Exclusive", "Comments"]);
   }
   return sh;
 }
@@ -99,7 +104,9 @@ function getSubmissions(sheet) {
       email: String(v[2]),
       season: String(v[3]),
       start_date: fmtDate(v[4]),
-      end_date: fmtDate(v[5])
+      end_date: fmtDate(v[5]),
+      exclusive: String(v[6] || ""),
+      comments: String(v[7] || "")
     });
   }
   return out;

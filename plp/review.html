@@ -72,6 +72,8 @@
     tr.overlap td { background: var(--warn-bg); }
     tr.overlap td:first-child { border-left: 4px solid var(--warn-line); }
     .flag { color: var(--warn-ink); font-weight: 600; white-space: normal; }
+    .excl { color: var(--warn-ink); font-weight: 700; }
+    td.comments { white-space: normal; min-width: 180px; max-width: 320px; font-size: .88rem; }
     .clear { color: var(--ok-ink); }
     .muted { color: var(--muted); font-size: .85rem; }
     #status { padding: 1.5rem; text-align: center; color: var(--muted); }
@@ -104,7 +106,9 @@
             <th>Start</th>
             <th>End</th>
             <th>Nights</th>
+            <th>Exclusive?</th>
             <th>Overlaps with</th>
+            <th>Comments</th>
             <th>Email</th>
             <th>Submitted</th>
           </tr>
@@ -172,7 +176,9 @@
           "<td>" + esc(r.start_date) + "</td>" +
           "<td>" + esc(r.end_date) + "</td>" +
           "<td>" + nights(r.start_date, r.end_date) + "</td>" +
+          "<td>" + (r.exclusive === "Yes" ? '<span class="excl">Yes</span>' : esc(r.exclusive || "—")) + "</td>" +
           "<td>" + flag + "</td>" +
+          '<td class="comments">' + (r.comments ? esc(r.comments) : '<span class="muted">—</span>') + "</td>" +
           '<td class="muted">' + esc(r.email) + "</td>" +
           '<td class="muted">' + esc(submitted) + "</td>" +
           "</tr>";

@@ -58,7 +58,7 @@
     .row > .field { flex: 1 1 240px; }
     .field { margin-bottom: 1rem; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .3rem; }
-    input, select {
+    input, select, textarea {
       width: 100%;
       padding: .6rem .7rem;
       font-size: 1rem;
@@ -67,7 +67,8 @@
       background: #fff;
       color: var(--ink);
     }
-    input:focus, select:focus {
+    textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
+    input:focus, select:focus, textarea:focus {
       outline: 2px solid var(--lake);
       outline-offset: 1px;
       border-color: var(--lake);
@@ -161,6 +162,22 @@
         </div>
       </div>
       <p class="hint" id="windowHint"></p>
+
+      <div class="field">
+        <label for="exclusive">Would you like your dates to be exclusive?</label>
+        <select id="exclusive" name="exclusive" required>
+          <option value="" disabled selected>Choose one&hellip;</option>
+          <option value="Yes">Yes &mdash; we'd like the house to ourselves</option>
+          <option value="No">No &mdash; we're fine sharing with overlapping guests</option>
+        </select>
+        <p class="hint">Exclusive means no other family staying at the house during your dates.</p>
+      </div>
+
+      <div class="field">
+        <label for="comments">Comments <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea id="comments" name="comments" maxlength="1000"
+          placeholder="Anything else the scheduler should know — flexibility on dates, who's coming, etc."></textarea>
+      </div>
 
       <!-- honeypot for spam bots -->
       <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
@@ -283,6 +300,8 @@
         season: seasonEl.value + " " + yearEl.value,
         start_date: dates.start,
         end_date: dates.end,
+        exclusive: document.getElementById("exclusive").value,
+        comments: document.getElementById("comments").value.trim(),
         _honey: form.elements._honey.value
       };
 
