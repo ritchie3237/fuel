@@ -100,8 +100,9 @@
 <main>
   <div class="banner" id="demoBanner">
     <b>Demo data note:</b> the built-in demo assortment is a representative reconstruction of the BRIO Flora pilot
-    (21 products, one &mdash; article 63625000 &mdash; deliberately without package dimensions). The real Flora order file
-    from Nina (~38&nbsp;MB, with images) lives in the Ravensburger inbox &mdash; load it via <b>Load order file</b> to replace the demo.
+    (21 products, one &mdash; article 63625000 &mdash; deliberately without package dimensions) and has <b>no product photos</b>,
+    so products show as colored, labeled boxes. Load the real Flora order file from Nina (~38&nbsp;MB &mdash; its embedded product
+    photos appear on the shelves automatically) via <b>Load order file</b>, or add photo files via <b>Load images</b>.
   </div>
   <div class="cols">
     <div class="side">
@@ -112,13 +113,17 @@
           <button id="btnLoadOrder" class="ghost small">Load order file (.xlsx / .csv)</button>
           <button id="btnLoadMatrix" class="ghost small">Load category matrix</button>
           <button id="btnLoadTop100" class="ghost small">Load Top100</button>
+          <button id="btnLoadImgs" class="ghost small">Load images</button>
         </div>
         <input type="file" id="fileInput" accept=".xlsx,.csv" style="display:none">
+        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
         <p class="note" style="margin-bottom:0">
           The order file needs: article number, title, order quantity and package dimensions (W&times;H&times;D).
           Anything with missing sizes is held aside &mdash; never guessed.
           Category matrix (<i>Matrix_Shelves.xlsx</i>) extends the article&rarr;category map;
           Top100 (<i>Top100_regulare items.xlsx</i>) flags best-sellers by EAN / article for eye-level priority.
+          Product photos embedded in the order .xlsx appear automatically; <b>Load images</b> adds photo files
+          matched by article number in the filename (e.g. <i>63601000.jpg</i>).
         </p>
         <div id="loadStatus" style="margin-top:8px"></div>
       </div>
@@ -327,6 +332,7 @@ function makeProduct(o) {
     qty: Math.max(1, Math.round(+o.qty || 1)),
     w: missing ? null : +o.w, h: missing ? null : +o.h, d: missing ? null : +o.d,
     price: +o.price || null, ean: String(o.ean || '').trim() || null,
+    img: o.img || null,
     category: categoryMap[article] || 'Unzugeordnet',
     topSeller: top100.has(article) || (o.ean && top100.has(String(o.ean))),
     missingDims: missing
@@ -468,6 +474,9 @@ function renderBay() {
       el.style.width = bw + 'px';
       el.style.height = p.h * PXCM + 'px';
       el.style.background = catColor(p.category);
+      if (p.img) {
+        el.style.background = `url(${p.img}) left bottom / ${(p.w + 0.4) * PXCM}px 100% repeat-x #fff`;
+      }
       el.draggable = true;
       const u = blockUnits(layout.levels[li], b);
       el.title = `${p.article} — ${p.title}\n${b.facings} facing(s) · ${u.behindEach} behind each · ${u.deep} deep max\nQty ${p.qty} · ${p.category}` + (p.topSeller ? '\n★ Top-100 seller' : '');
@@ -746,16 +755,20 @@ async function readXlsx(buf) {
     entries[name] = { method, csize, lho };
     ptr += 46 + nameLen + extraLen + commentLen;
   }
-  async function file(name) {
+  async function fileBin(name) {
     const e = entries[name];
     if (!e) return null;
     const nl = dv.getUint16(e.lho + 26, true), xl = dv.getUint16(e.lho + 28, true);
     const data = u8.subarray(e.lho + 30 + nl + xl, e.lho + 30 + nl + xl + e.csize);
-    if (e.method === 0) return new TextDecoder().decode(data);
+    if (e.method === 0) return data;
     const ab = await new Response(
       new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))
     ).arrayBuffer();
-    return new TextDecoder().decode(ab);
+    return new Uint8Array(ab);
+  }
+  async function file(name) {
+    const bin = await fileBin(name);
+    return bin === null ? null : new TextDecoder().decode(bin);
   }
   // shared strings
   const shared = [];
@@ -765,7 +778,8 @@ async function readXlsx(buf) {
     for (const si of doc.getElementsByTagName('si'))
       shared.push([...si.getElementsByTagName('t')].map(t => t.textContent).join(''));
   }
-  // all sheets (matrix files can have several)
+  // all sheets (matrix files can have several); cells land at their true
+  // sheet row (r attribute) so drawing anchors line up with grid indexes
   const sheets = [];
   for (const name of Object.keys(entries).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort()) {
     const xml = await file(name);
@@ -785,11 +799,83 @@ async function readXlsx(buf) {
         }
         r[ci] = val;
       }
-      grid.push(r);
+      const rn = parseInt(row.getAttribute('r'));
+      if (rn > 0) grid[rn - 1] = r; else grid.push(r);
     }
     sheets.push(grid);
   }
-  return sheets;
+
+  // embedded product photos (first sheet): drawing anchors -> row -> image
+  const images = {};
+  try {
+    const parse = x => new DOMParser().parseFromString(x, 'application/xml');
+    const relTargets = relXml => {
+      const m = {};
+      if (relXml) for (const rel of parse(relXml).getElementsByTagName('Relationship'))
+        m[rel.getAttribute('Id')] = rel.getAttribute('Target');
+      return m;
+    };
+    const norm = (base, target) => {
+      if (!target) return null;
+      if (target.startsWith('/')) return target.slice(1);
+      let parts = base.split('/'); parts.pop();
+      for (const seg of target.split('/')) {
+        if (seg === '..') parts.pop(); else if (seg !== '.') parts.push(seg);
+      }
+      return parts.join('/');
+    };
+    const sheetName = Object.keys(entries).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort()[0];
+    if (sheetName) {
+      const sheetRels = relTargets(await file(sheetName.replace(/worksheets\//, 'worksheets/_rels/') + '.rels'));
+      const sheetDoc = parse(await file(sheetName) || '<x/>');
+      const drawingEl = sheetDoc.getElementsByTagName('drawing')[0];
+      const drawingPath = drawingEl && norm(sheetName, sheetRels[drawingEl.getAttribute('r:id')]);
+      const drawingXml = drawingPath && await file(drawingPath);
+      if (drawingXml) {
+        const dRels = relTargets(await file(drawingPath.replace(/drawings\//, 'drawings/_rels/') + '.rels'));
+        const dDoc = parse(drawingXml);
+        const anchors = [
+          ...dDoc.getElementsByTagNameNS('*', 'twoCellAnchor'),
+          ...dDoc.getElementsByTagNameNS('*', 'oneCellAnchor')
+        ];
+        for (const a of anchors) {
+          const from = a.getElementsByTagNameNS('*', 'from')[0];
+          const rowEl = from && from.getElementsByTagNameNS('*', 'row')[0];
+          const blip = a.getElementsByTagNameNS('*', 'blip')[0];
+          if (!rowEl || !blip) continue;
+          const rid = blip.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed')
+            || blip.getAttribute('r:embed');
+          const mediaPath = norm(drawingPath, dRels[rid]);
+          const rowIdx = +rowEl.textContent;
+          if (!mediaPath || images[rowIdx] !== undefined) continue;
+          const bin = await fileBin(mediaPath);
+          if (!bin) continue;
+          const mime = /\.png$/i.test(mediaPath) ? 'image/png'
+            : /\.gif$/i.test(mediaPath) ? 'image/gif'
+            : /\.(jpe?g)$/i.test(mediaPath) ? 'image/jpeg' : null;
+          if (!mime) continue; // emf/wmf etc. — browsers can't decode
+          try { images[rowIdx] = await shrinkImage(new Blob([bin], { type: mime })); }
+          catch { /* undecodable image — skip */ }
+        }
+      }
+    }
+  } catch { /* photos are best-effort; the data still loads */ }
+  return { sheets, images };
+}
+
+/* downscale photos before storing so localStorage survives a 38 MB order file */
+async function shrinkImage(blob, max = 240) {
+  const bmp = await createImageBitmap(blob);
+  const sc = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.round(bmp.width * sc));
+  cv.height = Math.max(1, Math.round(bmp.height * sc));
+  const cx = cv.getContext('2d');
+  cx.fillStyle = '#fff';
+  cx.fillRect(0, 0, cv.width, cv.height);
+  cx.drawImage(bmp, 0, 0, cv.width, cv.height);
+  bmp.close();
+  return cv.toDataURL('image/jpeg', 0.85);
 }
 function colIndex(letters) { let n = 0; for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64); return Math.max(0, n - 1); }
 
@@ -832,7 +918,7 @@ function detectOrderColumns(grid) {
   }
   return null;
 }
-function loadOrderGrid(grid) {
+function loadOrderGrid(grid, images = {}) {
   const det = detectOrderColumns(grid);
   if (!det) throw new Error('Could not find header row (need at least article + title/qty columns)');
   const { headerRow, map, headers } = det;
@@ -856,7 +942,8 @@ function loadOrderGrid(grid) {
       qty: map.qty != null ? num('qty') || 1 : 1,
       w, h, d,
       price: map.price != null ? num('price') : null,
-      ean: map.ean != null ? row[map.ean] : null
+      ean: map.ean != null ? row[map.ean] : null,
+      img: images[ri] || null
     }));
     if (map.category != null && row[map.category]) {
       const cat = String(row[map.category]).trim();
@@ -867,7 +954,8 @@ function loadOrderGrid(grid) {
   products = out;
   refreshFlags();
   $('demoBanner').style.display = 'none';
-  toast(`Order file loaded: ${products.length} products (${products.filter(p => p.missingDims).length} missing sizes)`);
+  const nImg = products.filter(p => p.img).length;
+  toast(`Order file loaded: ${products.length} products (${products.filter(p => p.missingDims).length} missing sizes, ${nImg} photos)`);
   generate();
 }
 
@@ -916,20 +1004,38 @@ let fileMode = 'order';
 $('btnLoadOrder').onclick = () => { fileMode = 'order'; $('fileInput').click(); };
 $('btnLoadMatrix').onclick = () => { fileMode = 'matrix'; $('fileInput').click(); };
 $('btnLoadTop100').onclick = () => { fileMode = 'top100'; $('fileInput').click(); };
+$('btnLoadImgs').onclick = () => {
+  if (!products.length) { toast('Load products first — images match by article number in the filename'); return; }
+  $('imgInput').click();
+};
+$('imgInput').onchange = async e => {
+  const files = [...e.target.files];
+  e.target.value = '';
+  let matched = 0, skipped = 0;
+  for (const f of files) {
+    const digits = f.name.replace(/\D/g, '');
+    const p = products.find(pr => pr.article && digits.includes(pr.article));
+    if (!p) { skipped++; continue; }
+    try { p.img = await shrinkImage(f); matched++; }
+    catch { skipped++; }
+  }
+  toast(`Images: ${matched} matched by article number` + (skipped ? `, ${skipped} skipped (no matching article / unreadable)` : ''));
+  renderAll(); save();
+};
 $('fileInput').onchange = async e => {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
   $('loadStatus').innerHTML = `<span class="pill">Reading ${esc(f.name)}…</span>`;
   try {
-    let sheets;
+    let sheets, images = {};
     if (/\.csv$/i.test(f.name)) sheets = parseCsv(await f.text());
     else {
       if (typeof DecompressionStream === 'undefined')
         throw new Error('This browser cannot unzip .xlsx — save the file as CSV and load that instead.');
-      sheets = await readXlsx(await f.arrayBuffer());
+      ({ sheets, images } = await readXlsx(await f.arrayBuffer()));
     }
-    if (fileMode === 'order') loadOrderGrid(sheets[0]);
+    if (fileMode === 'order') loadOrderGrid(sheets[0], images);
     else if (fileMode === 'matrix') loadMatrixSheets(sheets);
     else loadTop100Sheets(sheets);
     $('loadStatus').innerHTML = `<span class="pill ok">${esc(f.name)} ✓</span>`;
@@ -990,8 +1096,16 @@ function downloadBlob(blob, name) {
 }
 $('btnXlsx').onclick = exportXlsx;
 $('btnPrint').onclick = () => window.print();
-$('btnPng').onclick = () => {
+$('btnPng').onclick = async () => {
   if (!layout) { toast('Generate a layout first'); return; }
+  // preload product photos so drawImage has decoded bitmaps
+  const photos = {};
+  await Promise.all(products.filter(p => p.img).map(p => new Promise(res => {
+    const im = new Image();
+    im.onload = () => { photos[p.id] = im; res(); };
+    im.onerror = () => res();
+    im.src = p.img;
+  })));
   const S = 8; // px per cm in export
   const M = 70, HEAD = 60;
   const totalH = cfg.levels.reduce((a, b) => a + b, 0) + cfg.plinthCm + cfg.levels.length * 1.2;
@@ -1025,8 +1139,12 @@ $('btnPng').onclick = () => {
       const p = byId(b.pid);
       const bw = (b.facings * p.w + (b.facings - 1) * 0.4) * S;
       const bh = p.h * S;
-      ctx.fillStyle = catColor(p.category);
+      ctx.fillStyle = photos[p.id] ? '#fff' : catColor(p.category);
       ctx.fillRect(x, yBasePx - bh, bw, bh);
+      if (photos[p.id]) {
+        for (let f = 0; f < b.facings; f++)
+          ctx.drawImage(photos[p.id], x + f * (p.w + 0.4) * S, yBasePx - bh, p.w * S, bh);
+      }
       ctx.strokeStyle = 'rgba(0,0,0,.45)';
       ctx.strokeRect(x, yBasePx - bh, bw, bh);
       for (let f = 1; f < b.facings; f++) {
@@ -1054,11 +1172,16 @@ $('btnPng').onclick = () => {
 
 /* --------------------------- persistence ---------------------------- */
 function save() {
+  const state = { cfg, products, layout, CATEGORIES, categoryMap, top100: [...top100], nextId };
   try {
-    localStorage.setItem('rvShelfPlanner', JSON.stringify({
-      cfg, products, layout, CATEGORIES, categoryMap, top100: [...top100], nextId
-    }));
-  } catch (e) { /* storage full or blocked — non-fatal */ }
+    localStorage.setItem('rvShelfPlanner', JSON.stringify(state));
+  } catch (e) {
+    // storage quota — retry without photos so the layout itself survives
+    try {
+      state.products = products.map(p => ({ ...p, img: null }));
+      localStorage.setItem('rvShelfPlanner', JSON.stringify(state));
+    } catch (e2) { /* still blocked — non-fatal */ }
+  }
 }
 function restore() {
   try {
