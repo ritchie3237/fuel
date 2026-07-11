@@ -208,14 +208,14 @@
     var msgEl = document.getElementById("formMsg");
     var btn = document.getElementById("submitBtn");
 
-    // Year choices: this year and next.
+    // Year choices: this year through 10 years out, for far-future planning.
     var now = new Date();
-    [now.getFullYear(), now.getFullYear() + 1].forEach(function (y) {
+    for (var y = now.getFullYear(); y <= now.getFullYear() + 10; y++) {
       var opt = document.createElement("option");
       opt.value = y;
       opt.textContent = y;
       yearEl.appendChild(opt);
-    });
+    }
 
     // Default to the season we're currently in or approaching.
     if (now.getMonth() >= 6) seasonEl.value = "Fall"; // July onward -> fall
@@ -249,7 +249,8 @@
       startEl.min = iso(w.min); startEl.max = iso(w.max);
       endEl.min = iso(w.min); endEl.max = iso(w.max);
       hintEl.textContent = "Dates for " + seasonEl.value + " " + yearEl.value +
-        " must fall between " + fmt(w.min) + " and " + fmt(w.max) + ".";
+        " must fall between " + fmt(w.min) + " and " + fmt(w.max) + "." +
+        (iso(w.max) < iso(new Date()) ? " Note: this off-season has already ended — pick a future one." : "");
       // Clear dates that no longer fit the window.
       [startEl, endEl].forEach(function (el) {
         if (el.value && (el.value < el.min || el.value > el.max)) el.value = "";
@@ -268,6 +269,11 @@
     function validate() {
       if (!form.reportValidity()) return null;
       var w = seasonWindow(seasonEl.value, parseInt(yearEl.value, 10));
+      if (iso(w.max) < iso(new Date())) {
+        showMsg("err", "The " + seasonEl.value + " " + yearEl.value +
+          " off-season has already ended — please pick a future season or year.");
+        return null;
+      }
       var s = startEl.value, e = endEl.value;
       if (s < iso(w.min) || s > iso(w.max) || e < iso(w.min) || e > iso(w.max)) {
         showMsg("err", "Both dates must fall within the " + seasonEl.value + " " + yearEl.value +
