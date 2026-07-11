@@ -2,9 +2,10 @@
  * PLP McGee Scheduling — Google Apps Script backend.
  *
  * What it does:
- *  - doPost: receives a form submission, appends it to the "Submissions"
- *    sheet, and emails NOTIFY_EMAIL (flagging any date overlaps with
- *    existing requests right in the email).
+ *  - doPost: receives a form submission (one or more date requests), appends
+ *    one row per date range to the "Submissions" sheet, and emails
+ *    NOTIFY_EMAIL — flagging any date overlaps with existing requests right
+ *    in the email.
  *  - doGet: returns all submissions as JSON for the review page.
  *
  * One-time setup (see plp/SETUP.md for the full walkthrough):
@@ -26,44 +27,70 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     if (d._honey) return jsonOut({ ok: true }); // silently drop spam bots
 
-    var required = ["name", "email", "season", "start_date", "end_date", "exclusive"];
+    var required = ["name", "email", "season", "exclusive"];
     for (var i = 0; i < required.length; i++) {
       if (!d[required[i]]) return jsonOut({ ok: false, error: "Missing " + required[i] });
+    }
+    if (!(d.requests && d.requests.length)) {
+      return jsonOut({ ok: false, error: "Missing date requests" });
+    }
+    for (var j = 0; j < d.requests.length; j++) {
+      var r = d.requests[j];
+      if (!r.start_date || !r.end_date || !r.type) {
+        return jsonOut({ ok: false, error: "Incomplete date request " + (j + 1) });
+      }
+    }
+    if (d.exclusive === "No" && !d.people) {
+      return jsonOut({ ok: false, error: "Missing people count" });
     }
 
     var sheet = getSheet();
     var existing = getSubmissions(sheet);
-    var overlaps = existing.filter(function (r) {
-      return r.start_date <= d.end_date && d.start_date <= r.end_date;
+    var ts = new Date();
+    var people = d.exclusive === "No" ? String(d.people) : "";
+    var totalOverlaps = 0;
+    var reqLines = [];
+
+    d.requests.forEach(function (r) {
+      var overlaps = existing.filter(function (o) {
+        return o.start_date <= r.end_date && r.start_date <= o.end_date;
+      });
+      totalOverlaps += overlaps.length;
+
+      sheet.appendRow([ts, d.name, d.email, d.season, r.start_date, r.end_date,
+        r.type, d.exclusive, people, d.comments || ""]);
+
+      var line = "<li><b>" + esc(r.start_date) + " to " + esc(r.end_date) + "</b> (" +
+        esc(r.type) + ")";
+      if (overlaps.length) {
+        line += '<ul style="color:#8c2f2f">';
+        overlaps.forEach(function (o) {
+          line += "<li>⚠ overlaps " + esc(o.name) + " — " + esc(o.start_date) + " to " +
+            esc(o.end_date) + (o.type === "Backup" ? " (backup)" : "") + "</li>";
+        });
+        line += "</ul>";
+      }
+      line += "</li>";
+      reqLines.push(line);
     });
 
-    sheet.appendRow([new Date(), d.name, d.email, d.season, d.start_date, d.end_date,
-      d.exclusive, d.comments || ""]);
-
     var subject = "PLP Request: " + d.name + " — " + d.season +
-      " (" + d.start_date + " to " + d.end_date + ")" +
+      " (" + d.requests.length + " date option" + (d.requests.length > 1 ? "s" : "") + ")" +
       (d.exclusive === "Yes" ? " [EXCLUSIVE]" : "") +
-      (overlaps.length ? " ⚠ OVERLAPS " + overlaps.length + " request" + (overlaps.length > 1 ? "s" : "") : "");
+      (totalOverlaps ? " ⚠ OVERLAPS " + totalOverlaps + " request" + (totalOverlaps > 1 ? "s" : "") : "");
 
     var body =
       '<h3 style="margin:0 0 10px">New PLP date request</h3>' +
       '<table cellpadding="6" style="border-collapse:collapse;border:1px solid #ccc">' +
       row("Name", d.name) + row("Email", d.email) + row("Season", d.season) +
-      row("Start date", d.start_date) + row("End date", d.end_date) +
       row("Exclusive use", d.exclusive) +
+      (d.exclusive === "No" ? row("How many people", people) : "") +
       row("Comments", d.comments || "—") +
-      "</table>";
-
-    if (overlaps.length) {
-      body += '<p style="color:#8c2f2f"><strong>⚠ This request overlaps with:</strong></p><ul>';
-      overlaps.forEach(function (r) {
-        body += "<li>" + esc(r.name) + " — " + esc(r.start_date) + " to " + esc(r.end_date) + "</li>";
-      });
-      body += "</ul>";
-    } else {
-      body += "<p>No overlaps with existing requests.</p>";
-    }
-    body += '<p><a href="' + REVIEW_URL + '">Review all requests</a></p>';
+      "</table>" +
+      "<h4>Date request" + (d.requests.length > 1 ? "s" : "") + "</h4>" +
+      "<ul>" + reqLines.join("") + "</ul>" +
+      (totalOverlaps ? "" : "<p>No overlaps with existing requests.</p>") +
+      '<p><a href="' + REVIEW_URL + '">Review all requests</a></p>';
 
     MailApp.sendEmail({ to: NOTIFY_EMAIL, subject: subject, htmlBody: body });
     return jsonOut({ ok: true });
@@ -87,7 +114,7 @@ function getSheet() {
   var sh = ss.getSheetByName(SHEET_NAME) || ss.insertSheet(SHEET_NAME);
   if (sh.getLastRow() === 0) {
     sh.appendRow(["Submitted", "Name", "Email", "Season", "Start date", "End date",
-      "Exclusive", "Comments"]);
+      "Type", "Exclusive", "People", "Comments"]);
   }
   return sh;
 }
@@ -105,8 +132,10 @@ function getSubmissions(sheet) {
       season: String(v[3]),
       start_date: fmtDate(v[4]),
       end_date: fmtDate(v[5]),
-      exclusive: String(v[6] || ""),
-      comments: String(v[7] || "")
+      type: String(v[6] || "Primary"),
+      exclusive: String(v[7] || ""),
+      people: String(v[8] || ""),
+      comments: String(v[9] || "")
     });
   }
   return out;

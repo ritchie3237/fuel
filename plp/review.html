@@ -73,6 +73,7 @@
     tr.overlap td:first-child { border-left: 4px solid var(--warn-line); }
     .flag { color: var(--warn-ink); font-weight: 600; white-space: normal; }
     .excl { color: var(--warn-ink); font-weight: 700; }
+    .backup { color: var(--muted); font-style: italic; }
     td.comments { white-space: normal; min-width: 180px; max-width: 320px; font-size: .88rem; }
     .clear { color: var(--ok-ink); }
     .muted { color: var(--muted); font-size: .85rem; }
@@ -106,6 +107,7 @@
             <th>Start</th>
             <th>End</th>
             <th>Nights</th>
+            <th>Type</th>
             <th>Exclusive?</th>
             <th>Overlaps with</th>
             <th>Comments</th>
@@ -166,7 +168,8 @@
         if (conflicts.length) overlapCount++;
         var flag = conflicts.length
           ? '<span class="flag">⚠ ' + conflicts.map(function (c) {
-              return esc(c.name) + " (" + esc(c.start_date) + " – " + esc(c.end_date) + ")";
+              return esc(c.name) + " (" + esc(c.start_date) + " – " + esc(c.end_date) +
+                (c.type === "Backup" ? ", backup" : "") + ")";
             }).join(", ") + "</span>"
           : '<span class="clear">—</span>';
         var submitted = r.submitted ? new Date(r.submitted).toLocaleDateString() : "";
@@ -176,7 +179,10 @@
           "<td>" + esc(r.start_date) + "</td>" +
           "<td>" + esc(r.end_date) + "</td>" +
           "<td>" + nights(r.start_date, r.end_date) + "</td>" +
-          "<td>" + (r.exclusive === "Yes" ? '<span class="excl">Yes</span>' : esc(r.exclusive || "—")) + "</td>" +
+          "<td>" + (r.type === "Backup" ? '<span class="backup">Backup</span>' : "Primary") + "</td>" +
+          "<td>" + (r.exclusive === "Yes" ? '<span class="excl">Yes</span>'
+            : r.exclusive === "No" ? "No" + (r.people ? " · " + esc(r.people) + " people" : "")
+            : "—") + "</td>" +
           "<td>" + flag + "</td>" +
           '<td class="comments">' + (r.comments ? esc(r.comments) : '<span class="muted">—</span>') + "</td>" +
           '<td class="muted">' + esc(r.email) + "</td>" +

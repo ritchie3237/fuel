@@ -55,7 +55,7 @@
       padding: 1.25rem;
     }
     .row { display: flex; gap: .9rem; flex-wrap: wrap; }
-    .row > .field { flex: 1 1 240px; }
+    .row > .field { flex: 1 1 160px; }
     .field { margin-bottom: 1rem; }
     label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .3rem; }
     input, select, textarea {
@@ -74,7 +74,43 @@
       border-color: var(--lake);
     }
     .hint { font-size: .82rem; color: var(--muted); margin-top: .25rem; }
-    button {
+    .section-label { font-weight: 700; font-size: .95rem; margin: 1.1rem 0 .2rem; color: var(--pine); }
+    .req {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: .8rem .8rem 0;
+      margin: .75rem 0;
+      background: #fbfaf6;
+    }
+    .req-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .5rem;
+    }
+    .req-title { font-weight: 700; font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .removeReq {
+      background: none;
+      border: none;
+      color: var(--err-ink);
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 0;
+    }
+    .addbtn {
+      background: none;
+      border: 1px dashed var(--pine);
+      color: var(--pine);
+      border-radius: 8px;
+      padding: .5rem .9rem;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: .5rem;
+    }
+    .addbtn:hover { background: var(--ok-bg); }
+    button[type="submit"] {
       width: 100%;
       padding: .8rem;
       font-size: 1.05rem;
@@ -86,8 +122,8 @@
       cursor: pointer;
       margin-top: .25rem;
     }
-    button:hover:not(:disabled) { background: var(--pine-dark); }
-    button:disabled { opacity: .6; cursor: default; }
+    button[type="submit"]:hover:not(:disabled) { background: var(--pine-dark); }
+    button[type="submit"]:disabled { opacity: .6; cursor: default; }
     .msg {
       display: none;
       border-radius: 8px;
@@ -151,16 +187,13 @@
         </div>
       </div>
 
-      <div class="row">
-        <div class="field">
-          <label for="start">Start date</label>
-          <input type="date" id="start" name="start_date" required />
-        </div>
-        <div class="field">
-          <label for="end">End date</label>
-          <input type="date" id="end" name="end_date" required />
-        </div>
-      </div>
+      <p class="section-label">Date request(s)</p>
+      <p class="hint" style="margin-top:0">
+        Mark each one <strong>Primary</strong> (your preferred dates) or <strong>Backup</strong>
+        (an alternative if your primary can't be accommodated). Add as many as you like.
+      </p>
+      <div id="requests"></div>
+      <button type="button" class="addbtn" id="addReq">+ Add another date request</button>
       <p class="hint" id="windowHint"></p>
 
       <div class="field">
@@ -171,6 +204,13 @@
           <option value="No">No &mdash; we're fine sharing with overlapping guests</option>
         </select>
         <p class="hint">Exclusive means no other family staying at the house during your dates.</p>
+      </div>
+
+      <div class="field" id="peopleField" style="display:none">
+        <label for="people">How many people will be there?</label>
+        <input type="number" id="people" name="people" min="1" max="30" step="1"
+          placeholder="e.g. 4" />
+        <p class="hint">Since you're open to sharing, this helps figure out how many can fit.</p>
       </div>
 
       <div class="field">
@@ -202,8 +242,10 @@
     var form = document.getElementById("requestForm");
     var seasonEl = document.getElementById("season");
     var yearEl = document.getElementById("year");
-    var startEl = document.getElementById("start");
-    var endEl = document.getElementById("end");
+    var reqsEl = document.getElementById("requests");
+    var exclusiveEl = document.getElementById("exclusive");
+    var peopleField = document.getElementById("peopleField");
+    var peopleEl = document.getElementById("people");
     var hintEl = document.getElementById("windowHint");
     var msgEl = document.getElementById("formMsg");
     var btn = document.getElementById("submitBtn");
@@ -244,22 +286,77 @@
       return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
     }
 
+    // ----- Repeatable date-request blocks -----
+    var reqSeq = 0;
+
+    function addRequestBlock() {
+      reqSeq++;
+      var div = document.createElement("div");
+      div.className = "req";
+      div.innerHTML =
+        '<div class="req-head"><span class="req-title"></span>' +
+        '<button type="button" class="removeReq">Remove</button></div>' +
+        '<div class="row">' +
+        '<div class="field"><label for="start-' + reqSeq + '">Start date</label>' +
+        '<input type="date" id="start-' + reqSeq + '" class="req-start" required /></div>' +
+        '<div class="field"><label for="end-' + reqSeq + '">End date</label>' +
+        '<input type="date" id="end-' + reqSeq + '" class="req-end" required /></div>' +
+        '<div class="field"><label for="type-' + reqSeq + '">Primary or backup?</label>' +
+        '<select id="type-' + reqSeq + '" class="req-type">' +
+        '<option value="Primary">Primary</option><option value="Backup">Backup</option>' +
+        "</select></div></div>";
+      div.querySelector(".removeReq").addEventListener("click", function () {
+        div.remove();
+        refreshBlocks();
+      });
+      reqsEl.appendChild(div);
+      applyWindowTo(div);
+      refreshBlocks();
+      return div;
+    }
+
+    function refreshBlocks() {
+      var blocks = reqsEl.querySelectorAll(".req");
+      for (var i = 0; i < blocks.length; i++) {
+        blocks[i].querySelector(".req-title").textContent = "Date request " + (i + 1);
+        blocks[i].querySelector(".removeReq").style.display = blocks.length > 1 ? "" : "none";
+      }
+    }
+
+    function applyWindowTo(scope) {
+      var w = seasonWindow(seasonEl.value, parseInt(yearEl.value, 10));
+      var inputs = scope.querySelectorAll(".req-start, .req-end");
+      for (var i = 0; i < inputs.length; i++) {
+        inputs[i].min = iso(w.min);
+        inputs[i].max = iso(w.max);
+        if (inputs[i].value && (inputs[i].value < inputs[i].min || inputs[i].value > inputs[i].max)) {
+          inputs[i].value = "";
+        }
+      }
+    }
+
     function updateWindow() {
       var w = seasonWindow(seasonEl.value, parseInt(yearEl.value, 10));
-      startEl.min = iso(w.min); startEl.max = iso(w.max);
-      endEl.min = iso(w.min); endEl.max = iso(w.max);
       hintEl.textContent = "Dates for " + seasonEl.value + " " + yearEl.value +
         " must fall between " + fmt(w.min) + " and " + fmt(w.max) + "." +
         (iso(w.max) < iso(new Date()) ? " Note: this off-season has already ended — pick a future one." : "");
-      // Clear dates that no longer fit the window.
-      [startEl, endEl].forEach(function (el) {
-        if (el.value && (el.value < el.min || el.value > el.max)) el.value = "";
-      });
+      applyWindowTo(reqsEl);
     }
 
     seasonEl.addEventListener("change", updateWindow);
     yearEl.addEventListener("change", updateWindow);
-    updateWindow();
+    document.getElementById("addReq").addEventListener("click", function () {
+      addRequestBlock();
+    });
+
+    // ----- Headcount only applies when the time is shared (not exclusive) -----
+    function togglePeople() {
+      var shared = exclusiveEl.value === "No";
+      peopleField.style.display = shared ? "" : "none";
+      peopleEl.required = shared;
+      if (!shared) peopleEl.value = "";
+    }
+    exclusiveEl.addEventListener("change", togglePeople);
 
     function showMsg(kind, text) {
       msgEl.className = "msg " + kind;
@@ -274,24 +371,35 @@
           " off-season has already ended — please pick a future season or year.");
         return null;
       }
-      var s = startEl.value, e = endEl.value;
-      if (s < iso(w.min) || s > iso(w.max) || e < iso(w.min) || e > iso(w.max)) {
-        showMsg("err", "Both dates must fall within the " + seasonEl.value + " " + yearEl.value +
-          " window (" + fmt(w.min) + " – " + fmt(w.max) + ").");
-        return null;
+      var blocks = reqsEl.querySelectorAll(".req");
+      var requests = [];
+      for (var i = 0; i < blocks.length; i++) {
+        var s = blocks[i].querySelector(".req-start").value;
+        var e = blocks[i].querySelector(".req-end").value;
+        var label = "date request " + (i + 1);
+        if (s < iso(w.min) || s > iso(w.max) || e < iso(w.min) || e > iso(w.max)) {
+          showMsg("err", "The dates in " + label + " must fall within the " + seasonEl.value +
+            " " + yearEl.value + " window (" + fmt(w.min) + " – " + fmt(w.max) + ").");
+          return null;
+        }
+        if (e < s) {
+          showMsg("err", "In " + label + ", the end date can't be before the start date.");
+          return null;
+        }
+        requests.push({
+          start_date: s,
+          end_date: e,
+          type: blocks[i].querySelector(".req-type").value
+        });
       }
-      if (e < s) {
-        showMsg("err", "The end date can't be before the start date.");
-        return null;
-      }
-      return { start: s, end: e };
+      return requests;
     }
 
     form.addEventListener("submit", function (ev) {
       ev.preventDefault();
       msgEl.className = "msg";
-      var dates = validate();
-      if (!dates) return;
+      var requests = validate();
+      if (!requests) return;
 
       if (!ENDPOINT || ENDPOINT.indexOf("PASTE_") !== -1) {
         showMsg("err", "The form isn't connected yet — the scheduler still needs to finish " +
@@ -304,10 +412,10 @@
         name: name,
         email: document.getElementById("email").value.trim(),
         season: seasonEl.value + " " + yearEl.value,
-        start_date: dates.start,
-        end_date: dates.end,
-        exclusive: document.getElementById("exclusive").value,
+        exclusive: exclusiveEl.value,
+        people: exclusiveEl.value === "No" ? peopleEl.value : "",
         comments: document.getElementById("comments").value.trim(),
+        requests: requests,
         _honey: form.elements._honey.value
       };
 
@@ -326,9 +434,13 @@
         })
         .then(function (data) {
           if (!data.ok) throw new Error(data.error || "Backend error");
-          showMsg("ok", "Thanks, " + name + "! Your request for " + dates.start + " to " +
-            dates.end + " was sent. You'll hear back once it's reviewed.");
+          showMsg("ok", "Thanks, " + name + "! Your " + requests.length + " date request" +
+            (requests.length > 1 ? "s were" : " was") + " sent for " + seasonEl.value + " " +
+            yearEl.value + ". You'll hear back once everything's reviewed.");
           form.reset();
+          reqsEl.innerHTML = "";
+          addRequestBlock();
+          togglePeople();
           yearEl.selectedIndex = 0;
           updateWindow();
         })
@@ -341,6 +453,10 @@
           btn.textContent = "Submit request";
         });
     });
+
+    addRequestBlock();
+    updateWindow();
+    togglePeople();
   </script>
 </body>
 </html>
