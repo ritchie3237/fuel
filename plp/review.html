@@ -117,6 +117,30 @@
     .cal-legend .chip.open { background: var(--ok-bg); border-color: #bcd9c2; }
     .cal-legend .chip.busy1 { background: #dbe9f3; border-color: #b5d0e2; }
     .cal-legend .chip.busy2 { background: var(--warn-bg); border-color: var(--warn-line); }
+    .cal-legend .chip.shared { background: #d9f0ec; border-color: #a8d8cf; }
+    .cal-legend .chip.conflict { background: var(--err-bg); border-color: #d9a0a0; }
+    .cal-day.pcal-open { background: var(--ok-bg); color: var(--ok-ink); border-color: #bcd9c2; }
+    .cal-day.pcal-one { background: #dbe9f3; color: #1f4d6b; border-color: #b5d0e2; }
+    .cal-day.pcal-shared { background: #d9f0ec; color: #175e52; border-color: #a8d8cf; }
+    .cal-day.pcal-conflict { background: var(--err-bg); color: var(--err-ink); border-color: #d9a0a0; font-weight: 700; }
+    .prop {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1rem 1.1rem;
+      margin-top: 1rem;
+    }
+    .prop h3 { margin: .1rem 0 .5rem; font-size: 1rem; color: var(--pine); }
+    .prop-note { font-size: .85rem; color: var(--muted); margin: .2rem 0 .8rem; }
+    .prop-note b { color: var(--ink); }
+    .prop-row { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin: .45rem 0; }
+    .prop-name { font-weight: 700; min-width: 110px; }
+    .prop-choice { max-width: 360px; }
+    .prop-status { font-size: .85rem; }
+    .prop-status.ok { color: var(--ok-ink); }
+    .prop-status.bad { color: var(--err-ink); font-weight: 700; }
+    .prop-status.skip { color: var(--muted); font-style: italic; }
+    .prop-reset { margin-top: .8rem; }
     .note { font-size: .82rem; color: var(--muted); margin-top: .9rem; }
     a { color: var(--lake); }
   </style>
@@ -158,6 +182,8 @@
         <tbody id="reqBody"></tbody>
       </table>
     </div>
+
+    <div id="proposals"></div>
 
     <p class="note">
       The calendars show every day of each season's window: green days are still open
@@ -226,7 +252,13 @@
       "July", "August", "September", "October", "November", "December"];
     var DOW = ["S", "M", "T", "W", "T", "F", "S"];
 
-    function renderMonth(meta, month, reqs) {
+    function describeReq(r) {
+      return r.name + " (" + r.type +
+        (r.exclusive === "Yes" ? ", exclusive" : r.people ? ", " + r.people + " people" : "") + ")";
+    }
+
+    // Generic month grid; dayFn decides class + tooltip for in-window days.
+    function monthGrid(meta, month, attr, dayFn) {
       var html = '<div class="cal-month"><h4>' + MONTH_NAMES[month] + " " + meta.year + "</h4>" +
         '<div class="cal-grid">' +
         DOW.map(function (d) { return '<div class="cal-dow">' + d + "</div>"; }).join("");
@@ -236,23 +268,26 @@
       for (var d = 1; d <= daysInMonth; d++) {
         var isoDay = dayIso(meta.year, month, d);
         if (isoDay < meta.min || isoDay > meta.max) {
-          html += '<div class="cal-day off" data-date="' + isoDay + '">' + d + "</div>";
+          html += '<div class="cal-day off" ' + attr + '="' + isoDay + '">' + d + "</div>";
           continue;
         }
+        var info = dayFn(isoDay);
+        html += '<div class="cal-day ' + info.cls + '" ' + attr + '="' + isoDay +
+          '" title="' + esc(info.title).replace(/"/g, "&quot;") + '">' + d + "</div>";
+      }
+      return html + "</div></div>";
+    }
+
+    function seasonDay(reqs) {
+      return function (isoDay) {
         var covering = reqs.filter(function (r) {
           return r.start_date <= isoDay && isoDay <= r.end_date;
         });
-        var cls = covering.length === 0 ? "open" : covering.length === 1 ? "busy1" : "busy2";
-        var title = covering.length
-          ? covering.map(function (r) {
-              return r.name + " (" + r.type +
-                (r.exclusive === "Yes" ? ", exclusive" : r.people ? ", " + r.people + " people" : "") + ")";
-            }).join(" · ")
-          : "Open — no requests";
-        html += '<div class="cal-day ' + cls + '" data-date="' + isoDay +
-          '" title="' + esc(title).replace(/"/g, "&quot;") + '">' + d + "</div>";
-      }
-      return html + "</div></div>";
+        return {
+          cls: covering.length === 0 ? "open" : covering.length === 1 ? "busy1" : "busy2",
+          title: covering.length ? covering.map(describeReq).join(" · ") : "Open — no requests"
+        };
+      };
     }
 
     function renderCalendars(seasonFilter) {
@@ -275,7 +310,7 @@
         var reqs = all.filter(function (r) { return r.season === s; });
         return '<div class="cal"><h3>' + esc(s) + " calendar</h3>" +
           '<div class="cal-months">' +
-          meta.months.map(function (mo) { return renderMonth(meta, mo, reqs); }).join("") +
+          meta.months.map(function (mo) { return monthGrid(meta, mo, "data-date", seasonDay(reqs)); }).join("") +
           "</div>" +
           '<div class="cal-legend">Hover a day to see who requested it. Key:' +
           '<span class="chip open"></span>open — no requests' +
@@ -285,9 +320,202 @@
       }).join("");
     }
 
+    // ----- Proposed schedule (auto-solved, interactively adjustable) -----
+    var propState = {};
+
+    // Two granted ranges clash when they overlap, belong to different
+    // parties, and at least one wants exclusive use. Shared+shared is fine.
+    function rowConflict(a, b) {
+      return a._party !== b._party &&
+        a.start_date <= b.end_date && b.start_date <= a.end_date &&
+        (a.exclusive === "Yes" || b.exclusive === "Yes");
+    }
+
+    // One "unit" = one stay to place. Each primary is a unit whose
+    // alternatives are that party's backups; a party with only backups
+    // gets a single unit choosing among them.
+    function buildUnits(rows) {
+      var parties = {}, order = [];
+      rows.forEach(function (r) {
+        var k = r.name + "|" + r.email;
+        r._party = k;
+        if (!parties[k]) { parties[k] = []; order.push(k); }
+        parties[k].push(r);
+      });
+      var units = [];
+      order.forEach(function (k) {
+        var prims = parties[k].filter(function (r) { return r.type !== "Backup"; });
+        var backs = parties[k].filter(function (r) { return r.type === "Backup"; });
+        var name = parties[k][0].name;
+        if (!prims.length) {
+          units.push({ name: name, options: backs.slice() });
+        } else {
+          prims.forEach(function (pr, i) {
+            units.push({
+              name: name + (prims.length > 1 ? " (stay " + (i + 1) + ")" : ""),
+              options: [pr].concat(backs)
+            });
+          });
+        }
+      });
+      return units;
+    }
+
+    // Exhaustive search (family-sized inputs): most stays seated first,
+    // then most primaries honored. Clashes are never allowed in the auto
+    // proposal — a stay that can't fit is left unscheduled.
+    function autoSolve(units) {
+      var best = null, steps = 0, LIMIT = 150000, n = units.length;
+      function rec(i, chosen, choice, sched, prims) {
+        if (steps++ > LIMIT) return;
+        if (i === n) {
+          if (!best || sched > best.sched || (sched === best.sched && prims > best.prims)) {
+            best = { choice: choice.slice(), sched: sched, prims: prims };
+          }
+          return;
+        }
+        for (var oi = 0; oi < units[i].options.length; oi++) {
+          var row = units[i].options[oi];
+          if (chosen.indexOf(row) !== -1) continue; // backup already used by a sibling stay
+          var clash = false;
+          for (var c = 0; c < chosen.length && !clash; c++) clash = rowConflict(row, chosen[c]);
+          if (clash) continue;
+          chosen.push(row); choice.push(oi);
+          rec(i + 1, chosen, choice, sched + 1, prims + (row.type !== "Backup" ? 1 : 0));
+          chosen.pop(); choice.pop();
+        }
+        choice.push(-1);
+        rec(i + 1, chosen, choice, sched, prims);
+        choice.pop();
+      }
+      rec(0, [], [], 0, 0);
+      return best ? best.choice : units.map(function () { return -1; });
+    }
+
+    function buildProposals() {
+      propState = {};
+      var bySeason = {};
+      all.forEach(function (r) {
+        if (!seasonMeta(r.season)) return;
+        (bySeason[r.season] = bySeason[r.season] || []).push(r);
+      });
+      Object.keys(bySeason).forEach(function (s) {
+        var units = buildUnits(bySeason[s]);
+        propState[s] = { units: units, choice: autoSolve(units) };
+      });
+    }
+
+    function chosenRows(st) {
+      var rows = [];
+      st.units.forEach(function (u, i) {
+        if (st.choice[i] >= 0 && u.options[st.choice[i]]) rows.push(u.options[st.choice[i]]);
+      });
+      return rows;
+    }
+
+    function propDay(rows) {
+      return function (isoDay) {
+        var covering = rows.filter(function (r) {
+          return r.start_date <= isoDay && isoDay <= r.end_date;
+        });
+        if (!covering.length) return { cls: "pcal-open", title: "Open" };
+        var conflict = false;
+        for (var i = 0; i < covering.length && !conflict; i++)
+          for (var j = i + 1; j < covering.length && !conflict; j++)
+            conflict = rowConflict(covering[i], covering[j]);
+        return {
+          cls: conflict ? "pcal-conflict" : covering.length === 1 ? "pcal-one" : "pcal-shared",
+          title: covering.map(describeReq).join(" · ")
+        };
+      };
+    }
+
+    function optionLabel(r) {
+      return r.type + ": " + r.start_date + " → " + r.end_date +
+        (r.exclusive === "Yes" ? " · exclusive" : " · shared" + (r.people ? " (" + r.people + " ppl)" : ""));
+    }
+
+    function renderProposals(seasonFilter) {
+      var el = document.getElementById("proposals");
+      var seasons = Object.keys(propState);
+      if (seasonFilter) seasons = seasons.filter(function (s) { return s === seasonFilter; });
+      seasons.sort(function (a, b) { return seasonMeta(a).min < seasonMeta(b).min ? -1 : 1; });
+
+      el.innerHTML = seasons.map(function (s) {
+        var st = propState[s];
+        var meta = seasonMeta(s);
+        var rows = chosenRows(st);
+        var unscheduled = 0, clashes = 0;
+
+        var rowsHtml = st.units.map(function (u, i) {
+          var oi = st.choice[i];
+          var status, cls;
+          if (oi < 0) {
+            unscheduled++;
+            status = "not scheduled"; cls = "skip";
+          } else {
+            var mine = u.options[oi];
+            var names = rows.filter(function (o) { return o !== mine && rowConflict(mine, o); })
+              .map(function (o) { return o.name; });
+            names = names.filter(function (v, ix) { return names.indexOf(v) === ix; });
+            if (names.length) { clashes++; status = "⚠ clashes with " + names.join(", "); cls = "bad"; }
+            else { status = "✓ fits"; cls = "ok"; }
+          }
+          var opts = u.options.map(function (r, ix) {
+            return '<option value="' + ix + '"' + (ix === oi ? " selected" : "") + ">" +
+              esc(optionLabel(r)) + "</option>";
+          }).join("") + '<option value="-1"' + (oi < 0 ? " selected" : "") + ">Not scheduled</option>";
+          return '<div class="prop-row"><span class="prop-name">' + esc(u.name) + "</span>" +
+            '<select class="prop-choice" data-season="' + esc(s) + '" data-unit="' + i + '">' +
+            opts + "</select>" +
+            '<span class="prop-status ' + cls + '">' + status + "</span></div>";
+        }).join("");
+
+        var headline = clashes
+          ? "⚠ This arrangement has clashes — adjust below or reset."
+          : unscheduled
+            ? "No clashes, but " + unscheduled + " stay" + (unscheduled > 1 ? "s" : "") + " couldn't be fit."
+            : "Everyone fits with no clashes.";
+
+        return '<div class="prop" data-season="' + esc(s) + '">' +
+          "<h3>Proposed schedule — " + esc(s) + "</h3>" +
+          '<p class="prop-note">Auto-proposed from everyone\'s requests: primaries first, backups ' +
+          "substituted where they resolve a clash. Play with the dropdowns to explore — nothing " +
+          "is saved or sent. <b>" + headline + "</b></p>" +
+          '<div class="prop-rows">' + rowsHtml + "</div>" +
+          '<div class="cal-months">' +
+          meta.months.map(function (mo) { return monthGrid(meta, mo, "data-pdate", propDay(rows)); }).join("") +
+          "</div>" +
+          '<div class="cal-legend">Key:' +
+          '<span class="chip open"></span>open' +
+          '<span class="chip busy1"></span>one stay' +
+          '<span class="chip shared"></span>shared (fine)' +
+          '<span class="chip conflict"></span>clash' +
+          "</div>" +
+          '<button type="button" class="prop-reset" data-season="' + esc(s) + '">Reset to auto proposal</button>' +
+          "</div>";
+      }).join("");
+
+      Array.prototype.forEach.call(el.querySelectorAll(".prop-choice"), function (sel) {
+        sel.addEventListener("change", function () {
+          var st = propState[this.getAttribute("data-season")];
+          st.choice[parseInt(this.getAttribute("data-unit"), 10)] = parseInt(this.value, 10);
+          renderProposals(filterEl.value);
+        });
+      });
+      Array.prototype.forEach.call(el.querySelectorAll(".prop-reset"), function (b) {
+        b.addEventListener("click", function () {
+          var st = propState[this.getAttribute("data-season")];
+          st.choice = autoSolve(st.units);
+          renderProposals(filterEl.value);
+        });
+      });
+    }
+
     function render() {
       var season = filterEl.value;
       renderCalendars(season);
+      renderProposals(season);
       var rows = all.filter(function (r) { return !season || r.season === season; });
       rows.sort(function (a, b) {
         return a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : 0;
@@ -366,6 +594,7 @@
         .then(function (data) {
           if (!data.ok) throw new Error(data.error || "Backend error");
           all = data.submissions || [];
+          buildProposals();
           populateFilter();
           render();
         })
