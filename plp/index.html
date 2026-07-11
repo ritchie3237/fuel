@@ -172,12 +172,15 @@
 
   <footer>PLP McGee Scheduling &middot; requests go straight to the scheduler's inbox.</footer>
 
+  <script src="config.js"></script>
   <script>
     "use strict";
 
-    // Notification destination (assembled to deter address scrapers).
+    // Backend: Google Apps Script web app (set in config.js). It stores each
+    // request in a Google Sheet and emails the scheduler.
+    var ENDPOINT = window.PLP_SCRIPT_URL || "";
+    // Fallback contact for the error message (assembled to deter scrapers).
     var DEST = ["ritchie3237", "gmail.com"].join("@");
-    var ENDPOINT = "https://formsubmit.co/ajax/" + DEST;
 
     var form = document.getElementById("requestForm");
     var seasonEl = document.getElementById("season");
@@ -267,32 +270,37 @@
       var dates = validate();
       if (!dates) return;
 
+      if (!ENDPOINT || ENDPOINT.indexOf("PASTE_") !== -1) {
+        showMsg("err", "The form isn't connected yet — the scheduler still needs to finish " +
+          "setup. Please email your request to " + DEST + " for now.");
+        return;
+      }
+
       var name = document.getElementById("name").value.trim();
       var payload = {
-        _subject: "PLP Request: " + name + " — " + seasonEl.value + " " + yearEl.value +
-          " (" + dates.start + " to " + dates.end + ")",
-        _template: "table",
-        _captcha: "false",
         name: name,
         email: document.getElementById("email").value.trim(),
         season: seasonEl.value + " " + yearEl.value,
         start_date: dates.start,
-        end_date: dates.end
+        end_date: dates.end,
+        _honey: form.elements._honey.value
       };
 
       btn.disabled = true;
       btn.textContent = "Sending…";
 
+      // Plain-text body keeps this a "simple" request (no CORS preflight),
+      // which is what Apps Script web apps require.
       fetch(ENDPOINT, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "Accept": "application/json" },
         body: JSON.stringify(payload)
       })
         .then(function (res) {
           if (!res.ok) throw new Error("HTTP " + res.status);
           return res.json();
         })
-        .then(function () {
+        .then(function (data) {
+          if (!data.ok) throw new Error(data.error || "Backend error");
           showMsg("ok", "Thanks, " + name + "! Your request for " + dates.start + " to " +
             dates.end + " was sent. You'll hear back once it's reviewed.");
           form.reset();

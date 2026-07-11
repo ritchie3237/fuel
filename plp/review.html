@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLP McGee Scheduling — Review</title>
+  <meta name="robots" content="noindex" />
+  <style>
+    :root {
+      --pine: #1f4d3a;
+      --pine-dark: #16382b;
+      --lake: #3d7ea6;
+      --paper: #f6f4ee;
+      --card: #ffffff;
+      --ink: #24312b;
+      --muted: #5f6f66;
+      --line: #d9d5c9;
+      --warn-bg: #fdf3e3;
+      --warn-line: #e0b45c;
+      --warn-ink: #7a5410;
+      --err-bg: #fbeaea;
+      --err-ink: #8c2f2f;
+      --ok-ink: #1f5c33;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    header {
+      background: linear-gradient(160deg, var(--pine) 0%, var(--pine-dark) 100%);
+      color: #fff;
+      padding: 1.6rem 1.25rem 1.4rem;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 .25rem; font-size: 1.4rem; }
+    header p { margin: 0; opacity: .85; font-size: .9rem; }
+    main { max-width: 900px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+    .toolbar {
+      display: flex;
+      gap: .75rem;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    .toolbar label { font-weight: 600; font-size: .9rem; }
+    select, button {
+      padding: .45rem .65rem;
+      font-size: .95rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+    }
+    button { cursor: pointer; font-weight: 600; }
+    button:hover { border-color: var(--lake); }
+    .summary { font-size: .92rem; color: var(--muted); margin-left: auto; }
+    .summary .warn { color: var(--warn-ink); font-weight: 700; }
+    .tablewrap {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow-x: auto;
+    }
+    table { border-collapse: collapse; width: 100%; font-size: .92rem; }
+    th, td { padding: .6rem .75rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    th { background: #efece3; font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+    tr:last-child td { border-bottom: none; }
+    tr.overlap td { background: var(--warn-bg); }
+    tr.overlap td:first-child { border-left: 4px solid var(--warn-line); }
+    .flag { color: var(--warn-ink); font-weight: 600; white-space: normal; }
+    .clear { color: var(--ok-ink); }
+    .muted { color: var(--muted); font-size: .85rem; }
+    #status { padding: 1.5rem; text-align: center; color: var(--muted); }
+    #status.error { color: var(--err-ink); }
+    .note { font-size: .82rem; color: var(--muted); margin-top: .9rem; }
+    a { color: var(--lake); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Request Review</h1>
+    <p>PLP McGee Scheduling &middot; all submitted date requests</p>
+  </header>
+
+  <main>
+    <div class="toolbar">
+      <label for="seasonFilter">Season:</label>
+      <select id="seasonFilter"><option value="">All</option></select>
+      <button id="refreshBtn" type="button">Refresh</button>
+      <span class="summary" id="summary"></span>
+    </div>
+
+    <div class="tablewrap">
+      <div id="status">Loading requests…</div>
+      <table id="reqTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Season</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Nights</th>
+            <th>Overlaps with</th>
+            <th>Email</th>
+            <th>Submitted</th>
+          </tr>
+        </thead>
+        <tbody id="reqBody"></tbody>
+      </table>
+    </div>
+
+    <p class="note">
+      Rows highlighted in amber have date ranges that overlap another request.
+      Requests are sorted by start date. <a href="index.html">Back to the request form</a>.
+    </p>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    "use strict";
+
+    var ENDPOINT = window.PLP_SCRIPT_URL || "";
+    var statusEl = document.getElementById("status");
+    var tableEl = document.getElementById("reqTable");
+    var bodyEl = document.getElementById("reqBody");
+    var summaryEl = document.getElementById("summary");
+    var filterEl = document.getElementById("seasonFilter");
+    var all = [];
+
+    function esc(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function nights(a, b) {
+      var ms = new Date(b + "T00:00:00") - new Date(a + "T00:00:00");
+      return Math.max(1, Math.round(ms / 86400000));
+    }
+
+    // Inclusive date-range overlap: a and b collide if each starts on or
+    // before the other ends.
+    function overlapsWith(list, item) {
+      return list.filter(function (o) {
+        return o !== item && o.start_date <= item.end_date && item.start_date <= o.end_date;
+      });
+    }
+
+    function render() {
+      var season = filterEl.value;
+      var rows = all.filter(function (r) { return !season || r.season === season; });
+      rows.sort(function (a, b) {
+        return a.start_date < b.start_date ? -1 : a.start_date > b.start_date ? 1 : 0;
+      });
+
+      var overlapCount = 0;
+      bodyEl.innerHTML = rows.map(function (r) {
+        // Overlaps are computed against every request, not just the filtered view.
+        var conflicts = overlapsWith(all, r);
+        if (conflicts.length) overlapCount++;
+        var flag = conflicts.length
+          ? '<span class="flag">⚠ ' + conflicts.map(function (c) {
+              return esc(c.name) + " (" + esc(c.start_date) + " – " + esc(c.end_date) + ")";
+            }).join(", ") + "</span>"
+          : '<span class="clear">—</span>';
+        var submitted = r.submitted ? new Date(r.submitted).toLocaleDateString() : "";
+        return "<tr" + (conflicts.length ? ' class="overlap"' : "") + ">" +
+          "<td><strong>" + esc(r.name) + "</strong></td>" +
+          "<td>" + esc(r.season) + "</td>" +
+          "<td>" + esc(r.start_date) + "</td>" +
+          "<td>" + esc(r.end_date) + "</td>" +
+          "<td>" + nights(r.start_date, r.end_date) + "</td>" +
+          "<td>" + flag + "</td>" +
+          '<td class="muted">' + esc(r.email) + "</td>" +
+          '<td class="muted">' + esc(submitted) + "</td>" +
+          "</tr>";
+      }).join("");
+
+      summaryEl.innerHTML = rows.length + " request" + (rows.length === 1 ? "" : "s") +
+        (overlapCount ? ' &middot; <span class="warn">' + overlapCount + " with overlaps</span>" : " &middot; no overlaps");
+
+      statusEl.style.display = rows.length ? "none" : "block";
+      statusEl.textContent = rows.length ? "" : "No requests yet.";
+      statusEl.className = "";
+      tableEl.style.display = rows.length ? "table" : "none";
+    }
+
+    function populateFilter() {
+      var seen = {};
+      var current = filterEl.value;
+      filterEl.innerHTML = '<option value="">All</option>';
+      all.forEach(function (r) {
+        if (!seen[r.season]) {
+          seen[r.season] = true;
+          var opt = document.createElement("option");
+          opt.value = r.season;
+          opt.textContent = r.season;
+          filterEl.appendChild(opt);
+        }
+      });
+      filterEl.value = seen[current] ? current : "";
+    }
+
+    function load() {
+      if (!ENDPOINT || ENDPOINT.indexOf("PASTE_") !== -1) {
+        statusEl.textContent = "Not connected yet — paste the Apps Script URL into plp/config.js (see SETUP.md).";
+        statusEl.className = "error";
+        return;
+      }
+      statusEl.style.display = "block";
+      statusEl.textContent = "Loading requests…";
+      statusEl.className = "";
+      tableEl.style.display = "none";
+
+      fetch(ENDPOINT)
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data.ok) throw new Error(data.error || "Backend error");
+          all = data.submissions || [];
+          populateFilter();
+          render();
+        })
+        .catch(function (err) {
+          statusEl.textContent = "Couldn't load requests (" + err.message + "). Try refreshing.";
+          statusEl.className = "error";
+        });
+    }
+
+    filterEl.addEventListener("change", render);
+    document.getElementById("refreshBtn").addEventListener("click", load);
+    load();
+  </script>
+</body>
+</html>
