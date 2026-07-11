@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLP Ritchie Scheduling</title>
+  <meta name="description" content="Summer date submissions for the Ritchie house at Pocono Lake Preserve." />
+  <style>
+    :root {
+      --pine: #1f4d3a;
+      --pine-dark: #16382b;
+      --lake: #3d7ea6;
+      --paper: #f6f4ee;
+      --card: #ffffff;
+      --ink: #24312b;
+      --muted: #5f6f66;
+      --line: #d9d5c9;
+      --ok-bg: #e7f2e9;
+      --ok-ink: #1f5c33;
+      --err-bg: #fbeaea;
+      --err-ink: #8c2f2f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+    header {
+      background: linear-gradient(160deg, var(--pine) 0%, var(--pine-dark) 100%);
+      color: #fff;
+      padding: 2.2rem 1.25rem 1.8rem;
+      text-align: center;
+    }
+    header h1 { margin: 0 0 .35rem; font-size: 1.7rem; letter-spacing: .02em; }
+    header p { margin: 0; opacity: .85; font-size: .95rem; }
+    main { max-width: 720px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 1.1rem 1.25rem;
+      margin: 1.25rem 0;
+      font-size: .97rem;
+    }
+    .card h2 { margin: 0 0 .5rem; font-size: 1.05rem; color: var(--pine); }
+    form.card { padding: 1.25rem; }
+    .row { display: flex; gap: .9rem; flex-wrap: wrap; }
+    .row > .field { flex: 1 1 160px; }
+    .field { margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; font-size: .9rem; margin-bottom: .3rem; }
+    input, select, textarea {
+      width: 100%;
+      padding: .6rem .7rem;
+      font-size: 1rem;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+    }
+    textarea { resize: vertical; min-height: 4.5rem; font-family: inherit; }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--lake);
+      outline-offset: 1px;
+      border-color: var(--lake);
+    }
+    .hint { font-size: .82rem; color: var(--muted); margin-top: .25rem; }
+    .section-label { font-weight: 700; font-size: .95rem; margin: 1.1rem 0 .2rem; color: var(--pine); }
+    .req {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: .8rem .8rem 0;
+      margin: .75rem 0;
+      background: #fbfaf6;
+    }
+    .req-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .5rem; }
+    .req-title { font-weight: 700; font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+    .removeReq { background: none; border: none; color: var(--err-ink); font-size: .85rem; font-weight: 600; cursor: pointer; padding: 0; }
+    .addbtn {
+      background: none;
+      border: 1px dashed var(--pine);
+      color: var(--pine);
+      border-radius: 8px;
+      padding: .5rem .9rem;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: .5rem;
+    }
+    .addbtn:hover { background: var(--ok-bg); }
+    button[type="submit"] {
+      width: 100%;
+      padding: .8rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      background: var(--pine);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: .25rem;
+    }
+    button[type="submit"]:hover:not(:disabled) { background: var(--pine-dark); }
+    button[type="submit"]:disabled { opacity: .6; cursor: default; }
+    .msg { display: none; border-radius: 8px; padding: .85rem 1rem; margin-top: 1rem; font-size: .95rem; }
+    .msg.ok { display: block; background: var(--ok-bg); color: var(--ok-ink); }
+    .msg.err { display: block; background: var(--err-bg); color: var(--err-ink); }
+
+    /* ----- Calendar ----- */
+    .months { display: flex; flex-wrap: wrap; gap: 1.25rem; }
+    .month { flex: 1 1 280px; min-width: 260px; }
+    .month h3 { margin: .2rem 0 .5rem; font-size: 1rem; color: var(--pine); text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+    .dow { text-align: center; font-size: .7rem; font-weight: 700; color: var(--muted); padding: .15rem 0; }
+    .day {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      min-height: 3rem;
+      padding: .2rem .3rem;
+      font-size: .8rem;
+      background: #fff;
+      position: relative;
+      cursor: default;
+    }
+    .day.out { border: none; background: transparent; }
+    .day.off { background: #f0eee7; color: #b5b1a4; }
+    .day .num { font-weight: 600; }
+    .day .cnt {
+      display: block;
+      margin-top: .15rem;
+      font-weight: 700;
+      font-size: .85rem;
+      color: var(--ok-ink);
+    }
+    .day.busy { cursor: pointer; background: var(--ok-bg); }
+    .day.busy:hover { outline: 2px solid var(--lake); }
+    .day.over { background: var(--err-bg); border-color: var(--err-ink); }
+    .day.over .cnt { color: var(--err-ink); }
+    .day.over .cnt::after { content: " ⚠"; }
+    .legend { font-size: .82rem; color: var(--muted); margin-top: .75rem; }
+    .legend .swatch {
+      display: inline-block; width: .85rem; height: .85rem; border-radius: 3px;
+      vertical-align: -2px; margin: 0 .25rem 0 .8rem; border: 1px solid var(--line);
+    }
+    .daydetail {
+      display: none;
+      border-top: 1px solid var(--line);
+      margin-top: .9rem;
+      padding-top: .7rem;
+      font-size: .9rem;
+    }
+    .daydetail.show { display: block; }
+    .daydetail h4 { margin: 0 0 .3rem; font-size: .92rem; color: var(--pine); }
+    .daydetail ul { margin: 0; padding-left: 1.2rem; }
+
+    /* ----- Submission list ----- */
+    .sub {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: .75rem;
+      padding: .55rem 0;
+      border-bottom: 1px solid var(--line);
+      font-size: .92rem;
+    }
+    .sub:last-child { border-bottom: none; }
+    .sub .who { font-weight: 600; }
+    .sub .meta { color: var(--muted); font-size: .85rem; }
+    .sub button {
+      background: none; border: none; color: var(--err-ink);
+      font-size: .82rem; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap;
+    }
+    .archive-pick { margin-bottom: .75rem; }
+    .loading { color: var(--muted); font-size: .9rem; }
+    footer { text-align: center; font-size: .8rem; color: var(--muted); padding: 0 1rem 2rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>PLP Ritchie Scheduling</h1>
+    <p>Pocono Lake Preserve &middot; Summer Date Submissions</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Welcome!</h2>
+      <p>
+        This page collects summer visit dates for the <strong>Ritchie house at Pocono Lake
+        Preserve</strong>. Tell us when you're coming and how many people you're bringing —
+        add as many separate date blocks as you like. Everyone shares the house, so the
+        calendar below shows how many people will be there each day;
+        days with <strong>more than 12 people</strong> get flagged so plans can be adjusted.
+      </p>
+      <p id="windowNote" style="margin-bottom:0"></p>
+    </section>
+
+    <form id="subForm" class="card" novalidate>
+      <div class="row">
+        <div class="field">
+          <label for="name">Your name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required />
+        </div>
+        <div class="field">
+          <label for="email">Your email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required />
+        </div>
+      </div>
+
+      <p class="section-label">Date block(s)</p>
+      <p class="hint" style="margin-top:0">
+        One block per stretch you'll be at the house. The headcount should include you.
+      </p>
+      <div id="blocks"></div>
+      <button type="button" class="addbtn" id="addBlock">+ Add another date block</button>
+      <p class="hint" id="windowHint"></p>
+
+      <div class="field">
+        <label for="comments">Comments <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+        <textarea id="comments" name="comments" maxlength="1000"
+          placeholder="Anything else worth knowing — flexibility, arrival times, etc."></textarea>
+      </div>
+
+      <!-- honeypot for spam bots -->
+      <input type="text" name="_honey" style="display:none" tabindex="-1" autocomplete="off" />
+
+      <button type="submit" id="submitBtn">Submit dates</button>
+      <div class="msg" id="formMsg" role="alert"></div>
+    </form>
+
+    <section class="card">
+      <h2 id="calTitle">Who's there when</h2>
+      <div id="calBody"><p class="loading">Loading the calendar…</p></div>
+      <div class="legend">
+        Tap a day to see who's around.
+        <span class="swatch" style="background:#fff"></span> nobody
+        <span class="swatch" style="background:var(--ok-bg)"></span> people there
+        <span class="swatch" style="background:var(--err-bg);border-color:var(--err-ink)"></span> over 12 — flagged
+      </div>
+      <div class="daydetail" id="dayDetail"></div>
+    </section>
+
+    <section class="card">
+      <h2>Current submissions</h2>
+      <div id="subList"><p class="loading">Loading…</p></div>
+      <p class="hint">Plans changed? Remove your own entry and resubmit. Removals are on the
+        honor system — please only touch your own.</p>
+    </section>
+
+    <section class="card" id="archiveCard" style="display:none">
+      <h2>Past summers</h2>
+      <div class="archive-pick">
+        <label for="archiveSeason">Season</label>
+        <select id="archiveSeason"></select>
+      </div>
+      <div id="archiveBody"></div>
+    </section>
+  </main>
+
+  <footer>PLP Ritchie Scheduling &middot; every submission goes straight to the scheduler's inbox.</footer>
+
+  <script src="config.js"></script>
+  <script>
+    "use strict";
+
+    // Backend: Google Apps Script web app (set in config.js). It stores each
+    // date block in a Google Sheet and emails the scheduler.
+    var ENDPOINT = window.PLP_RITCHIE_SCRIPT_URL || "";
+    // Fallback contact for the error message (assembled to deter scrapers).
+    var DEST = ["ritchie3237", "gmail.com"].join("@");
+    var CAPACITY = 12;
+    var FIRST_SEASON = 2027;
+
+    var form = document.getElementById("subForm");
+    var blocksEl = document.getElementById("blocks");
+    var msgEl = document.getElementById("formMsg");
+    var btn = document.getElementById("submitBtn");
+
+    function pad(n) { return n < 10 ? "0" + n : "" + n; }
+    function iso(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+    function fmt(d) {
+      return d.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+    }
+    function fmtIso(s) {
+      var p = s.split("-");
+      return fmt(new Date(+p[0], +p[1] - 1, +p[2]));
+    }
+
+    // ----- Season math (keep identical to apps-script/Code.gs) -----
+
+    // Sept-Dec of year Y => season Y+1; Jan-Aug => season Y; never before 2027.
+    function activeSeason(now) {
+      var s = now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear();
+      return Math.max(s, FIRST_SEASON);
+    }
+
+    // Labor Day = first Monday of September.
+    function laborDay(year) {
+      var d = new Date(year, 8, 1);
+      while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+      return d;
+    }
+
+    // July 1 + 6 weeks, extended by half of however much July 1 through Labor
+    // Day (inclusive) exceeds 9 exact weeks (63 days), rounded down.
+    function seasonWindow(year) {
+      var start = new Date(year, 6, 1);
+      var inclusiveDays = Math.round((laborDay(year) - start) / 86400000) + 1;
+      var ext = Math.max(0, Math.floor((inclusiveDays - 63) / 2));
+      return { start: start, end: new Date(year, 6, 1 + 41 + ext) };
+    }
+
+    var SEASON = activeSeason(new Date());
+    var WINDOW = seasonWindow(SEASON);
+
+    document.getElementById("windowNote").innerHTML =
+      "Submissions are open for <strong>summer " + SEASON + ": " + fmt(WINDOW.start) +
+      " through " + fmt(WINDOW.end) + "</strong>. Each September 1 the site rolls over " +
+      "to the next summer and the finished calendar moves to the archive below.";
+
+    document.getElementById("windowHint").textContent =
+      "Dates must fall between " + fmt(WINDOW.start) + " and " + fmt(WINDOW.end) + ".";
+
+    // ----- Repeatable date-block rows -----
+    var blockSeq = 0;
+
+    function addBlock() {
+      blockSeq++;
+      var div = document.createElement("div");
+      div.className = "req";
+      div.innerHTML =
+        '<div class="req-head"><span class="req-title"></span>' +
+        '<button type="button" class="removeReq">Remove</button></div>' +
+        '<div class="row">' +
+        '<div class="field"><label for="start-' + blockSeq + '">Start date</label>' +
+        '<input type="date" id="start-' + blockSeq + '" class="req-start" required ' +
+        'min="' + iso(WINDOW.start) + '" max="' + iso(WINDOW.end) + '" /></div>' +
+        '<div class="field"><label for="end-' + blockSeq + '">End date</label>' +
+        '<input type="date" id="end-' + blockSeq + '" class="req-end" required ' +
+        'min="' + iso(WINDOW.start) + '" max="' + iso(WINDOW.end) + '" /></div>' +
+        '<div class="field"><label for="people-' + blockSeq + '">How many people? (including you)</label>' +
+        '<input type="number" id="people-' + blockSeq + '" class="req-people" min="1" max="40" step="1" placeholder="e.g. 4" required /></div>' +
+        "</div>" +
+        '<div class="field"><label for="names-' + blockSeq + '">Who’s coming? <span style="font-weight:400;color:var(--muted)">(names, optional)</span></label>' +
+        '<input type="text" id="names-' + blockSeq + '" class="req-names" maxlength="300" placeholder="e.g. Sam, Alex, the twins" /></div>';
+      div.querySelector(".removeReq").addEventListener("click", function () {
+        div.remove();
+        refreshBlocks();
+      });
+      blocksEl.appendChild(div);
+      refreshBlocks();
+      return div;
+    }
+
+    function refreshBlocks() {
+      var blocks = blocksEl.querySelectorAll(".req");
+      for (var i = 0; i < blocks.length; i++) {
+        blocks[i].querySelector(".req-title").textContent = "Date block " + (i + 1);
+        blocks[i].querySelector(".removeReq").style.display = blocks.length > 1 ? "" : "none";
+      }
+    }
+
+    document.getElementById("addBlock").addEventListener("click", function () { addBlock(); });
+
+    function showMsg(kind, text) {
+      msgEl.className = "msg " + kind;
+      msgEl.textContent = text;
+    }
+
+    function validate() {
+      if (!form.reportValidity()) return null;
+      var minIso = iso(WINDOW.start), maxIso = iso(WINDOW.end);
+      var blocks = blocksEl.querySelectorAll(".req");
+      var out = [];
+      for (var i = 0; i < blocks.length; i++) {
+        var s = blocks[i].querySelector(".req-start").value;
+        var e = blocks[i].querySelector(".req-end").value;
+        var label = "date block " + (i + 1);
+        if (s < minIso || s > maxIso || e < minIso || e > maxIso) {
+          showMsg("err", "The dates in " + label + " must fall within the summer " + SEASON +
+            " window (" + fmt(WINDOW.start) + " – " + fmt(WINDOW.end) + ").");
+          return null;
+        }
+        if (e < s) {
+          showMsg("err", "In " + label + ", the end date can't be before the start date.");
+          return null;
+        }
+        out.push({
+          start_date: s,
+          end_date: e,
+          people: blocks[i].querySelector(".req-people").value,
+          names: blocks[i].querySelector(".req-names").value.trim()
+        });
+      }
+      return out;
+    }
+
+    form.addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      msgEl.className = "msg";
+      var blocks = validate();
+      if (!blocks) return;
+
+      if (!ENDPOINT || ENDPOINT.indexOf("PASTE_") !== -1) {
+        showMsg("err", "The form isn't connected yet — the scheduler still needs to finish " +
+          "setup. Please email your dates to " + DEST + " for now.");
+        return;
+      }
+
+      var name = document.getElementById("name").value.trim();
+      var payload = {
+        name: name,
+        email: document.getElementById("email").value.trim(),
+        comments: document.getElementById("comments").value.trim(),
+        blocks: blocks,
+        _honey: form.elements._honey.value
+      };
+
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+
+      // Plain-text body keeps this a "simple" request (no CORS preflight),
+      // which is what Apps Script web apps require.
+      fetch(ENDPOINT, { method: "POST", body: JSON.stringify(payload) })
+        .then(function (res) {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data.ok) throw new Error(data.error || "Backend error");
+          showMsg("ok", "Thanks, " + name + "! Your " + blocks.length + " date block" +
+            (blocks.length > 1 ? "s are" : " is") + " on the summer " + SEASON +
+            " calendar below.");
+          form.reset();
+          blocksEl.innerHTML = "";
+          addBlock();
+          loadData();
+        })
+        .catch(function (err) {
+          showMsg("err", (err && err.message && err.message.indexOf("window") !== -1
+            ? err.message + " "
+            : "Something went wrong sending your dates. ") +
+            "Please try again, or email the scheduler directly at " + DEST + ".");
+        })
+        .finally(function () {
+          btn.disabled = false;
+          btn.textContent = "Submit dates";
+        });
+    });
+
+    // ----- Calendar + submission list -----
+
+    var allSubs = [];
+
+    function seasonSubs(season) {
+      return allSubs.filter(function (s) { return +s.season === season; });
+    }
+
+    function dailyTotals(subs, w) {
+      var totals = {};
+      for (var d = new Date(w.start); d <= w.end; d.setDate(d.getDate() + 1)) {
+        var day = iso(d);
+        var sum = 0;
+        subs.forEach(function (s) {
+          if (s.start_date <= day && day <= s.end_date) sum += +s.people || 0;
+        });
+        totals[day] = sum;
+      }
+      return totals;
+    }
+
+    var DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+    function renderCalendar(container, season, detailEl) {
+      var w = seasonWindow(season);
+      var subs = seasonSubs(season);
+      var totals = dailyTotals(subs, w);
+
+      var wrap = document.createElement("div");
+      wrap.className = "months";
+
+      for (var m = w.start.getMonth(); m <= w.end.getMonth(); m++) {
+        var month = document.createElement("div");
+        month.className = "month";
+        var h = document.createElement("h3");
+        h.textContent = new Date(season, m, 1).toLocaleDateString("en-US", { month: "long", year: "numeric" });
+        month.appendChild(h);
+
+        var grid = document.createElement("div");
+        grid.className = "grid";
+        DOW.forEach(function (d) {
+          var el = document.createElement("div");
+          el.className = "dow";
+          el.textContent = d;
+          grid.appendChild(el);
+        });
+
+        var first = new Date(season, m, 1);
+        var daysInMonth = new Date(season, m + 1, 0).getDate();
+        for (var i = 0; i < first.getDay(); i++) {
+          var pad_ = document.createElement("div");
+          pad_.className = "day out";
+          grid.appendChild(pad_);
+        }
+        for (var dnum = 1; dnum <= daysInMonth; dnum++) {
+          var date = new Date(season, m, dnum);
+          var day = iso(date);
+          var cell = document.createElement("div");
+          var inWindow = date >= w.start && date <= w.end;
+          cell.className = "day" + (inWindow ? "" : " off");
+          cell.innerHTML = '<span class="num">' + dnum + "</span>";
+          if (inWindow) {
+            var n = totals[day] || 0;
+            if (n > 0) {
+              cell.className += n > CAPACITY ? " busy over" : " busy";
+              cell.innerHTML += '<span class="cnt">' + n + "</span>";
+              cell.title = n + " people";
+              (function (day, n) {
+                cell.addEventListener("click", function () {
+                  showDayDetail(detailEl, season, day, n);
+                });
+              })(day, n);
+            }
+          }
+          grid.appendChild(cell);
+        }
+        month.appendChild(grid);
+        wrap.appendChild(month);
+      }
+
+      container.innerHTML = "";
+      container.appendChild(wrap);
+
+      var overDays = Object.keys(totals).filter(function (d) { return totals[d] > CAPACITY; });
+      if (overDays.length) {
+        var warn = document.createElement("p");
+        warn.style.cssText = "color:var(--err-ink);font-weight:600;font-size:.9rem";
+        warn.textContent = "⚠ " + overDays.length + " day" + (overDays.length > 1 ? "s have" : " has") +
+          " more than " + CAPACITY + " people: " + overDays.map(fmtIso).join(", ") + ".";
+        container.appendChild(warn);
+      }
+    }
+
+    function showDayDetail(detailEl, season, day, total) {
+      if (!detailEl) return;
+      var covering = seasonSubs(season).filter(function (s) {
+        return s.start_date <= day && day <= s.end_date;
+      });
+      var html = "<h4>" + fmtIso(day) + " — " + total + " people" +
+        (total > CAPACITY ? ' <span style="color:var(--err-ink)">(over ' + CAPACITY + "!)</span>" : "") +
+        "</h4><ul>";
+      covering.forEach(function (s) {
+        html += "<li><b>" + escHtml(s.name) + "</b> — " + s.people +
+          (s.names ? " (" + escHtml(s.names) + ")" : "") +
+          ' <span style="color:var(--muted)">' + s.start_date + " to " + s.end_date + "</span></li>";
+      });
+      html += "</ul>";
+      detailEl.innerHTML = html;
+      detailEl.className = "daydetail show";
+    }
+
+    function renderSubList(container, season, canDelete) {
+      var subs = seasonSubs(season);
+      if (!subs.length) {
+        container.innerHTML = '<p class="loading">No submissions yet' +
+          (canDelete ? " — be the first!" : ".") + "</p>";
+        return;
+      }
+      container.innerHTML = "";
+      subs.forEach(function (s) {
+        var div = document.createElement("div");
+        div.className = "sub";
+        div.innerHTML = '<span><span class="who">' + escHtml(s.name) + "</span> · " +
+          s.start_date + " to " + s.end_date + " · " + s.people +
+          (+s.people === 1 ? " person" : " people") +
+          (s.names ? ' <span class="meta">(' + escHtml(s.names) + ")</span>" : "") +
+          (s.comments ? '<br><span class="meta">' + escHtml(s.comments) + "</span>" : "") +
+          "</span>";
+        if (canDelete) {
+          var del = document.createElement("button");
+          del.type = "button";
+          del.textContent = "Remove";
+          del.addEventListener("click", function () {
+            if (!confirm("Remove " + s.name + "'s " + s.start_date + " to " + s.end_date +
+              " block? Please only remove your own entry.")) return;
+            del.disabled = true;
+            fetch(ENDPOINT, { method: "POST", body: JSON.stringify({ action: "delete", id: s.id }) })
+              .then(function (r) { return r.json(); })
+              .then(function (data) {
+                if (!data.ok) throw new Error(data.error || "Backend error");
+                loadData();
+              })
+              .catch(function () {
+                del.disabled = false;
+                alert("Couldn't remove the entry — please try again or email " + DEST + ".");
+              });
+          });
+          div.appendChild(del);
+        }
+        container.appendChild(div);
+      });
+    }
+
+    function escHtml(s) {
+      return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    // ----- Archive -----
+
+    function renderArchive() {
+      var seasons = {};
+      allSubs.forEach(function (s) {
+        if (+s.season < SEASON) seasons[+s.season] = true;
+      });
+      var list = Object.keys(seasons).map(Number).sort(function (a, b) { return b - a; });
+      var card = document.getElementById("archiveCard");
+      if (!list.length) { card.style.display = "none"; return; }
+
+      card.style.display = "";
+      var sel = document.getElementById("archiveSeason");
+      sel.innerHTML = "";
+      list.forEach(function (y) {
+        var opt = document.createElement("option");
+        opt.value = y;
+        opt.textContent = "Summer " + y;
+        sel.appendChild(opt);
+      });
+      sel.onchange = drawArchive;
+      drawArchive();
+
+      function drawArchive() {
+        var y = parseInt(sel.value, 10);
+        var body = document.getElementById("archiveBody");
+        body.innerHTML = '<div id="archCal"></div><div class="daydetail" id="archDetail"></div>' +
+          '<h2 style="margin-top:1rem">Submissions</h2><div id="archList"></div>';
+        renderCalendar(document.getElementById("archCal"), y, document.getElementById("archDetail"));
+        renderSubList(document.getElementById("archList"), y, false);
+      }
+    }
+
+    // ----- Data load -----
+
+    function loadData() {
+      var calBody = document.getElementById("calBody");
+      var subList = document.getElementById("subList");
+      if (!ENDPOINT || ENDPOINT.indexOf("PASTE_") !== -1) {
+        calBody.innerHTML = '<p class="loading">The calendar will appear here once the site setup is finished.</p>';
+        subList.innerHTML = '<p class="loading">Waiting on setup.</p>';
+        return;
+      }
+      fetch(ENDPOINT)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data.ok) throw new Error(data.error || "Backend error");
+          allSubs = data.submissions || [];
+          document.getElementById("calTitle").textContent =
+            "Who's there when — summer " + SEASON;
+          document.getElementById("dayDetail").className = "daydetail";
+          renderCalendar(calBody, SEASON, document.getElementById("dayDetail"));
+          renderSubList(subList, SEASON, true);
+          renderArchive();
+        })
+        .catch(function () {
+          calBody.innerHTML = '<p class="loading">Couldn’t load the calendar — ' +
+            "check your connection and refresh.</p>";
+          subList.innerHTML = "";
+        });
+    }
+
+    addBlock();
+    loadData();
+  </script>
+</body>
+</html>
