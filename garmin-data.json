@@ -1,94 +1,92 @@
 {
-  "generated": "2026-06-28",
+  "generated": "2026-07-11",
   "athlete": "Mike Ritchie",
   "snapshot": {
-    "vo2max": 52.2,
+    "vo2max": 52.4,
     "vo2maxLabel": "Superior for age",
-    "fitnessAge": 31.6,
+    "fitnessAge": 29.8,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
-    "rhr": 52,
-    "rhr7d": 48,
-    "hrv": 52,
+    "rhr": 48,
+    "rhr7d": 49,
+    "hrv": 51,
     "hrvStatus": "Balanced",
-    "readiness": 63,
-    "readinessLevel": "Moderate — jet-lag recovery",
-    "sleepScoreLast": 70,
-    "sleepAvg": 80,
-    "trainingStatus": "Recovery",
-    "acwr": 0.6,
-    "acwrStatus": "Low",
-    "acwrPercent": 25,
-    "stressLatest": 39,
-    "stressWeek": 28,
-    "stressQualifier": "Elevated (travel)",
-    "vigorousDays": 2.6,
+    "readiness": 67,
+    "readinessLevel": "Moderate — recovered and ready",
+    "sleepScoreLast": 74,
+    "sleepAvg": 74,
+    "trainingStatus": "Maintaining",
+    "acwr": 1.1,
+    "acwrStatus": "Optimal",
+    "acwrPercent": 47,
+    "stressLatest": 29,
+    "stressWeek": 26,
+    "stressQualifier": "Balanced",
+    "vigorousDays": 3.8,
     "vigorousTarget": 3,
-    "weight": 173.7,
-    "weightAsOf": "2026-06-22",
-    "bmi": 24.2,
+    "weight": 170.2,
+    "weightAsOf": "2026-07-02",
+    "bmi": 23.8,
     "bmiTarget": 21.1,
-    "bmiAsOf": "2026-06-22",
-    "steps": 8897,
-    "stepGoal": 12040,
-    "racePredictions": { "5K": "20:52", "10K": "44:30", "Half": "1:40:20", "Marathon": "3:40:49" },
-    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:40:49", "pace": "6:51/mi" }
+    "bmiAsOf": "2026-07-02",
+    "steps": 8031,
+    "stepGoal": 13530,
+    "racePredictions": { "5K": "20:51", "10K": "44:38", "Half": "1:40:50", "Marathon": "3:43:03" },
+    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:43:03", "pace": "6:51/mi" }
   },
   "trends": {
     "vo2max": [
-      {"d":"04-21","v":54},{"d":"05-01","v":54},{"d":"05-14","v":53},{"d":"05-21","v":53},
-      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52}
+      {"d":"05-14","v":53},{"d":"05-21","v":53},{"d":"06-01","v":53},{"d":"06-05","v":52},
+      {"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-11","v":52}
     ],
     "hrv": [
-      {"d":"05-25","v":47},{"d":"05-29","v":46},{"d":"06-02","v":51},{"d":"06-06","v":51},
-      {"d":"06-10","v":50},{"d":"06-14","v":53},{"d":"06-16","v":55},{"d":"06-20","v":55},{"d":"06-22","v":53},{"d":"06-28","v":52}
+      {"d":"06-21","v":54},{"d":"06-24","v":56},{"d":"06-27","v":54},{"d":"06-30","v":48},
+      {"d":"07-03","v":50},{"d":"07-06","v":53},{"d":"07-09","v":52},{"d":"07-11","v":51}
     ],
     "rhr": [
-      {"d":"06-03","v":49},{"d":"06-06","v":48},{"d":"06-08","v":49},{"d":"06-10","v":52},
-      {"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},{"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"06-28","v":52}
+      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},
+      {"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"07-06","v":48},{"d":"07-11","v":48}
     ],
     "sleepScore": [
-      {"d":"06-12","v":69},{"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},
-      {"d":"06-16","v":82},{"d":"06-18","v":89},{"d":"06-20","v":73},{"d":"06-22","v":86},{"d":"06-28","v":70}
+      {"d":"06-28","v":70},{"d":"07-04","v":66},{"d":"07-05","v":63},{"d":"07-06","v":78},
+      {"d":"07-07","v":78},{"d":"07-08","v":83},{"d":"07-09","v":74},{"d":"07-10","v":74}
     ],
     "sleepHours": [
-      {"d":"06-12","v":8.3},{"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},
-      {"d":"06-16","v":7.0},{"d":"06-18","v":8.5},{"d":"06-22","v":8.7},{"d":"06-28","v":7.7}
+      {"d":"06-28","v":7.7},{"d":"07-04","v":5.3},{"d":"07-05","v":9.1},{"d":"07-06","v":8.7},
+      {"d":"07-07","v":7.2},{"d":"07-08","v":8.4},{"d":"07-09","v":7.3},{"d":"07-10","v":6.5}
     ],
     "stressWeekly": [
-      {"d":"05-13","v":30},{"d":"05-20","v":30},{"d":"05-27","v":30},
-      {"d":"06-03","v":26},{"d":"06-10","v":23},{"d":"06-22","v":28}
+      {"d":"05-27","v":30},{"d":"06-03","v":26},{"d":"06-10","v":23},{"d":"06-22","v":28},
+      {"d":"07-06","v":22},{"d":"07-11","v":26}
     ]
   },
   "running": {
-    "ytd": 327,
-    "runsYtd": 70,
-    "thisWeek": 18.7,
-    "last7": 18.7,
-    "avg4": 20.0,
+    "ytd": 343,
+    "runsYtd": 74,
+    "thisWeek": 4.5,
+    "last7": 4.5,
+    "avg4": 17.5,
     "weekly": [
-      {"d":"04-06","v":15.1},{"d":"04-13","v":10.1},{"d":"04-20","v":19.1},{"d":"04-27","v":8.1},
-      {"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},{"d":"05-25","v":9.1},
-      {"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":23.1},{"d":"06-22","v":18.7}
+      {"d":"04-20","v":19.1},{"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},
+      {"d":"05-18","v":9.0},{"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},
+      {"d":"06-15","v":23.1},{"d":"06-22","v":18.7},{"d":"06-29","v":11.1},{"d":"07-06","v":4.5}
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 43, "grayPct": 38, "hardPct": 19,
-      "easyMi": 35.8, "grayMi": 32.1, "hardMi": 16.1
+      "easyPct": 68, "grayPct": 32, "hardPct": 0,
+      "easyMi": 47.4, "grayMi": 22.0, "hardMi": 0.0
     }
   },
   "recommendations": {
     "continue": [
-      "Big polarized improvement — easy miles jumped to 43% (from 33%) and the gray zone fell to 38%. Every Germany run was genuinely easy (today: 6 mi @ avg HR 127), and that's precisely what's pulling you toward the 80/20 a sub-3 build needs.",
-      "You stayed consistent through travel — ~19 mi this week (home run Mon, a travel-day treadmill shakeout Tue, easy runs Thu + today) all easy, despite jet lag. That discipline is exactly what a long build is made of.",
-      "Resting metrics are holding for a trip — HRV factor still strong and today's 6-miler was easy and controlled. You're managing the travel well."
+      "Weight is trending nicely toward goal — 173.7 lb (Jun 22) down to 170.2 lb (Jul 2), a real step toward the low-160s target.",
+      "The polarized split keeps improving on the easy side — gray-zone miles fell from 38% to 32% of the last 30 days, and every run this week (just the one) was genuinely easy at HR 121.",
+      "Recovery markers are all green — HRV balanced, RHR back to 48 after the travel bump, training readiness \"recovered and ready,\" ACWR optimal at 1.1. The body is fully absorbing load and ready for more."
     ],
     "change": [
-      "Polarized split is now 43% easy / 38% gray / 19% hard — a real step toward ~80% easy / ~20% hard. The remaining gray is mostly older moderate runs aging out of the 30-day window; keep new easy days truly easy and it'll keep climbing.",
-      "You're in a planned deload — ACWR dropped to 0.6 (“Low”) and Garmin reads “Recovery” because the travel week cut your training load. That's by design, not a problem; you'll be fresh to rebuild. Ease back into volume next week when you're home.",
-      "Jet lag is showing in sleep — last night 70 (fair, 7.7 h) and your sleep-history factor is “poor” from the trip. Prioritize sleep + morning daylight the next few days; it's your highest-leverage recovery lever right now.",
-      "Aerobic base remains the #1 job (Garmin still flags “Aerobic Low Shortage”). Back home and rested, resume the consistent easy-volume ramp toward 40–50 mi/wk.",
-      "Weight is paused at 173.7 (Jun 22) — no scale on the road. Re-log a morning weigh-in when you're home to keep the trend tracking toward your low-160s."
+      "Polarized split is 68% easy / 32% gray / 0% hard over the last 30 days — the gray zone improved, but there's been zero genuine hard/quality running in a month (the last VO2max session read as gray because its blended average HR landed at 149). This week's plan puts a real interval session back on the calendar.",
+      "Running volume has quietly dropped three weeks straight — 23.1 → 18.7 → 11.1 mi, and this past week only 4.5 mi of running (tennis filled the gap instead). Tennis is great cross-training, but it doesn't carry marathon-specific loading — next week's plan returns to ~26 mi to get back on the base-building track.",
+      "VO2max is flat at 52 (was 53 in mid-May) and the marathon prediction ticked slightly slower (3:40:49 → 3:43:03) — consistent with the lighter running volume, not a red flag, but a reason to get structured miles back on the calendar."
     ]
   }
 }
