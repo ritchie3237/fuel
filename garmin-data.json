@@ -1,63 +1,65 @@
 {
-  "generated": "2026-07-11",
+  "generated": "2026-07-12",
   "athlete": "Mike Ritchie",
   "snapshot": {
     "vo2max": 52.4,
     "vo2maxLabel": "Superior for age",
-    "fitnessAge": 29.8,
+    "fitnessAge": 28.3,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
-    "rhr": 48,
-    "rhr7d": 49,
-    "hrv": 51,
+    "rhr": 45,
+    "rhr7d": 48,
+    "hrv": 54,
     "hrvStatus": "Balanced",
-    "readiness": 67,
-    "readinessLevel": "Moderate — recovered and ready",
-    "sleepScoreLast": 74,
-    "sleepAvg": 74,
+    "readiness": 79,
+    "readinessLevel": "High — well recovered",
+    "sleepScoreLast": 79,
+    "sleepAvg": 78,
     "trainingStatus": "Maintaining",
-    "acwr": 1.1,
+    "acwr": 0.9,
     "acwrStatus": "Optimal",
-    "acwrPercent": 47,
-    "stressLatest": 29,
+    "acwrPercent": 38,
+    "stressLatest": 16,
     "stressWeek": 26,
     "stressQualifier": "Balanced",
-    "vigorousDays": 3.8,
+    "vigorousDays": 4.0,
     "vigorousTarget": 3,
-    "weight": 170.2,
-    "weightAsOf": "2026-07-02",
-    "bmi": 23.8,
+    "weight": 170.8,
+    "weightAsOf": "2026-07-12",
+    "bmi": 23.9,
     "bmiTarget": 21.1,
-    "bmiAsOf": "2026-07-02",
-    "steps": 8031,
-    "stepGoal": 13530,
-    "racePredictions": { "5K": "20:51", "10K": "44:38", "Half": "1:40:50", "Marathon": "3:43:03" },
-    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:43:03", "pace": "6:51/mi" }
+    "bmiAsOf": "2026-07-12",
+    "steps": 5375,
+    "stepGoal": 12470,
+    "racePredictions": { "5K": "20:59", "10K": "44:47", "Half": "1:41:17", "Marathon": "3:44:07" },
+    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:44:07", "pace": "6:51/mi" }
   },
   "trends": {
     "vo2max": [
       {"d":"05-14","v":53},{"d":"05-21","v":53},{"d":"06-01","v":53},{"d":"06-05","v":52},
-      {"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-11","v":52}
+      {"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-12","v":52}
     ],
     "hrv": [
       {"d":"06-21","v":54},{"d":"06-24","v":56},{"d":"06-27","v":54},{"d":"06-30","v":48},
-      {"d":"07-03","v":50},{"d":"07-06","v":53},{"d":"07-09","v":52},{"d":"07-11","v":51}
+      {"d":"07-03","v":50},{"d":"07-06","v":53},{"d":"07-09","v":52},{"d":"07-12","v":54}
     ],
     "rhr": [
       {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},
-      {"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"07-06","v":48},{"d":"07-11","v":48}
+      {"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"07-06","v":48},{"d":"07-12","v":45}
     ],
     "sleepScore": [
       {"d":"06-28","v":70},{"d":"07-04","v":66},{"d":"07-05","v":63},{"d":"07-06","v":78},
-      {"d":"07-07","v":78},{"d":"07-08","v":83},{"d":"07-09","v":74},{"d":"07-10","v":74}
+      {"d":"07-07","v":78},{"d":"07-08","v":83},{"d":"07-09","v":74},{"d":"07-10","v":74},
+      {"d":"07-11","v":81},{"d":"07-12","v":79}
     ],
     "sleepHours": [
       {"d":"06-28","v":7.7},{"d":"07-04","v":5.3},{"d":"07-05","v":9.1},{"d":"07-06","v":8.7},
-      {"d":"07-07","v":7.2},{"d":"07-08","v":8.4},{"d":"07-09","v":7.3},{"d":"07-10","v":6.5}
+      {"d":"07-07","v":7.2},{"d":"07-08","v":8.4},{"d":"07-09","v":7.3},{"d":"07-10","v":6.5},
+      {"d":"07-11","v":8.4},{"d":"07-12","v":6.3}
     ],
     "stressWeekly": [
       {"d":"05-27","v":30},{"d":"06-03","v":26},{"d":"06-10","v":23},{"d":"06-22","v":28},
-      {"d":"07-06","v":22},{"d":"07-11","v":26}
+      {"d":"07-06","v":22},{"d":"07-12","v":26}
     ]
   },
   "running": {
@@ -65,7 +67,7 @@
     "runsYtd": 74,
     "thisWeek": 4.5,
     "last7": 4.5,
-    "avg4": 17.5,
+    "avg4": 14.4,
     "weekly": [
       {"d":"04-20","v":19.1},{"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},
       {"d":"05-18","v":9.0},{"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},
@@ -73,20 +75,20 @@
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 68, "grayPct": 32, "hardPct": 0,
-      "easyMi": 47.4, "grayMi": 22.0, "hardMi": 0.0
+      "easyPct": 83, "grayPct": 17, "hardPct": 0,
+      "easyMi": 47.4, "grayMi": 10.0, "hardMi": 0.0
     }
   },
   "recommendations": {
     "continue": [
-      "Weight is trending nicely toward goal — 173.7 lb (Jun 22) down to 170.2 lb (Jul 2), a real step toward the low-160s target.",
-      "The polarized split keeps improving on the easy side — gray-zone miles fell from 38% to 32% of the last 30 days, and every run this week (just the one) was genuinely easy at HR 121.",
-      "Recovery markers are all green — HRV balanced, RHR back to 48 after the travel bump, training readiness \"recovered and ready,\" ACWR optimal at 1.1. The body is fully absorbing load and ready for more."
+      "Weight is trending nicely toward goal — 170.8 lb today, down steadily from ~174-175 lb three weeks ago, a real step toward the low-160s target.",
+      "Recovery markers are all green — HRV balanced at 54ms, RHR a strong 45 this morning, training readiness 79 (\"well recovered\"), ACWR optimal at 0.9. The body is fully absorbing the current load and has room for more.",
+      "The one run that did happen this week (Jul 6, 4.5 mi) was genuinely easy at HR 121 — good execution of true Z2 pacing whenever running does happen."
     ],
     "change": [
-      "Polarized split is 68% easy / 32% gray / 0% hard over the last 30 days — the gray zone improved, but there's been zero genuine hard/quality running in a month (the last VO2max session read as gray because its blended average HR landed at 149). This week's plan puts a real interval session back on the calendar.",
-      "Running volume has quietly dropped three weeks straight — 23.1 → 18.7 → 11.1 mi, and this past week only 4.5 mi of running (tennis filled the gap instead). Tennis is great cross-training, but it doesn't carry marathon-specific loading — next week's plan returns to ~26 mi to get back on the base-building track.",
-      "VO2max is flat at 52 (was 53 in mid-May) and the marathon prediction ticked slightly slower (3:40:49 → 3:43:03) — consistent with the lighter running volume, not a red flag, but a reason to get structured miles back on the calendar."
+      "Polarized split is 83% easy / 17% gray / 0% hard over the last 30 days — the gray zone kept shrinking, but there's been zero genuine hard/quality running in a month. This week's plan puts a real interval session back on the calendar (6x3min @ 6:20-6:40/mi, Wed).",
+      "Running volume has kept sliding for four straight weeks — 23.1 → 18.7 → 11.1 → 4.5 mi — with tennis filling the gap instead. Tennis is great cross-training, but it doesn't carry marathon-specific aerobic loading; next week's plan returns to ~26 mi to get back into the target maintenance band (18-32 mi/wk).",
+      "VO2max is flat around 52 for two months and the marathon prediction drifted slightly slower (3:43:03 → 3:44:07) — a direct consequence of the volume dip, not a fitness problem. Recovery is excellent, so consistent running should turn this back around quickly."
     ]
   }
 }
