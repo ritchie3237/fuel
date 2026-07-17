@@ -1335,14 +1335,14 @@ async function readXlsx(buf) {
       found.sort((a, b) => a.row - b.row || a.col - b.col);
       for (const f of found) {
         const list = imagesBySheet[sIdx][f.row] = imagesBySheet[sIdx][f.row] || [];
-        if (list.length >= 2) continue;
+        if (list.length >= 3) continue;
         const bin = await fileBin(f.mediaPath);
         if (!bin) continue;
         const mime = /\.png$/i.test(f.mediaPath) ? 'image/png'
           : /\.gif$/i.test(f.mediaPath) ? 'image/gif'
           : /\.(jpe?g)$/i.test(f.mediaPath) ? 'image/jpeg' : null;
         if (!mime) continue; // emf/wmf etc. — browsers can't decode
-        try { list.push(await shrinkImage(new Blob([bin], { type: mime }))); }
+        try { list.push({ col: f.col, uri: await shrinkImage(new Blob([bin], { type: mime })) }); }
         catch { /* undecodable image — skip */ }
       }
     }
@@ -1398,10 +1398,39 @@ function detectOrderColumns(grid) {
   for (let ri = 0; ri < Math.min(grid.length, 25); ri++) {
     const row = grid[ri] || [];
     const map = {};
-    for (const [key, re] of Object.entries(COL_PATTERNS))
-      for (let ci = 0; ci < row.length; ci++)
-        if (row[ci] && re.test(String(row[ci])) && !(key in map)) map[key] = ci;
-    if (('article' in map || 'ean' in map) && ('title' in map || 'qty' in map)) return { headerRow: ri, map, headers: row };
+    // real files carry qualified variants ('Breite VE' = carton size next to
+    // 'Breite'): the shortest matching header is the product-level one
+    for (const [key, re] of Object.entries(COL_PATTERNS)) {
+      let best = null;
+      for (let ci = 0; ci < row.length; ci++) {
+        const hdr = String(row[ci] ?? '').trim();
+        if (!hdr || !re.test(hdr)) continue;
+        const len = hdr.replace(/\(.*?\)/g, '').trim().length;
+        if (!best || len < best.len) best = { ci, len };
+      }
+      if (best) map[key] = best.ci;
+    }
+    if (!(('article' in map || 'ean' in map) && ('title' in map || 'qty' in map))) continue;
+    // two 'Menge'-like columns (e.g. an article stem mislabeled 'Menge'):
+    // the real order quantity is the one with the smallest typical values
+    const qtyCands = [];
+    for (let ci = 0; ci < row.length; ci++)
+      if (row[ci] && COL_PATTERNS.qty.test(String(row[ci]))) qtyCands.push(ci);
+    if (qtyCands.length > 1) {
+      let best = null;
+      for (const ci of qtyCands) {
+        if (Object.entries(map).some(([k, v]) => k !== 'qty' && v === ci)) continue;
+        const vals = [];
+        for (let r = ri + 1; r < Math.min(grid.length, ri + 30); r++) {
+          const v = parseFloat(String((grid[r] || [])[ci] ?? '').replace(',', '.'));
+          if (isFinite(v)) vals.push(v);
+        }
+        const mean = vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : Infinity;
+        if (!best || mean < best.mean) best = { ci, mean };
+      }
+      if (best) map.qty = best.ci;
+    }
+    return { headerRow: ri, map, headers: row };
   }
   return null;
 }
@@ -1413,16 +1442,50 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
     const det = detectOrderColumns(grid);
     if (!det) { if (grid.some(r => (r || []).some(c => c))) diag.push(`sheet ${sIdx + 1}: no header found — skipped`); return; }
     const { headerRow, map, headers } = det;
+    // title rescue: when the labeled Titel column repeats a group name
+    // ('tiptoi Spiele/Puzzles'), the real product names usually sit in an
+    // unlabeled column — find a mostly-unique text column and use that
+    if (map.title != null) {
+      const dataRows = [];
+      for (let r = headerRow + 1; r < grid.length; r++) if ((grid[r] || []).some(c => c)) dataRows.push(grid[r] || []);
+      const colStats = ci => {
+        const vals = dataRows.map(r => String(r[ci] ?? '').trim()).filter(v => v);
+        return {
+          n: vals.length, u: new Set(vals).size,
+          textish: vals.filter(v => /[A-Za-zÄÖÜäöüß]{3}/.test(v) && !/^-?\d+([.,]\d+)?$/.test(v)).length
+        };
+      };
+      const t = colStats(map.title);
+      if (t.n >= 4 && t.u / t.n < 0.5) {
+        const usedCols = new Set(Object.values(map));
+        const width = Math.max(0, ...dataRows.map(r => r.length));
+        for (let ci = 0; ci < width; ci++) {
+          if (usedCols.has(ci)) continue;
+          const s = colStats(ci);
+          if (s.n >= t.n * 0.6 && s.textish / Math.max(1, s.n) > 0.8 && s.u / Math.max(1, s.n) > 0.8) {
+            map.subcat = map.subcat ?? map.title;
+            map.title = ci;
+            break;
+          }
+        }
+      }
+    }
     diag.push('sheet ' + (sIdx + 1) + ': ' + Object.entries(map).map(([k, ci]) => `${k}→${colName(ci)}`).join(', '));
     const mmCols = new Set(Object.entries(map)
       .filter(([k, ci]) => 'whd'.includes(k) && /mm/i.test(String(headers[ci]))).map(([k]) => k));
+    // image columns whose header names a side view ('Side view', 'Seitenansicht')
+    const sideCols = new Set();
+    headers.forEach((hh, ci) => { if (/side|seiten|seitl/i.test(String(hh ?? ''))) sideCols.add(ci); });
     const imgs = imagesBySheet[sIdx] || {};
     for (let ri = headerRow + 1; ri < grid.length; ri++) {
       const row = grid[ri] || [];
       // article with EAN fallback, so EAN-keyed files import fully
       let art = String(row[map.article] ?? '').trim();
-      if ((!art || !/\d/.test(art)) && map.ean != null) art = String(row[map.ean] ?? '').trim();
+      let fromEan = false;
+      if ((!art || !/\d/.test(art)) && map.ean != null) { art = String(row[map.ean] ?? '').trim(); fromEan = true; }
       if (!art || !/\d/.test(art)) continue;
+      // Ravensburger EANs embed the article number: 4005556 AAAAA C
+      if (fromEan && /^4005556\d{6}$/.test(art)) art = String(parseInt(art.slice(7, 12), 10));
       const num = k => { const v = parseFloat(String(row[map[k]] ?? '').replace(',', '.')); return isFinite(v) ? v : null; };
       let w = map.w != null ? num('w') : null, h = map.h != null ? num('h') : null, d = map.d != null ? num('d') : null;
       for (const [k, set] of [['w', v => w = v], ['h', v => h = v], ['d', v => d = v]]) {
@@ -1433,6 +1496,7 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
         const cat = String(row[map.category]).trim();
         if (cat) { categoryMap[normArt(art)] = cat; if (!CATEGORIES.includes(cat)) CATEGORIES.push(cat); }
       }
+      const rowImgs = imgs[ri] || [];
       out.push(makeProduct({
         article: art,
         ean: map.ean != null ? row[map.ean] : null,
@@ -1441,8 +1505,8 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
         qty: map.qty != null ? num('qty') || 1 : 1,
         w, h, d,
         price: map.price != null ? num('price') : null,
-        img: (imgs[ri] || [])[0] || null,
-        imgSide: (imgs[ri] || [])[1] || null,
+        img: (rowImgs.find(x => !sideCols.has(x.col)) || rowImgs[0])?.uri || null,
+        imgSide: (rowImgs.find(x => sideCols.has(x.col)) || rowImgs[1])?.uri || null,
         selTheme: activeTheme
       }));
     }
