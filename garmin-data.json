@@ -1,94 +1,95 @@
 {
-  "generated": "2026-07-12",
+  "generated": "2026-07-19",
   "athlete": "Mike Ritchie",
   "snapshot": {
-    "vo2max": 52.4,
+    "vo2max": 52.1,
     "vo2maxLabel": "Superior for age",
-    "fitnessAge": 28.3,
+    "fitnessAge": 28.0,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
-    "rhr": 45,
+    "rhr": 46,
     "rhr7d": 48,
-    "hrv": 54,
+    "hrv": 55,
     "hrvStatus": "Balanced",
-    "readiness": 79,
-    "readinessLevel": "High — well recovered",
-    "sleepScoreLast": 79,
-    "sleepAvg": 78,
+    "readiness": 64,
+    "readinessLevel": "Moderate — good sleep, building back load",
+    "sleepScoreLast": 83,
+    "sleepAvg": 77,
     "trainingStatus": "Maintaining",
     "acwr": 0.9,
     "acwrStatus": "Optimal",
     "acwrPercent": 38,
-    "stressLatest": 16,
-    "stressWeek": 26,
+    "stressLatest": 21,
+    "stressWeek": 30,
     "stressQualifier": "Balanced",
     "vigorousDays": 4.0,
     "vigorousTarget": 3,
-    "weight": 170.8,
-    "weightAsOf": "2026-07-12",
-    "bmi": 23.9,
+    "weight": 168.7,
+    "weightAsOf": "2026-07-16",
+    "bmi": 23.5,
     "bmiTarget": 21.1,
-    "bmiAsOf": "2026-07-12",
-    "steps": 5375,
-    "stepGoal": 12470,
-    "racePredictions": { "5K": "20:59", "10K": "44:47", "Half": "1:41:17", "Marathon": "3:44:07" },
-    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:44:07", "pace": "6:51/mi" }
+    "bmiAsOf": "2026-07-16",
+    "steps": 6430,
+    "stepGoal": 12990,
+    "racePredictions": { "5K": "20:59", "10K": "44:45", "Half": "1:41:13", "Marathon": "3:44:56" },
+    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:44:56", "pace": "6:51/mi" }
   },
   "trends": {
     "vo2max": [
-      {"d":"05-14","v":53},{"d":"05-21","v":53},{"d":"06-01","v":53},{"d":"06-05","v":52},
-      {"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-12","v":52}
+      {"d":"05-21","v":53},{"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-16","v":53},
+      {"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-12","v":52},{"d":"07-19","v":52}
     ],
     "hrv": [
-      {"d":"06-21","v":54},{"d":"06-24","v":56},{"d":"06-27","v":54},{"d":"06-30","v":48},
-      {"d":"07-03","v":50},{"d":"07-06","v":53},{"d":"07-09","v":52},{"d":"07-12","v":54}
+      {"d":"06-21","v":54},{"d":"06-29","v":51},{"d":"07-01","v":50},{"d":"07-04","v":53},
+      {"d":"07-07","v":54},{"d":"07-10","v":52},{"d":"07-13","v":55},{"d":"07-16","v":56},
+      {"d":"07-19","v":55}
     ],
     "rhr": [
-      {"d":"06-10","v":52},{"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},
-      {"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"07-06","v":48},{"d":"07-12","v":45}
+      {"d":"07-06","v":48},{"d":"07-09","v":52},{"d":"07-12","v":45},{"d":"07-14","v":45},
+      {"d":"07-16","v":47},{"d":"07-18","v":51},{"d":"07-19","v":46}
     ],
     "sleepScore": [
-      {"d":"06-28","v":70},{"d":"07-04","v":66},{"d":"07-05","v":63},{"d":"07-06","v":78},
-      {"d":"07-07","v":78},{"d":"07-08","v":83},{"d":"07-09","v":74},{"d":"07-10","v":74},
-      {"d":"07-11","v":81},{"d":"07-12","v":79}
+      {"d":"07-11","v":81},{"d":"07-12","v":79},{"d":"07-13","v":88},{"d":"07-14","v":82},
+      {"d":"07-15","v":82},{"d":"07-16","v":74},{"d":"07-17","v":73},{"d":"07-18","v":54},
+      {"d":"07-19","v":83}
     ],
     "sleepHours": [
-      {"d":"06-28","v":7.7},{"d":"07-04","v":5.3},{"d":"07-05","v":9.1},{"d":"07-06","v":8.7},
-      {"d":"07-07","v":7.2},{"d":"07-08","v":8.4},{"d":"07-09","v":7.3},{"d":"07-10","v":6.5},
-      {"d":"07-11","v":8.4},{"d":"07-12","v":6.3}
+      {"d":"07-11","v":8.4},{"d":"07-12","v":6.3},{"d":"07-13","v":9.6},{"d":"07-14","v":6.9},
+      {"d":"07-15","v":7.8},{"d":"07-16","v":6.2},{"d":"07-17","v":6.7},{"d":"07-18","v":6.9},
+      {"d":"07-19","v":8.4}
     ],
     "stressWeekly": [
-      {"d":"05-27","v":30},{"d":"06-03","v":26},{"d":"06-10","v":23},{"d":"06-22","v":28},
-      {"d":"07-06","v":22},{"d":"07-12","v":26}
+      {"d":"06-08","v":23},{"d":"06-15","v":28},{"d":"06-22","v":36},{"d":"06-29","v":29},
+      {"d":"07-06","v":27},{"d":"07-13","v":30}
     ]
   },
   "running": {
-    "ytd": 343,
-    "runsYtd": 74,
-    "thisWeek": 4.5,
-    "last7": 4.5,
+    "ytd": 366.1,
+    "runsYtd": 78,
+    "thisWeek": 23.1,
+    "last7": 23.1,
     "avg4": 14.4,
     "weekly": [
-      {"d":"04-20","v":19.1},{"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},
-      {"d":"05-18","v":9.0},{"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},
-      {"d":"06-15","v":23.1},{"d":"06-22","v":18.7},{"d":"06-29","v":11.1},{"d":"07-06","v":4.5}
+      {"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},
+      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":23.1},
+      {"d":"06-22","v":18.7},{"d":"06-29","v":11.1},{"d":"07-06","v":4.5},{"d":"07-13","v":23.1}
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 83, "grayPct": 17, "hardPct": 0,
-      "easyMi": 47.4, "grayMi": 10.0, "hardMi": 0.0
+      "easyPct": 90, "grayPct": 10, "hardPct": 0,
+      "easyMi": 51.4, "grayMi": 6.0, "hardMi": 0.0
     }
   },
   "recommendations": {
     "continue": [
-      "Weight is trending nicely toward goal — 170.8 lb today, down steadily from ~174-175 lb three weeks ago, a real step toward the low-160s target.",
-      "Recovery markers are all green — HRV balanced at 54ms, RHR a strong 45 this morning, training readiness 79 (\"well recovered\"), ACWR optimal at 0.9. The body is fully absorbing the current load and has room for more.",
-      "The one run that did happen this week (Jul 6, 4.5 mi) was genuinely easy at HR 121 — good execution of true Z2 pacing whenever running does happen."
+      "Great recovery block — HRV weekly average climbed from 51ms (Jun 29) to 55-57ms this week, staying \"Balanced\" the whole way, while resting HR sits at a strong 45-48. The body is absorbing the volume rebound well.",
+      "This week's plan executed almost exactly as prescribed — easy runs at HR 124-132, VO2max intervals Wednesday, and a 9mi long run Saturday that still averaged just 132bpm despite being the longest run of the week.",
+      "ACWR is optimal at 0.9 (38%) — acute and chronic load are balanced, so there's genuine room to keep building rather than holding flat."
     ],
     "change": [
-      "Polarized split is 83% easy / 17% gray / 0% hard over the last 30 days — the gray zone kept shrinking, but there's been zero genuine hard/quality running in a month. This week's plan puts a real interval session back on the calendar (6x3min @ 6:20-6:40/mi, Wed).",
-      "Running volume has kept sliding for four straight weeks — 23.1 → 18.7 → 11.1 → 4.5 mi — with tennis filling the gap instead. Tennis is great cross-training, but it doesn't carry marathon-specific aerobic loading; next week's plan returns to ~26 mi to get back into the target maintenance band (18-32 mi/wk).",
-      "VO2max is flat around 52 for two months and the marathon prediction drifted slightly slower (3:43:03 → 3:44:07) — a direct consequence of the volume dip, not a fitness problem. Recovery is excellent, so consistent running should turn this back around quickly."
+      "Polarized split reads 90% easy / 10% gray / 0% hard over the last 30 days by strict avg-HR — that looks great on paper, but it's partly an artifact of how averaging dilutes interval sessions (the Jul 15 VO2max day averaged only 146bpm across reps + recoveries, landing it in \"gray\"). The real signal is that easy days are staying genuinely under 135 individually, which they are.",
+      "Weekly mileage was choppy over the last month (18.7 → 11.1 → 4.5 → 23.1 mi) as tennis filled the gap during a busy travel/social stretch. Next week's ~25.5mi target continues the rebound at a controlled ~10% step rather than snapping straight back to peak volume.",
+      "VO2max is still flat around 52 for two months and training status flagged an \"aerobic high\" shortage (not enough tempo/threshold running relative to anaerobic work) — next week's quality day swaps to a tempo/cruise-interval session (3x6min @ ~7:00/mi) instead of repeating VO2max intervals, to target that specific gap."
     ]
   }
 }
