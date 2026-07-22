@@ -1,0 +1,62 @@
+{
+  "generated": "2026-07-22",
+  "source": "oura",
+  "nights": 1,
+  "latest": {
+    "day": "2026-07-22",
+    "sleepHours": 5.1,
+    "sleepScore": 70,
+    "efficiency": 86,
+    "hrv": 52,
+    "rhr": 45,
+    "readiness": 80,
+    "readinessLabel": "Good \u2014 ready to train",
+    "tempDeviation": -0.32,
+    "respiratoryRate": 13.0,
+    "spo2": 95.6,
+    "stages": {
+      "deepMin": 60,
+      "remMin": 74,
+      "lightMin": 172,
+      "awakeMin": 49
+    }
+  },
+  "trends": {
+    "sleepHours": [
+      {
+        "d": "07-22",
+        "v": 5.1
+      }
+    ],
+    "sleepScore": [
+      {
+        "d": "07-22",
+        "v": 70
+      }
+    ],
+    "hrv": [
+      {
+        "d": "07-22",
+        "v": 52
+      }
+    ],
+    "rhr": [
+      {
+        "d": "07-22",
+        "v": 45
+      }
+    ],
+    "readiness": [
+      {
+        "d": "07-22",
+        "v": 80
+      }
+    ],
+    "tempDeviation": [
+      {
+        "d": "07-22",
+        "v": -0.32
+      }
+    ]
+  }
+}

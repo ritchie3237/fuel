@@ -1,11 +1,12 @@
 // Today's Fuel — offline service worker.
 // Bump CACHE when you change app files so phones pull the update.
-const CACHE = "fuel-v28";
+const CACHE = "fuel-v29";
 const ASSETS = [
   "./index.html",
   "./smoothie-experiment.html",
   "./garmin.html",
   "./garmin-data.json",
+  "./oura-data.json",
   "./garmin.webmanifest",
   "./hicon-192.png",
   "./hicon-512.png",

@@ -70,6 +70,13 @@
   .race div{flex:1; min-width:64px;} .race .t{font-size:16px; font-weight:800;} .race .d{font-size:11px; color:var(--muted);}
   footer{color:#9aa1ab; font-size:11px; margin-top:26px; line-height:1.5;}
   .loading{color:var(--muted); padding:40px 0; text-align:center;}
+  .badge{display:inline-block; font-size:9px; font-weight:800; letter-spacing:.03em; text-transform:uppercase;
+         padding:2px 5px; border-radius:5px; margin-left:6px; vertical-align:middle; line-height:1.2;}
+  .badge.oura{background:#efe9fb; color:#6b46c1;} .badge.gar{background:#e6f0e7; color:#2e7d32;}
+  .stagebar{display:flex; height:22px; border-radius:7px; overflow:hidden; margin:9px 0 5px; font-size:10px; font-weight:800;}
+  .stagebar div{display:flex; align-items:center; justify-content:center; color:#fff; min-width:0;}
+  .sdeep{background:#3949ab;} .srem{background:#7a5bd0;} .slight{background:#9fb0e6;} .sawake{background:#d8c2bf; color:#5a3a37;}
+  .slegend{font-size:12px; color:var(--muted);} .slegend b{color:var(--ink);}
 </style>
 </head>
 <body>
@@ -186,29 +193,54 @@ function initCharts(){
   });
 }
 
-function kpi(v,l,s,scls){ return `<div class="card kpi"><div class="v">${v}</div><div class="l">${l}</div>${s?`<div class="s ${scls||'flat'}">${s}</div>`:""}</div>`; }
-function mini(l,v,s){ return `<div class="card mini"><div class="l">${l}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
+function kpi(v,l,s,scls,badge){ return `<div class="card kpi"><div class="v">${v}</div><div class="l">${l}${badge||""}</div>${s?`<div class="s ${scls||'flat'}">${s}</div>`:""}</div>`; }
+function mini(l,v,s,badge){ return `<div class="card mini"><div class="l">${l}${badge||""}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:""}</div>`; }
 
-function render(D){
+function render(D, O){
   const s=D.snapshot, t=D.trends;
-  document.getElementById("sub").textContent = `${D.athlete} · as of ${D.generated}`;
+  const ou = (O && O.latest) ? O.latest : null;
+  const OB = '<span class="badge oura">Oura</span>';
+  const GB = '<span class="badge gar">Garmin</span>';
+  document.getElementById("sub").innerHTML = `${D.athlete} · as of ${D.generated}`
+    + (ou ? ` · <span style="color:var(--violet);font-weight:600;">🟣 Oura synced ${fmtDate(ou.day.slice(5))}</span>` : "");
 
   let h = `<div class="layout"><div class="left"><div class="sec">Where you stand</div><div class="grid kpis">`;
   h += kpi(s.vo2max, "VO2max", s.vo2maxLabel, "flat");
   h += kpi(s.fitnessAge, "Fitness age", `${(s.chronoAge-s.fitnessAge).toFixed(1)} yrs younger`, "up");
-  h += kpi(s.readiness, "Readiness", s.readinessLevel, s.readiness>=70?"up":s.readiness>=50?"flat":"down");
-  h += kpi(s.rhr, "Resting HR", `7-day avg ${s.rhr7d}`, "flat");
+  const rdy = ou ? ou.readiness : s.readiness;
+  h += kpi(rdy, "Readiness", ou?ou.readinessLabel:s.readinessLevel, rdy>=70?"up":rdy>=50?"flat":"down", ou?OB:GB);
+  const rhrV = ou ? ou.rhr : s.rhr;
+  h += kpi(rhrV, "Resting HR", ou?"overnight low":`7-day avg ${s.rhr7d}`, "flat", ou?OB:GB);
   h += `</div>`;
 
   h += `<div class="sec">Snapshot</div><div class="grid cards">`;
   h += mini("Training status", s.trainingStatus, `Load ratio ${s.acwr} · ${s.acwrStatus}`);
-  h += mini("HRV (weekly avg)", s.hrv+" ms", s.hrvStatus);
-  h += mini("Sleep", s.sleepScoreLast, `9-day avg ${s.sleepAvg}`);
+  h += ou ? mini("HRV", ou.hrv+" ms", "overnight rMSSD", OB)
+          : mini("HRV (weekly avg)", s.hrv+" ms", s.hrvStatus, GB);
+  h += ou ? mini("Sleep", ou.sleepScore, `${ou.sleepHours} h · ${ou.efficiency}% eff`, OB)
+          : mini("Sleep", s.sleepScoreLast, `9-day avg ${s.sleepAvg}`, GB);
   h += mini("Stress", s.stressLatest, `${s.stressQualifier} · week ${s.stressWeek}`);
   h += mini("Vigorous days", s.vigorousDays+"/wk", `target ${s.vigorousTarget}`);
   if(s.weight) h += mini("Weight", s.weight+" lb", `BMI ${s.bmi} · as of ${s.weightAsOf.slice(5)}`);
-  h += mini("Steps today", s.steps.toLocaleString(), `goal ${s.stepGoal.toLocaleString()}`);
+  h += mini("Steps today", s.steps.toLocaleString(), `goal ${s.stepGoal.toLocaleString()}`, GB);
   h += `</div>`;
+
+  if(ou){
+    h += `<div class="sec">Sleep &amp; recovery ${OB}</div>`;
+    const st=ou.stages, tot=(st.deepMin+st.remMin+st.lightMin+st.awakeMin)||1;
+    const seg=(cls,lbl,m)=>`<div class="${cls}" style="width:${(m/tot*100).toFixed(1)}%">${m/tot>0.09?lbl:""}</div>`;
+    h += `<div class="card"><div style="display:flex; justify-content:space-between; align-items:baseline;">`
+       + `<span style="font-size:13px; font-weight:600;">Last night · ${ou.sleepHours} h asleep</span>`
+       + `<span style="font-size:12px; color:var(--muted);">${ou.efficiency}% efficiency</span></div>`;
+    h += `<div class="stagebar">${seg('sdeep','Deep',st.deepMin)}${seg('srem','REM',st.remMin)}${seg('slight','Light',st.lightMin)}${seg('sawake','Awake',st.awakeMin)}</div>`;
+    h += `<div class="slegend"><b>Deep</b> ${st.deepMin}m · <b>REM</b> ${st.remMin}m · <b>Light</b> ${st.lightMin}m · <b>Awake</b> ${st.awakeMin}m</div></div>`;
+    h += `<div class="grid cards" style="margin-top:12px;">`;
+    const td=ou.tempDeviation;
+    if(td!=null) h += mini("Body temp", (td>0?"+":"")+td+" °C", "vs your baseline");
+    if(ou.respiratoryRate!=null) h += mini("Respiratory rate", ou.respiratoryRate+" /min", "overnight avg");
+    if(ou.spo2!=null) h += mini("Blood oxygen", ou.spo2+"%", "overnight avg SpO₂");
+    h += `</div>`;
+  }
 
   h += `<div class="sec">Race predictions</div><div class="card"><div class="race">`;
   for(const [k,v] of Object.entries(s.racePredictions)) h += `<div><div class="t">${v}</div><div class="d">${k}</div></div>`;
@@ -219,7 +251,7 @@ function render(D){
       `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;">Needs ~${s.goal.pace} for 26.2. Current projection <b>${s.goal.current}</b>. The work between now and then: build easy aerobic volume + raise VO2max — base first, marathon-specific later.</div></div>`;
   }
 
-  h += `<div class="sec">Trends</div><div class="grid charts">`;
+  h += `<div class="sec">Trends <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">${ou?"Garmin history — nightly Oura now feeds the tiles above":"Garmin history"}</span></div><div class="grid charts">`;
   h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false, "Plateaued ~53 for six weeks — the weekly intervals target this.", "");
   h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false, "Climbing — recovery improving. All days “Balanced.”", " ms");
   h += chartCard("Resting HR (3 wk)", t.rhr, s.rhr, "var(--violet)", true, "Low and stable — strong aerobic signal.", " bpm");
@@ -268,13 +300,16 @@ function render(D){
   document.getElementById("app").innerHTML = h;
   initCharts();
   document.getElementById("foot").innerHTML =
-    `Data pulled from Garmin Connect on ${D.generated}. Trends are point-in-time and smoothed. `+
-    `This is general wellness guidance, not medical advice — see a clinician for anything concerning.`;
+    `Recovery (sleep, HRV, resting HR, readiness, temp, SpO₂) from ${ou?`Oura Ring, synced ${fmtDate(ou.day.slice(5))}`:"Garmin"}; `+
+    `training, running and trend history from Garmin Connect on ${D.generated}. Where both devices measure a metric, the Oura number is shown. `+
+    `Trends are point-in-time and smoothed. This is general wellness guidance, not medical advice — see a clinician for anything concerning.`;
 }
 
-fetch("garmin-data.json?ts="+Date.now())
-  .then(r=>r.json())
-  .then(render)
+Promise.all([
+  fetch("garmin-data.json?ts="+Date.now()).then(r=>r.json()),
+  fetch("oura-data.json?ts="+Date.now()).then(r=>r.ok?r.json():null).catch(()=>null)
+])
+  .then(([g,o])=>render(g,o))
   .catch(e=>{ document.getElementById("app").innerHTML =
     `<div class="loading">Couldn’t load data. If you’re offline, reopen once you have a connection.</div>`; });
 
