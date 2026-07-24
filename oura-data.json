@@ -1,24 +1,24 @@
 {
-  "generated": "2026-07-22",
+  "generated": "2026-07-24",
   "source": "oura",
-  "nights": 1,
+  "nights": 2,
   "latest": {
-    "day": "2026-07-22",
-    "sleepHours": 5.1,
-    "sleepScore": 70,
-    "efficiency": 86,
-    "hrv": 52,
-    "rhr": 45,
-    "readiness": 80,
+    "day": "2026-07-23",
+    "sleepHours": 6.6,
+    "sleepScore": 78,
+    "efficiency": 89,
+    "hrv": 54,
+    "rhr": 49,
+    "readiness": 74,
     "readinessLabel": "Good \u2014 ready to train",
-    "tempDeviation": -0.32,
+    "tempDeviation": -0.44,
     "respiratoryRate": 13.0,
-    "spo2": 95.6,
+    "spo2": 95.7,
     "stages": {
-      "deepMin": 60,
-      "remMin": 74,
-      "lightMin": 172,
-      "awakeMin": 49
+      "deepMin": 66,
+      "remMin": 78,
+      "lightMin": 249,
+      "awakeMin": 50
     }
   },
   "trends": {
@@ -26,36 +26,60 @@
       {
         "d": "07-22",
         "v": 5.1
+      },
+      {
+        "d": "07-23",
+        "v": 6.6
       }
     ],
     "sleepScore": [
       {
         "d": "07-22",
         "v": 70
+      },
+      {
+        "d": "07-23",
+        "v": 78
       }
     ],
     "hrv": [
       {
         "d": "07-22",
         "v": 52
+      },
+      {
+        "d": "07-23",
+        "v": 54
       }
     ],
     "rhr": [
       {
         "d": "07-22",
         "v": 45
+      },
+      {
+        "d": "07-23",
+        "v": 49
       }
     ],
     "readiness": [
       {
         "d": "07-22",
         "v": 80
+      },
+      {
+        "d": "07-23",
+        "v": 74
       }
     ],
     "tempDeviation": [
       {
         "d": "07-22",
         "v": -0.32
+      },
+      {
+        "d": "07-23",
+        "v": -0.44
       }
     ]
   }

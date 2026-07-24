@@ -222,7 +222,7 @@ function render(D, O){
   h += mini("Stress", s.stressLatest, `${s.stressQualifier} · week ${s.stressWeek}`);
   h += mini("Vigorous days", s.vigorousDays+"/wk", `target ${s.vigorousTarget}`);
   if(s.weight) h += mini("Weight", s.weight+" lb", `BMI ${s.bmi} · as of ${s.weightAsOf.slice(5)}`);
-  h += mini("Steps today", s.steps.toLocaleString(), `goal ${s.stepGoal.toLocaleString()}`, GB);
+  h += mini(s.stepsAsOf?`Steps (${fmtDate(s.stepsAsOf.slice(5))})`:"Steps today", s.steps.toLocaleString(), `goal ${s.stepGoal.toLocaleString()}`, GB);
   h += `</div>`;
 
   if(ou){
@@ -256,8 +256,8 @@ function render(D, O){
   h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false, "Climbing — recovery improving. All days “Balanced.”", " ms");
   h += chartCard("Resting HR (3 wk)", t.rhr, s.rhr, "var(--violet)", true, "Low and stable — strong aerobic signal.", " bpm");
   h += chartCard("Sleep score (9 d)", t.sleepScore, s.sleepScoreLast, "var(--blue)", false, "Strong recent week; a few dips tied to short or broken nights.", "");
-  h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 6.6–8.3 h — aim for consistent 7.5 h+.", " h");
-  h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Falling 30 → 23 — good direction.", "");
+  h += chartCard("Sleep hours (9 d)", t.sleepHours, t.sleepHours[t.sleepHours.length-1].v+" h", "var(--accent)", false, "Swings 5.1–8.4 h — the short nights (Jul 18, Jul 22) track your low-sleep days; aim for a steady 7.5 h+.", " h");
+  h += chartCard("Stress weekly (6 wk)", t.stressWeekly, s.stressWeek, "var(--amber)", true, "Steady ~30 all summer — no upward creep, load is well absorbed.", "");
   h += `</div>`;
 
   const r=D.running;
@@ -279,8 +279,8 @@ function render(D, O){
       if(pl.grayPct) h += `<div class="polgray" style="width:${pl.grayPct}%">${pl.grayPct}%</div>`;
       if(pl.hardPct) h += `<div class="polhard" style="width:${pl.hardPct}%">${pl.hardPct}%</div>`;
       h += `</div>`;
-      h += `<div class="pollegend"><b>Easy</b> ${pl.easyPct}% (${pl.easyMi} mi) · <b>Gray</b> ${pl.grayPct}% (${pl.grayMi} mi) · <b>Hard</b> ${pl.hardPct}% (${pl.hardMi} mi)</div>`;
-      h += `<div class="cap">Polarized ideal ≈ <b>80% easy / 20% hard</b> with almost no gray. Over half your miles sit in the gray zone (avg HR ~139–151) — neither easy enough to recover nor hard enough to drive adaptation. Fix: genuinely slow your easy days (HR &lt;135). Classified by each run's average HR — approximate.</div>`;
+      h += `<div class="pollegend"><b>Easy</b> ${pl.easyPct}% (${pl.easyMin}m · ${pl.easyMi} mi) · <b>Gray</b> ${pl.grayPct}% (${pl.grayMin}m · ${pl.grayMi} mi) · <b>Hard</b> ${pl.hardPct}% (${pl.hardMin}m · ${pl.hardMi} mi)</div>`;
+      h += `<div class="cap">Polarized ideal ≈ <b>80% easy / 20% hard</b> with almost no gray. Now carved <b>by time in each HR zone within every run</b> (not by run-average) — so interval and tempo reps count as hard even when the whole-run average lands mid-pack. The problem is clear: <b>54% of your time sits in the gray zone (Z3, 129–146 bpm)</b>, mostly easy runs drifting over your <b>Z2/Z3 line of 129</b>. Fix: cap easy days at 128 bpm. Easy = Z1–Z2 (&lt;129) · Gray = Z3 (129–146) · Hard = Z4–Z5 (147 bpm+, i.e. threshold &amp; above; Z5 = your 166 lactate-threshold HR).</div>`;
       h += `</div>`;
     }
   }

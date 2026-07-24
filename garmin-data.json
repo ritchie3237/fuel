@@ -1,15 +1,15 @@
 {
-  "generated": "2026-07-19",
+  "generated": "2026-07-24",
   "athlete": "Mike Ritchie",
   "snapshot": {
-    "vo2max": 52.1,
+    "vo2max": 52.0,
     "vo2maxLabel": "Superior for age",
     "fitnessAge": 28.0,
     "chronoAge": 36,
     "achievableFitnessAge": 30.5,
-    "rhr": 46,
+    "rhr": 48,
     "rhr7d": 48,
-    "hrv": 55,
+    "hrv": 56,
     "hrvStatus": "Balanced",
     "readiness": 64,
     "readinessLevel": "Moderate — good sleep, building back load",
@@ -20,76 +20,306 @@
     "acwrStatus": "Optimal",
     "acwrPercent": 38,
     "stressLatest": 21,
-    "stressWeek": 30,
+    "stressWeek": 29,
     "stressQualifier": "Balanced",
-    "vigorousDays": 4.0,
+    "vigorousDays": 4.3,
     "vigorousTarget": 3,
-    "weight": 168.7,
+    "weight": 168.6,
     "weightAsOf": "2026-07-16",
-    "bmi": 23.5,
+    "bmi": 23.6,
     "bmiTarget": 21.1,
     "bmiAsOf": "2026-07-16",
-    "steps": 6430,
-    "stepGoal": 12990,
-    "racePredictions": { "5K": "20:59", "10K": "44:45", "Half": "1:41:13", "Marathon": "3:44:56" },
-    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:44:56", "pace": "6:51/mi" }
+    "steps": 11832,
+    "stepGoal": 13180,
+    "stepsAsOf": "2026-07-22",
+    "racePredictions": {
+      "5K": "20:45",
+      "10K": "44:24",
+      "Half": "1:40:31",
+      "Marathon": "3:43:13"
+    },
+    "goal": {
+      "text": "Sub-3:00 marathon",
+      "race": "Oct 2027",
+      "current": "3:43:13",
+      "pace": "6:51/mi"
+    }
   },
   "trends": {
     "vo2max": [
-      {"d":"05-21","v":53},{"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-16","v":53},
-      {"d":"06-22","v":52},{"d":"06-28","v":52},{"d":"07-12","v":52},{"d":"07-19","v":52}
+      {
+        "d": "05-21",
+        "v": 53
+      },
+      {
+        "d": "06-01",
+        "v": 53
+      },
+      {
+        "d": "06-05",
+        "v": 52
+      },
+      {
+        "d": "06-16",
+        "v": 53
+      },
+      {
+        "d": "06-22",
+        "v": 52
+      },
+      {
+        "d": "06-28",
+        "v": 52
+      },
+      {
+        "d": "07-12",
+        "v": 52
+      },
+      {
+        "d": "07-22",
+        "v": 52
+      }
     ],
     "hrv": [
-      {"d":"06-21","v":54},{"d":"06-29","v":51},{"d":"07-01","v":50},{"d":"07-04","v":53},
-      {"d":"07-07","v":54},{"d":"07-10","v":52},{"d":"07-13","v":55},{"d":"07-16","v":56},
-      {"d":"07-19","v":55}
+      {
+        "d": "07-01",
+        "v": 50
+      },
+      {
+        "d": "07-04",
+        "v": 53
+      },
+      {
+        "d": "07-07",
+        "v": 54
+      },
+      {
+        "d": "07-10",
+        "v": 52
+      },
+      {
+        "d": "07-13",
+        "v": 55
+      },
+      {
+        "d": "07-16",
+        "v": 56
+      },
+      {
+        "d": "07-19",
+        "v": 55
+      },
+      {
+        "d": "07-22",
+        "v": 56
+      }
     ],
     "rhr": [
-      {"d":"07-06","v":48},{"d":"07-09","v":52},{"d":"07-12","v":45},{"d":"07-14","v":45},
-      {"d":"07-16","v":47},{"d":"07-18","v":51},{"d":"07-19","v":46}
+      {
+        "d": "07-06",
+        "v": 48
+      },
+      {
+        "d": "07-09",
+        "v": 52
+      },
+      {
+        "d": "07-12",
+        "v": 45
+      },
+      {
+        "d": "07-14",
+        "v": 45
+      },
+      {
+        "d": "07-16",
+        "v": 47
+      },
+      {
+        "d": "07-18",
+        "v": 51
+      },
+      {
+        "d": "07-22",
+        "v": 48
+      }
     ],
     "sleepScore": [
-      {"d":"07-11","v":81},{"d":"07-12","v":79},{"d":"07-13","v":88},{"d":"07-14","v":82},
-      {"d":"07-15","v":82},{"d":"07-16","v":74},{"d":"07-17","v":73},{"d":"07-18","v":54},
-      {"d":"07-19","v":83}
+      {
+        "d": "07-14",
+        "v": 82
+      },
+      {
+        "d": "07-15",
+        "v": 82
+      },
+      {
+        "d": "07-16",
+        "v": 74
+      },
+      {
+        "d": "07-17",
+        "v": 73
+      },
+      {
+        "d": "07-18",
+        "v": 54
+      },
+      {
+        "d": "07-19",
+        "v": 83
+      },
+      {
+        "d": "07-22",
+        "v": 70
+      },
+      {
+        "d": "07-23",
+        "v": 78
+      }
     ],
     "sleepHours": [
-      {"d":"07-11","v":8.4},{"d":"07-12","v":6.3},{"d":"07-13","v":9.6},{"d":"07-14","v":6.9},
-      {"d":"07-15","v":7.8},{"d":"07-16","v":6.2},{"d":"07-17","v":6.7},{"d":"07-18","v":6.9},
-      {"d":"07-19","v":8.4}
+      {
+        "d": "07-14",
+        "v": 6.9
+      },
+      {
+        "d": "07-15",
+        "v": 7.8
+      },
+      {
+        "d": "07-16",
+        "v": 6.2
+      },
+      {
+        "d": "07-17",
+        "v": 6.7
+      },
+      {
+        "d": "07-18",
+        "v": 6.9
+      },
+      {
+        "d": "07-19",
+        "v": 8.4
+      },
+      {
+        "d": "07-22",
+        "v": 5.1
+      },
+      {
+        "d": "07-23",
+        "v": 6.6
+      }
     ],
     "stressWeekly": [
-      {"d":"06-08","v":23},{"d":"06-15","v":28},{"d":"06-22","v":36},{"d":"06-29","v":29},
-      {"d":"07-06","v":27},{"d":"07-13","v":30}
+      {
+        "d": "06-13",
+        "v": 27
+      },
+      {
+        "d": "06-20",
+        "v": 32
+      },
+      {
+        "d": "06-27",
+        "v": 30
+      },
+      {
+        "d": "07-04",
+        "v": 30
+      },
+      {
+        "d": "07-11",
+        "v": 30
+      },
+      {
+        "d": "07-18",
+        "v": 29
+      }
     ]
   },
   "running": {
-    "ytd": 366.1,
-    "runsYtd": 78,
-    "thisWeek": 23.1,
-    "last7": 23.1,
+    "ytd": 378.7,
+    "runsYtd": 81,
+    "thisWeek": 13.4,
+    "last7": 22.4,
     "avg4": 14.4,
     "weekly": [
-      {"d":"04-27","v":8.1},{"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},
-      {"d":"05-25","v":9.1},{"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":23.1},
-      {"d":"06-22","v":18.7},{"d":"06-29","v":11.1},{"d":"07-06","v":4.5},{"d":"07-13","v":23.1}
+      {
+        "d": "05-03",
+        "v": 17.1
+      },
+      {
+        "d": "05-10",
+        "v": 9.1
+      },
+      {
+        "d": "05-17",
+        "v": 9.0
+      },
+      {
+        "d": "05-24",
+        "v": 9.1
+      },
+      {
+        "d": "05-31",
+        "v": 15.1
+      },
+      {
+        "d": "06-07",
+        "v": 16.1
+      },
+      {
+        "d": "06-14",
+        "v": 30.1
+      },
+      {
+        "d": "06-21",
+        "v": 12.6
+      },
+      {
+        "d": "06-28",
+        "v": 17.2
+      },
+      {
+        "d": "07-05",
+        "v": 4.5
+      },
+      {
+        "d": "07-12",
+        "v": 23.1
+      },
+      {
+        "d": "07-19",
+        "v": 13.4
+      }
     ],
     "polarized": {
       "window": "last 30 days",
-      "easyPct": 90, "grayPct": 10, "hardPct": 0,
-      "easyMi": 51.4, "grayMi": 6.0, "hardMi": 0.0
+      "method": "time-in-zone",
+      "easyPct": 35,
+      "grayPct": 54,
+      "hardPct": 11,
+      "easyMi": 21.5,
+      "grayMi": 33.4,
+      "hardMi": 7.8,
+      "easyMin": 212,
+      "grayMin": 332,
+      "hardMin": 68
     }
   },
   "recommendations": {
     "continue": [
-      "Great recovery block — HRV weekly average climbed from 51ms (Jun 29) to 55-57ms this week, staying \"Balanced\" the whole way, while resting HR sits at a strong 45-48. The body is absorbing the volume rebound well.",
-      "This week's plan executed almost exactly as prescribed — easy runs at HR 124-132, VO2max intervals Wednesday, and a 9mi long run Saturday that still averaged just 132bpm despite being the longest run of the week.",
-      "ACWR is optimal at 0.9 (38%) — acute and chronic load are balanced, so there's genuine room to keep building rather than holding flat."
+      "Recovery is genuinely strong right now. HRV weekly average climbed 50→56 ms through July and held \"Balanced\" every day; Oura confirms it with overnight resting HR of 45–49 and readiness 74–80. Your body is absorbing the volume rebound well — there's room to build.",
+      "Your quality sessions are actually hard now — and the dashboard finally proves it. Carved by time-in-zone (not run-average), the Jul 15 VO2max day spent 46% of its time in Z4–Z5 and the Jul 22 tempo 48%. That's real high-intensity stimulus, roughly 24 min of hard work per session, not the \"gray\" that averaging used to mislabel it as.",
+      "Race projections moved the right way despite a choppy month — marathon 3:44:56 → 3:43:13, half 1:40:31, 5K 20:45. Fitness is holding while you rebuild mileage."
     ],
     "change": [
-      "Polarized split reads 90% easy / 10% gray / 0% hard over the last 30 days by strict avg-HR — that looks great on paper, but it's partly an artifact of how averaging dilutes interval sessions (the Jul 15 VO2max day averaged only 146bpm across reps + recoveries, landing it in \"gray\"). The real signal is that easy days are staying genuinely under 135 individually, which they are.",
-      "Weekly mileage was choppy over the last month (18.7 → 11.1 → 4.5 → 23.1 mi) as tennis filled the gap during a busy travel/social stretch. Next week's ~25.5mi target continues the rebound at a controlled ~10% step rather than snapping straight back to peak volume.",
-      "VO2max is still flat around 52 for two months and training status flagged an \"aerobic high\" shortage (not enough tempo/threshold running relative to anaerobic work) — next week's quality day swaps to a tempo/cruise-interval session (3x6min @ ~7:00/mi) instead of repeating VO2max intervals, to target that specific gap."
+      "The real fix: your easy runs aren't easy. Carved honestly, only 35% of your running time is truly easy (Z1–Z2) while 54% sits in the Z3 gray zone. The cause is easy days averaging 128–130 bpm — right on top of your 129 Z2/Z3 line. Action: cap easy runs at 128 bpm. Walk the hills, drop pace 30–45 s/mi. Goal is to flip this to ~75–80% easy / under 10% gray.",
+      "Most of your gray miles hide in the long run. Jul 18 (9 mi) ran 89% in Z3 — steady, but never actually easy. Hold long runs under 128 bpm and take walk breaks when HR drifts up; that single change moves the biggest block of gray back to easy.",
+      "Volume is still the ceiling. 4-week average is 14.4 mi/wk with big swings (30 → 12.6 → 17.2 → 4.5 → 23 → 13). VO2max has sat flat at 52 for two months partly because the aerobic base isn't expanding. Add a second easy day rather than making existing runs harder, ramping ~10%/wk toward the low-20s.",
+      "Keep exactly one true quality day per week and protect the 80/20. Alternate VO2max (5–6 × 3 min @ ~5:55–6:05/mi, 2–3 min jog float) with threshold (3 × 8–10 min @ ~6:55–7:05/mi, 2 min jog). Let those be the only runs above 129 — don't let easy days creep up to fill the hard bucket."
     ]
   }
 }
