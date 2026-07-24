@@ -70,14 +70,16 @@
   #bays { display: flex; gap: 26px; align-items: flex-end; padding: 8px 4px; overflow-x: auto; }
   .bay-wrap { flex: 0 0 auto; }
   .bay-cap { text-align: center; font-size: 12px; font-weight: 600; color: var(--rv-blue); margin-bottom: 4px; }
-  .blende { background: linear-gradient(180deg, #2f6bb0, #1c4f8d); border: 3px solid #8b7355; border-bottom: 0; border-radius: 3px 3px 0 0; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; font-size: 15px; text-shadow: 0 1px 2px rgba(0,0,0,.4); }
-  .bay { position: relative; background: #fbf8f2; border: 3px solid #8b7355; border-top-width: 6px; }
-  .level { position: absolute; left: 0; right: 0; border-top: 5px solid #a8896a; background: rgba(255,255,255,.35); }
+  .blende { position: relative; background: linear-gradient(180deg, #3a78c0 0%, #1c4f8d 55%, #164277 100%); border: 3px solid #7c6647; border-bottom: 0; border-radius: 7px 7px 0 0; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; font-size: 15px; text-shadow: 0 1px 2px rgba(0,0,0,.45); box-shadow: inset 0 2px 3px rgba(255,255,255,.28), inset 0 -3px 6px rgba(0,0,0,.25); }
+  .blende .bicon { font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
+  .bay { position: relative; background: linear-gradient(180deg, #fdfbf6, #f1ebdd); border: 4px solid; border-image: linear-gradient(180deg, #9c7d55, #7c6142) 1; box-shadow: inset 7px 0 9px -7px rgba(0,0,0,.4), inset -7px 0 9px -7px rgba(0,0,0,.4), 0 6px 16px rgba(60,45,25,.18); }
+  .level { position: absolute; left: 0; right: 0; background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 30%); border-top: 7px solid; border-image: linear-gradient(180deg, #d8bd93, #a6835a) 1; box-shadow: 0 4px 6px -3px rgba(0,0,0,.4); }
   .level.dragover { background: #e3edf7; }
-  .level .lvl-tag { position: absolute; left: 2px; top: 0; background: rgba(15,76,129,.85); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 0 0 4px 0; white-space: nowrap; z-index: 2; pointer-events: none; }
-  .plinth { position: absolute; left: 0; right: 0; bottom: 0; background: #6b5842; }
+  .level .lvl-tag { position: absolute; left: 2px; top: 0; background: rgba(15,76,129,.8); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 0 0 4px 0; white-space: nowrap; z-index: 2; pointer-events: none; }
+  .plinth { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #6b5842, #59493690); border-top: 3px solid #d4a017; }
   .plinth span { color: #fff; font-size: 10px; padding-left: 6px; opacity: .8; }
-  .block { position: absolute; bottom: 0; border: 0; border-radius: 2px 2px 0 0; overflow: hidden; cursor: grab; }
+  .block { position: absolute; bottom: 0; border: 0; border-radius: 2px 2px 0 0; overflow: hidden; cursor: grab; box-shadow: 0 2px 3px -1px rgba(0,0,0,.28), inset 0 0 0 1px rgba(0,0,0,.04); }
+  .block .ph { position: absolute; left: 0; right: 0; top: 0; bottom: 14px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 9px; line-height: 1.15; padding: 3px; color: #2b3440; overflow: hidden; font-weight: 600; }
   .block:active { cursor: grabbing; }
   .block.sel { outline: 3px solid var(--rv-red); z-index: 5; }
   .block.unboxed { border-style: dashed; border-width: 2px; background: repeating-linear-gradient(45deg, #f4f8ee, #f4f8ee 8px, #eaf2e0 8px, #eaf2e0 16px) !important; }
@@ -371,6 +373,21 @@ let editTplId = null;
 function blendeFor(theme) {
   const c = themeBlende[theme] || {};
   return { text: c.blank ? '' : (c.text || theme), blank: !!c.blank };
+}
+/* a simple category icon for the shelf header panel (like Nina's layout) */
+function themeIcon(name) {
+  const n = (name || '').toLowerCase();
+  if (/flora/.test(n)) return '🌸';
+  if (/toddler|kleinst/.test(n)) return '🧸';
+  if (/\bkids?\b|kind/.test(n)) return '🧒';
+  if (/tiptoi|schlau/.test(n)) return '🖊️';
+  if (/me.?time|zeit für mich|puzzle/.test(n)) return '🧩';
+  if (/fan|highlight/.test(n)) return '⭐';
+  if (/offer|aktion|angebot|special/.test(n)) return '🏷️';
+  if (/explor|tüftler|entdeck/.test(n)) return '🔍';
+  if (/game|spiel|party/.test(n)) return '🎲';
+  if (/spieleland/.test(n)) return '🎡';
+  return '🛍️';
 }
 
 const $ = id => document.getElementById(id);
@@ -856,8 +873,9 @@ function renderBays() {
     const bw = document.createElement('div');
     bw.className = 'bay-wrap';
     const bl = blendeFor(activeTheme);
+    const blInner = bl.blank ? '' : `<span class="bicon">${themeIcon(activeTheme)}</span><span>${esc(bl.text)}</span>`;
     bw.innerHTML = `<div class="bay-cap">Shelf ${shelf.num} <span style="font-weight:400;color:var(--muted)">· ${esc(tpl.name)}</span></div>` +
-      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" style="width:${W + 6}px;height:${tpl.blendeCm * PXCM}px">${esc(bl.text)}</div>` : '');
+      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" style="width:${W + 8}px;height:${tpl.blendeCm * PXCM}px">${blInner}</div>` : '');
     const bayEl = document.createElement('div');
     bayEl.className = 'bay';
     bayEl.style.width = W + 'px';
@@ -897,6 +915,9 @@ function renderBays() {
             inner += `<img class="face" src="${im}" style="left:${f * (wcm + 0.4) * PXCM}px;width:${wcm * PXCM}px;height:${p.h * PXCM}px">`;
         } else if (im) {
           inner += `<img class="face" src="${im}" style="left:0;width:${bwpx}px;height:${p.h * PXCM}px">`;
+        } else if (view !== 'unboxed') {
+          // no photo but sized: a labelled colour placeholder (Nina: placeholder ok)
+          inner += `<span class="ph">${esc(p.title.replace(/^BRIO FLORA\s*/i, '').split('|')[0].slice(0, 42))}</span>`;
         }
         for (let f = 1; f < b.facings; f++)
           inner += `<i class="fc" style="left:${(f * (wcm + 0.4) - 0.4) * PXCM}px"></i>`;
@@ -1770,7 +1791,7 @@ $('btnPng').onclick = async () => {
       const bl = blendeFor(activeTheme);
       if (bl.text) {
         ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
-        ctx.fillText(bl.text.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
+        ctx.fillText(themeIcon(activeTheme) + '  ' + bl.text.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
         ctx.textAlign = 'left';
       }
     }
@@ -1810,6 +1831,18 @@ $('btnPng').onclick = async () => {
           if (view === 'unboxed') drawContain(ctx, im, x, yBasePx - bh, bw, bh);
           else for (let f = 0; f < b.facings; f++)
             drawContain(ctx, im, x + f * (wcm + 0.4) * S, yBasePx - bh, wcm * S, bh);
+        } else if (view !== 'unboxed') {
+          // labelled colour placeholder for products without a photo
+          ctx.save();
+          ctx.beginPath(); ctx.rect(x, yBasePx - bh, bw, bh); ctx.clip();
+          ctx.fillStyle = '#2b3440'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+          const words = p.title.replace(/^BRIO FLORA\s*/i, '').split('|')[0].trim().split(/\s+/);
+          let line = '', lines = [];
+          for (const w of words) { if ((line + ' ' + w).length > Math.max(6, bw / 6)) { lines.push(line); line = w; } else line = line ? line + ' ' + w : w; }
+          if (line) lines.push(line);
+          lines.slice(0, 4).forEach((ln, k) => ctx.fillText(ln, x + bw / 2, yBasePx - bh / 2 + (k - lines.length / 2 + 0.7) * 11));
+          ctx.textAlign = 'left';
+          ctx.restore();
         }
         ctx.strokeStyle = 'rgba(0,0,0,.45)';
         if (view === 'unboxed') ctx.setLineDash([5, 4]);
