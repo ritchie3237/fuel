@@ -20,7 +20,7 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
 
 ## Gotchas learned
 
-- `ravensburger-shelf-planner.html` persists state in localStorage key `rvShelfPlanner4`;
+- `ravensburger-shelf-planner.html` persists state in localStorage key `rvShelfPlanner5`;
   run `localStorage.clear(); location.reload()` for a fresh boot before asserting.
 - HTML5 drag-and-drop tests: use a viewport tall enough that the whole page fits
   (e.g. 1500×2100). If Playwright scrolls mid-drag, the dragstart hit-tests against

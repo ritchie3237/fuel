@@ -77,7 +77,7 @@
   .level .lvl-tag { position: absolute; left: 2px; top: 0; background: rgba(15,76,129,.85); color: #fff; font-size: 9px; padding: 1px 5px; border-radius: 0 0 4px 0; white-space: nowrap; z-index: 2; pointer-events: none; }
   .plinth { position: absolute; left: 0; right: 0; bottom: 0; background: #6b5842; }
   .plinth span { color: #fff; font-size: 10px; padding-left: 6px; opacity: .8; }
-  .block { position: absolute; bottom: 0; border: 1px solid rgba(0,0,0,.35); border-radius: 2px 2px 0 0; overflow: hidden; cursor: grab; }
+  .block { position: absolute; bottom: 0; border: 0; border-radius: 2px 2px 0 0; overflow: hidden; cursor: grab; }
   .block:active { cursor: grabbing; }
   .block.sel { outline: 3px solid var(--rv-red); z-index: 5; }
   .block.unboxed { border-style: dashed; border-width: 2px; background: repeating-linear-gradient(45deg, #f4f8ee, #f4f8ee 8px, #eaf2e0 8px, #eaf2e0 16px) !important; }
@@ -118,15 +118,19 @@
     <button class="ghost" id="btnPng" style="background:#fff">Export PNG</button>
     <button class="ghost" id="btnPrint" style="background:#fff">Print</button>
     <button class="ghost" id="btnXlsx" style="background:#fff">Export Excel</button>
+    <button class="ghost" id="btnSaveProject" style="background:#fff" title="Save this whole store setup to a file">Save project</button>
+    <button class="ghost" id="btnLoadProject" style="background:#fff" title="Load a saved store project file">Load project</button>
+    <input type="file" id="projectInput" accept=".json" style="display:none">
   </div>
 </header>
 <main>
   <div class="banner" id="demoBanner">
-    <b>Updated with Nina's feedback (July 2026):</b> new 6-level 80&nbsp;cm fixture (232&nbsp;cm incl. plinth, 50&nbsp;cm
-    signage blende, 38&nbsp;cm usable board depth) &middot; front rule: never two identical products side by side at the
-    front (side-view items may pair) &middot; unboxed demo items go to the lower levels &middot; 63625000 now has its
-    dimensions (12&times;17&times;16). The real Flora order is pre-loaded with photos; the category matrix and Top-100
-    are built in. Shelf counts per theme are fully editable per store.
+    <b>Updated with Nina's July&nbsp;21 feedback (v5):</b> 6-level fixture 33.5&nbsp;/&nbsp;5&times;35&nbsp;cm, 38&nbsp;cm board
+    depth, 50&nbsp;cm blende &middot; new layout: up to <b>2 different products face-out in the centre</b>, everything else
+    turned sideways left&nbsp;&amp;&nbsp;right to fill the shelf &middot; up to 2 identical facings allowed &middot; front /
+    side / open images per product (columns J&nbsp;/&nbsp;K&nbsp;/&nbsp;L) &middot; move &amp; duplicate items freely &middot;
+    a combined order file auto-splits Flora / tiptoi into their theme areas &middot; save &amp; reload a project per store.
+    Pick a theme above the planogram and press <b>Generate</b>.
   </div>
   <div class="cols">
     <div class="side">
@@ -174,7 +178,7 @@
           <button class="small danger" id="tplDelete">Delete</button>
         </div>
         <p class="note" style="margin-bottom:0">New standard fixture per Nina's drawings: 80&nbsp;cm wide (76.2&nbsp;cm inner),
-        <b>6 levels</b> at 36&nbsp;/&nbsp;32.5&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;cm top&rarr;bottom,
+        <b>6 levels</b> at 33.5&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;/&nbsp;35&nbsp;cm top&rarr;bottom,
         225&nbsp;cm body + 7&nbsp;cm plinth (232&nbsp;cm), board depth 38&nbsp;cm (inner depth 40), 50&nbsp;cm signage blende on top.
         The old 5-level fixture is kept as a second template.</p>
       </div>
@@ -217,13 +221,14 @@
       <div class="card no-print">
         <h2>Merchandising rules applied</h2>
         <p class="note" style="margin:0">
-          &bull; Front rule: <b>never two identical products side by side at the front</b>; side-view items (e.g. puzzles)
-          may stand in identical pairs; repeats of a product are allowed apart from each other<br>
-          &bull; Backstock fills each facing to the board depth (38&nbsp;cm &divide; package depth, up to ~10 deep)<br>
+          &bull; <b>Centre look:</b> up to 2 different products face-out in the middle of each level; the rest turned
+          sideways on the left &amp; right to fill the shelf<br>
+          &bull; Up to <b>2 identical facings</b> per product at the front; the remaining units go behind as backstock,
+          filling the board depth (38&nbsp;cm &divide; package depth, up to ~10 deep)<br>
           &bull; Eye-level priority (&asymp;140&nbsp;cm) for &#9733; featured, Top-100, larger and higher-value items<br>
-          &bull; Left&rarr;right by shelf category (matrix order), then article number, flowing across the theme's shelves<br>
-          &bull; Unboxed demo units: lower levels (4&ndash;5), one per category, half-to-full shelf width<br>
-          &bull; Nothing is squeezed or guessed &mdash; overflow and sparse shelves are reported
+          &bull; Unboxed demo units: lower levels (4&ndash;5), one per category, half-to-full shelf width, dashed outline<br>
+          &bull; Nothing is squeezed or guessed &mdash; overflow and sparse shelves are reported<br>
+          &bull; This is the automatic starting point &mdash; drag, duplicate, re-orient or pin anything by hand afterwards
         </p>
       </div>
     </div>
@@ -234,6 +239,10 @@
           <label style="margin:0;font-size:13px;color:var(--muted)">Theme area:</label>
           <select id="themeSelect"></select>
           <span class="note" id="themeShelfInfo"></span>
+          <span style="flex:1"></span>
+          <label style="margin:0;font-size:12px;color:var(--muted)">Blende:</label>
+          <input type="text" id="blendeText" placeholder="(theme name)" style="width:150px" title="Text shown on the header panel of this theme's shelves">
+          <label style="margin:0;font-size:12px;color:var(--muted)"><input type="checkbox" id="blendeBlank" style="width:auto"> blank (plain blue)</label>
         </div>
         <h2>Planogram <span class="note" style="text-transform:none;font-weight:400">&mdash; drag products between levels &amp; shelves, click a product to edit</span></h2>
         <div id="bays"></div>
@@ -289,6 +298,11 @@
     <div><label>Depth cm</label><input type="number" step="0.1" id="apD"></div>
   </div>
   <div style="margin-top:8px"><label>Category</label><select id="apCat"></select></div>
+  <div class="grid3" style="margin-top:8px">
+    <div><label>Front image</label><input type="file" id="apImgF" accept="image/*"></div>
+    <div><label>Side image</label><input type="file" id="apImgS" accept="image/*"></div>
+    <div><label>Open image</label><input type="file" id="apImgO" accept="image/*"></div>
+  </div>
   <div class="btnrow" style="margin-top:12px">
     <button id="apOk">Add</button>
     <button class="ghost" id="apCancel">Cancel</button>
@@ -332,7 +346,7 @@ const nid = () => nextId++;
    board depth 38 (inner 40), 225 cm body + 7 plinth, 50 cm blende. */
 function defaultTemplates() {
   return [
-    { id: nid(), name: 'Regal 80 cm (6 Ebenen)', widthCm: 76.2, depthCm: 38, plinthCm: 7, blendeCm: 50, levelsTop: [36, 32.5, 35, 35, 35, 35] },
+    { id: nid(), name: 'Regal 80 cm (6 Ebenen)', widthCm: 76.2, depthCm: 38, plinthCm: 7, blendeCm: 50, levelsTop: [33.5, 35, 35, 35, 35, 35] },
     { id: nid(), name: 'Regal 80 cm (alt, 5 Ebenen)', widthCm: 76.2, depthCm: 38, plinthCm: 7, blendeCm: 0, levelsTop: [33.4, 36, 36, 36, 34] }
   ];
 }
@@ -350,8 +364,14 @@ let shelves = [];
 let products = [];
 let layouts = {};       // theme -> {shelves: [{shelfId, levels(bottom->up): [[{bid,pid,facings}]]}], unplaced: [pid]}
 let activeTheme = 'BRIO Flora';
+let themeBlende = {};   // theme name -> { text, blank }  (header panel content)
 let selBlock = null;
 let editTplId = null;
+
+function blendeFor(theme) {
+  const c = themeBlende[theme] || {};
+  return { text: c.blank ? '' : (c.text || theme), blank: !!c.blank };
+}
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -397,15 +417,23 @@ function eyeIndex(tpl) {
   });
   return best;
 }
-/* footprint honouring the view */
-function footW(p, tpl) {
-  if (p.view === 'unboxed') return Math.max(p.w, p.ubW || (tpl ? tpl.widthCm / 2 : 38));
-  return p.view === 'side' ? p.d : p.w;
+/* view now lives on each PLACEMENT (block), not the product, so the same
+   product can stand front in one spot and side in another. blockView reads
+   it with the product's default as fallback. */
+function blockView(b) { return (b && b.view) || byId(b && b.pid)?.defaultView || 'front'; }
+/* footprint honouring the block's view */
+function footW(p, view, tpl) {
+  if (view === 'unboxed') return Math.max(p.w, p.ubW || (tpl ? tpl.widthCm / 2 : 38));
+  return view === 'side' ? p.d : p.w;
 }
-function footD(p) { return p.view === 'side' ? p.w : p.d; }
-function unitsDeep(p, tpl) { return p.view === 'unboxed' ? 1 : Math.max(1, Math.floor(tpl.depthCm / footD(p))); }
-function maxBlockFacings(p) { return p.view === 'side' ? 2 : 1; } // front: never 2 identical adjacent
-function imgFor(p) { return p.view === 'side' ? (p.imgSide || p.img) : p.img; }
+function footD(p, view) { return view === 'side' ? p.w : p.d; }
+function unitsDeep(p, view, tpl) { return view === 'unboxed' ? 1 : Math.max(1, Math.floor(tpl.depthCm / footD(p, view))); }
+function maxBlockFacings(view) { return view === 'unboxed' ? 1 : 2; } // front now allows an identical pair (max 2)
+function imgForView(p, view) {
+  if (view === 'side') return p.imgSide || p.img;
+  if (view === 'unboxed') return p.imgOpen || p.img;
+  return p.img;
+}
 
 /* --------------------------- load & clean --------------------------- */
 function makeProduct(o) {
@@ -419,8 +447,8 @@ function makeProduct(o) {
     qty: Math.max(1, Math.round(+o.qty || 1)),
     w: missing ? null : +o.w, h: missing ? null : +o.h, d: missing ? null : +o.d,
     price: +o.price || null,
-    img: o.img || null, imgSide: o.imgSide || null,
-    view: ['side', 'unboxed'].includes(o.view) ? o.view : 'front',
+    img: o.img || null, imgSide: o.imgSide || null, imgOpen: o.imgOpen || null,
+    defaultView: ['side', 'unboxed'].includes(o.view) ? o.view : 'front',
     ubW: null,
     selTheme: o.selTheme ?? null,
     star: !!o.star, pinShelf: null, pinLevel: null,
@@ -445,7 +473,14 @@ function refreshFlags() {
   }
 }
 
-/* ---------------------- placement algorithm ------------------------- */
+/* ---------------------- placement algorithm -------------------------
+   Auto-layout to Nina's "consistent look": per shelf level, at most TWO
+   different products face-out in the CENTER, everything else turned
+   sideways on the left & right to fill the shelf. Front/side items may
+   show up to 2 identical facings; the rest of the order goes to backstock
+   (shelf depth). Unboxed demo units sit on the lower levels, one/category.
+   Manual edits (drag, duplicate, view, facings) mutate the layout directly
+   and are NOT re-arranged, so the user's own placement always sticks.     */
 function generate() {
   const tShelves = themeShelves(activeTheme);
   if (!tShelves.length) {
@@ -465,109 +500,91 @@ function generate() {
   const sorted = [...sel].sort((a, b) =>
     ((b.pinShelf || b.pinLevel) ? 1 : 0) - ((a.pinShelf || a.pinLevel) ? 1 : 0) || prio(b) - prio(a));
 
-  // level preferences per shelf: eye level first for boxed products;
-  // unboxed demo units prefer the lower levels 4-5 (Nina's rule)
   const lvOrder = tShelves.map(s => {
     const tpl = tplOf(s), eye = eyeIndex(tpl);
     return [...levelsBU(tpl).keys()].sort((a, b) => (Math.abs(a - eye) - Math.abs(b - eye)) || (b - a));
   });
   const lvOrderUnboxed = tShelves.map(s => {
     const tpl = tplOf(s), n = tpl.levelsTop.length;
-    const prefNos = [4, 5, 6, 3, 2, 1].filter(no => no <= n);
-    return prefNos.map(no => levelIdx(tpl, no));
+    return [4, 5, 6, 3, 2, 1].filter(no => no <= n).map(no => levelIdx(tpl, no));
   });
+  const frontCount = (si, li) => layout.shelves[si].levels[li].filter(b => b.view === 'front').length;
 
-  // spread across the theme's shelves: walk level preferences and at each
-  // rank pick the shelf with the most free width. avoidPid keeps a second
-  // row of a front-view product away from levels that already show it.
-  const findSpot = (p, avoidPid) => {
-    const wantIdx = [...tShelves.keys()].filter(si => !p.pinShelf || tShelves[si].num === p.pinShelf);
-    const orders = p.view === 'unboxed' ? lvOrderUnboxed : lvOrder;
-    const maxRank = Math.max(0, ...wantIdx.map(si => orders[si].length));
-    for (let r = 0; r < maxRank; r++) {
-      let best = null;
-      for (const si of wantIdx) {
-        const tpl = tplOf(tShelves[si]);
-        let li;
-        if (p.pinLevel) {
-          if (r > 0) continue;
-          li = levelIdx(tpl, p.pinLevel);
-          if (li < 0 || li >= tpl.levelsTop.length) continue;
-        } else {
-          li = orders[si][r];
-          if (li === undefined) continue;
-        }
-        if (p.h > levelsBU(tpl)[li] - 1) continue;
-        if (avoidPid && p.view === 'front' && layout.shelves[si].levels[li].some(b => b.pid === p.id)) continue;
-        if (remaining[si][li] >= footW(p, tpl) + GAP && (!best || remaining[si][li] > best.rem))
-          best = { si, li, rem: remaining[si][li] };
-      }
-      if (best) return { si: best.si, li: best.li };
-    }
-    return null;
+  const place = (p, view, si, li, facings = 1) => {
+    const tpl = tplOf(tShelves[si]);
+    const blk = { bid: nid(), pid: p.id, facings: 1, view };
+    layout.shelves[si].levels[li].push(blk);
+    remaining[si][li] -= footW(p, view, tpl) + GAP;
+    while (blk.facings < facings && remaining[si][li] >= footW(p, view, tpl) + FGAP) { blk.facings++; remaining[si][li] -= footW(p, view, tpl) + FGAP; }
+    return blk;
   };
+  const fits = (p, view, si, li) => {
+    const tpl = tplOf(tShelves[si]);
+    return p.h <= levelsBU(tpl)[li] - 1 && remaining[si][li] >= footW(p, view, tpl) + GAP;
+  };
+  // how many identical facings a face-out product earns from its order qty
+  const frontFacings = (p, si, li) => Math.min(2, Math.max(1, Math.ceil(p.qty / unitsDeep(p, 'front', tplOf(tShelves[si])))));
 
-  // one unboxed demo unit per category (Nina's rule) — warn on extras
-  const unboxedSeen = new Set();
-  const unboxedWarn = [];
-  for (const p of sorted) {
-    if (p.view !== 'unboxed') continue;
-    if (unboxedSeen.has(p.category)) unboxedWarn.push(p.article);
-    unboxedSeen.add(p.category);
-  }
+  const seenUb = new Set(), unboxedWarn = [];
+  for (const p of sorted) if (p.defaultView === 'unboxed') { if (seenUb.has(p.category)) unboxedWarn.push(p.article); seenUb.add(p.category); }
   layout.unboxedWarn = unboxedWarn;
 
-  // pass 1: one row each (front variety)
-  for (const p of sorted) {
-    p._facings = 0;
-    const spot = findSpot(p, false);
-    if (!spot) { layout.unplaced.push(p.id); continue; }
-    const tpl = tplOf(tShelves[spot.si]);
-    layout.shelves[spot.si].levels[spot.li].push({ bid: nid(), pid: p.id, facings: 1 });
-    remaining[spot.si][spot.li] -= footW(p, tpl) + GAP;
-    p._facings = 1;
+  const pool = [...sorted];           // priority order, consumed as we place
+  const take = pred => { const i = pool.findIndex(pred); return i >= 0 ? pool.splice(i, 1)[0] : null; };
+
+  // 1) honour explicit pins first (shelf and/or level chosen by the user)
+  for (const p of [...pool]) {
+    if (!p.pinShelf && !p.pinLevel) continue;
+    const view = p.defaultView === 'unboxed' ? 'unboxed' : (p.defaultView === 'side' ? 'side' : 'front');
+    let placed = false;
+    for (let si = 0; si < tShelves.length && !placed; si++) {
+      if (p.pinShelf && tShelves[si].num !== p.pinShelf) continue;
+      const tpl = tplOf(tShelves[si]);
+      const lis = p.pinLevel ? [levelIdx(tpl, p.pinLevel)] : lvOrder[si];
+      for (const li of lis) {
+        if (li == null || li < 0 || li >= tpl.levelsTop.length) continue;
+        if (fits(p, view, si, li)) { place(p, view, si, li, view === 'front' ? frontFacings(p, si, li) : 1); placed = true; break; }
+      }
+    }
+    if (placed) pool.splice(pool.indexOf(p), 1); else { pool.splice(pool.indexOf(p), 1); layout.unplaced.push(p.id); }
   }
-  // pass 2: grow toward the order quantity. Side-view rows may widen to a
-  // pair; front-view products only ever repeat as separate rows on levels
-  // that don't already show them. Unboxed stays a single demo unit.
-  let grew = true;
-  while (grew) {
-    grew = false;
-    for (const p of sorted) {
-      if (!p._facings || p.view === 'unboxed') continue;
-      const want = Math.min(6,
-        Math.max(...layout.shelves.map((ls, si) => Math.ceil(p.qty / unitsDeep(p, tplOf(tShelves[si]))))));
-      if (p._facings >= want) continue;
-      let done = false;
-      if (p.view === 'side') {
-        widen: for (let si = 0; si < layout.shelves.length; si++) {
-          if (p.pinShelf && tShelves[si].num !== p.pinShelf) continue;
-          const tpl = tplOf(tShelves[si]);
-          for (let li = 0; li < layout.shelves[si].levels.length; li++) {
-            if (p.pinLevel && levelIdx(tpl, p.pinLevel) !== li) continue;
-            const blk = layout.shelves[si].levels[li].find(b => b.pid === p.id && b.facings < 2);
-            if (blk && remaining[si][li] >= footW(p, tpl) + FGAP) {
-              blk.facings++;
-              remaining[si][li] -= footW(p, tpl) + FGAP;
-              done = true; break widen;
-            }
-          }
-        }
+
+  // 2) unboxed demo units onto their preferred lower levels
+  for (const p of [...pool]) {
+    if (p.defaultView !== 'unboxed') continue;
+    let placed = false;
+    for (let si = 0; si < tShelves.length && !placed; si++) {
+      for (const li of lvOrderUnboxed[si]) if (fits(p, 'unboxed', si, li)) { place(p, 'unboxed', si, li); placed = true; break; }
+    }
+    if (placed) pool.splice(pool.indexOf(p), 1);
+  }
+
+  // 3) FILL each level, shelf by shelf: up to TWO different products face-out
+  //    (centred, each up to 2 identical facings), then pack the rest of the
+  //    width with side-view products so the shelf looks full (Nina's rule).
+  for (let si = 0; si < tShelves.length && pool.length; si++) {
+    const tpl = tplOf(tShelves[si]);
+    for (const li of lvOrder[si]) {
+      let fronts = 0;
+      while (fronts < 2) {
+        const p = take(x => x.defaultView !== 'unboxed' && fits(x, 'front', si, li));
+        if (!p) break;
+        place(p, 'front', si, li, frontFacings(p, si, li));
+        fronts++;
       }
-      if (!done) {
-        const spot = findSpot(p, true);
-        if (spot) {
-          const tpl = tplOf(tShelves[spot.si]);
-          layout.shelves[spot.si].levels[spot.li].push({ bid: nid(), pid: p.id, facings: 1 });
-          remaining[spot.si][spot.li] -= footW(p, tpl) + GAP;
-          done = true;
-        }
+      let guard = 0;
+      while (guard++ < 400) {
+        const p = take(x => fits(x, 'side', si, li));
+        if (!p) break;
+        place(p, 'side', si, li);
       }
-      if (done) { p._facings++; grew = true; }
     }
   }
+  // 4) anything still unplaced (too tall / no room anywhere)
+  for (const p of pool) layout.unplaced.push(p.id);
+
+  layout.shelves.forEach(ls => ls.levels.forEach((lvl, li) => { ls.levels[li] = arrangeLevel(lvl); }));
   layouts[activeTheme] = layout;
-  sortLevels();
   selBlock = null;
   renderAll();
   save();
@@ -575,26 +592,18 @@ function generate() {
 
 function curLayout() { return layouts[activeTheme]; }
 
-/* category/article order, then keep identical products apart at the front:
-   greedy re-arrangement — never place a row next to the same product unless
-   it's an allowed side-view pair (handled by facings<=2 in one row). */
-function sortLevels() {
-  const layout = curLayout();
-  if (!layout) return;
-  for (const ls of layout.shelves) for (let li = 0; li < ls.levels.length; li++) {
-    const src = [...ls.levels[li]].sort((a, b) => {
-      const pa = byId(a.pid), pb = byId(b.pid);
-      return catIndex(pa.category) - catIndex(pb.category)
-        || pa.article.localeCompare(pb.article, undefined, { numeric: true });
-    });
-    const out = [];
-    while (src.length) {
-      let k = src.findIndex(b => !out.length || out[out.length - 1].pid !== b.pid);
-      if (k < 0) k = 0; // unavoidable — level holds only this product
-      out.push(src.splice(k, 1)[0]);
-    }
-    ls.levels[li] = out;
-  }
+/* order a level for the centered look: face-out (front + unboxed) products in
+   the middle, side-view products split onto the left and right to flank them. */
+function arrangeLevel(lvl) {
+  const ord = arr => arr.slice().sort((a, b) => {
+    const pa = byId(a.pid), pb = byId(b.pid);
+    return catIndex(pa.category) - catIndex(pb.category) || pa.article.localeCompare(pb.article, undefined, { numeric: true });
+  });
+  const centre = ord(lvl.filter(b => b.view !== 'side'));
+  const sides = ord(lvl.filter(b => b.view === 'side'));
+  const left = [], right = [];
+  sides.forEach((b, i) => (i % 2 ? right : left).push(b));
+  return [...left, ...centre, ...right.reverse()];
 }
 function allBlocks() {
   const layout = curLayout();
@@ -611,7 +620,7 @@ function computeUnits() {
   layout.shelves.forEach((ls, si) => {
     const tpl = tplOf(tShelves[si]);
     ls.levels.forEach(lvl => lvl.forEach(b => {
-      (perProduct[b.pid] = perProduct[b.pid] || []).push({ b, deep: unitsDeep(byId(b.pid), tpl) });
+      (perProduct[b.pid] = perProduct[b.pid] || []).push({ b, deep: unitsDeep(byId(b.pid), blockView(b), tpl) });
     }));
   });
   for (const [pid, blocks] of Object.entries(perProduct)) {
@@ -651,7 +660,13 @@ function renderThemeBar() {
     ? `shelves ${ts.map(s => s.num).join(', ')}`
     : 'no shelves assigned to this theme';
   $('asgThemeName').textContent = activeTheme;
+  const bc = themeBlende[activeTheme] || {};
+  $('blendeText').value = bc.text ?? '';
+  $('blendeText').placeholder = '(' + activeTheme + ')';
+  $('blendeBlank').checked = !!bc.blank;
 }
+$('blendeText').oninput = () => { (themeBlende[activeTheme] = themeBlende[activeTheme] || {}).text = $('blendeText').value; renderBays(); save(); };
+$('blendeBlank').onchange = () => { (themeBlende[activeTheme] = themeBlende[activeTheme] || {}).blank = $('blendeBlank').checked; renderBays(); save(); };
 $('themeSelect').onchange = () => {
   activeTheme = $('themeSelect').value;
   selBlock = null; $('editor').style.display = 'none';
@@ -688,7 +703,7 @@ $('tplSave').onclick = () => {
   generate();
 };
 $('tplNew').onclick = () => {
-  const t = { id: nid(), name: 'New template', widthCm: 76.2, depthCm: 38, plinthCm: 7, blendeCm: 50, levelsTop: [36, 32.5, 35, 35, 35, 35] };
+  const t = { id: nid(), name: 'New template', widthCm: 76.2, depthCm: 38, plinthCm: 7, blendeCm: 50, levelsTop: [33.5, 35, 35, 35, 35, 35] };
   templates.push(t);
   editTplId = t.id;
   renderTemplatesUI(); save();
@@ -772,9 +787,9 @@ function renderAssignList() {
       </div>
       ${on ? `<div class="l2">
         <select onchange="viewProd(${p.id}, this.value)" title="View">
-          <option value="front" ${p.view === 'front' ? 'selected' : ''}>Front</option>
-          <option value="side" ${p.view === 'side' ? 'selected' : ''}>Side</option>
-          <option value="unboxed" ${p.view === 'unboxed' ? 'selected' : ''}>Unboxed</option>
+          <option value="front" ${p.defaultView === 'front' ? 'selected' : ''}>Front</option>
+          <option value="side" ${p.defaultView === 'side' ? 'selected' : ''}>Side</option>
+          <option value="unboxed" ${p.defaultView === 'unboxed' ? 'selected' : ''}>Unboxed</option>
         </select>
         <select onchange="pinShelfProd(${p.id}, this.value)" title="Pin to shelf">
           <option value="">Shelf: auto</option>
@@ -791,7 +806,7 @@ function renderAssignList() {
 }
 window.selProd = (id, on) => { const p = byId(id); p.selTheme = on ? activeTheme : null; generate(); };
 window.starProd = (id) => { const p = byId(id); p.star = !p.star; generate(); };
-window.viewProd = (id, v) => { const p = byId(id); p.view = v; generate(); };
+window.viewProd = (id, v) => { const p = byId(id); p.defaultView = v; generate(); };
 window.pinShelfProd = (id, v) => { const p = byId(id); p.pinShelf = v ? +v : null; generate(); };
 window.pinLevelProd = (id, v) => { const p = byId(id); p.pinLevel = v ? +v : null; generate(); };
 window.fixDims = function (id) {
@@ -840,8 +855,9 @@ function renderBays() {
     const totalH = (lv.reduce((a, b) => a + b, 0) + tpl.plinthCm + lv.length * 1.2) * PXCM;
     const bw = document.createElement('div');
     bw.className = 'bay-wrap';
+    const bl = blendeFor(activeTheme);
     bw.innerHTML = `<div class="bay-cap">Shelf ${shelf.num} <span style="font-weight:400;color:var(--muted)">· ${esc(tpl.name)}</span></div>` +
-      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" style="width:${W + 6}px;height:${tpl.blendeCm * PXCM}px">${esc(activeTheme)}</div>` : '');
+      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" style="width:${W + 6}px;height:${tpl.blendeCm * PXCM}px">${esc(bl.text)}</div>` : '');
     const bayEl = document.createElement('div');
     bayEl.className = 'bay';
     bayEl.style.width = W + 'px';
@@ -853,7 +869,7 @@ function renderBays() {
       div.dataset.si = si; div.dataset.lvl = li;
       div.style.bottom = yBottom + 'px';
       div.style.height = h * PXCM + 'px';
-      const used = ls.levels[li].reduce((s, b) => s + footW(byId(b.pid), tpl) * b.facings + 1, 0);
+      const used = ls.levels[li].reduce((s, b) => s + footW(byId(b.pid), blockView(b), tpl) * b.facings + 1, 0);
       const pct = Math.min(100, Math.round(used / tpl.widthCm * 100));
       div.innerHTML = `<span class="lvl-tag">L${levelNo(tpl, li)} · ${h}cm · ${pct}%${li === eye ? ' · 👁' : ''}</span>`;
       div.addEventListener('dragover', e => { e.preventDefault(); div.classList.add('dragover'); });
@@ -862,33 +878,34 @@ function renderBays() {
       let x = 4;
       ls.levels[li].forEach((b, idx) => {
         const p = byId(b.pid);
-        const wcm = footW(p, tpl);
+        const view = blockView(b);
+        const wcm = footW(p, view, tpl);
         const bwpx = (b.facings * wcm + (b.facings - 1) * 0.4) * PXCM;
         const el = document.createElement('div');
-        el.className = 'block' + (p.view === 'unboxed' ? ' unboxed' : '') +
+        el.className = 'block' + (view === 'unboxed' ? ' unboxed' : '') +
           (selBlock && selBlock.si === si && selBlock.lvl === li && selBlock.idx === idx ? ' sel' : '');
         el.style.left = x + 'px';
         el.style.width = bwpx + 'px';
         el.style.height = p.h * PXCM + 'px';
         el.style.background = catColor(p.category);
-        const im = imgFor(p);
+        const im = imgForView(p, view);
         let inner = '';
-        if (im && p.view !== 'unboxed') {
+        if (im && view !== 'unboxed') {
           el.style.background = '#fff';
           // one image per facing, aspect ratio preserved (no distortion)
           for (let f = 0; f < b.facings; f++)
             inner += `<img class="face" src="${im}" style="left:${f * (wcm + 0.4) * PXCM}px;width:${wcm * PXCM}px;height:${p.h * PXCM}px">`;
         } else if (im) {
-          inner += `<img class="face" src="${im}" style="left:0;width:${bwpx}px;height:${p.h * PXCM}px;opacity:.92">`;
+          inner += `<img class="face" src="${im}" style="left:0;width:${bwpx}px;height:${p.h * PXCM}px">`;
         }
         for (let f = 1; f < b.facings; f++)
           inner += `<i class="fc" style="left:${(f * (wcm + 0.4) - 0.4) * PXCM}px"></i>`;
         const u = units.get(b.bid) || { behindEach: 0, deep: 1 };
-        el.title = `${p.article} — ${p.title}\n${b.facings} facing(s) · ${u.behindEach} behind each · ${u.deep} deep max · ${p.view} view\nQty ${p.qty} · ${p.category}` +
+        el.title = `${p.article} — ${p.title}\n${b.facings} facing(s) · ${u.behindEach} behind each · ${u.deep} deep max · ${view} view\nQty ${p.qty} · ${p.category}` +
           (p.topSeller ? '\n★ Top-100 seller' : '') + (p.star ? '\n★ featured' : '');
         el.innerHTML = inner +
           ((p.star || p.topSeller) ? '<span class="star">★</span>' : '') +
-          `<span class="lbl">${esc(p.article.slice(-5))} ×${b.facings}${u.behindEach ? '·↩' + u.behindEach : ''}${p.view === 'side' ? '·S' : ''}${p.view === 'unboxed' ? '·U' : ''}</span>`;
+          `<span class="lbl">${esc(p.article.slice(-5))} ×${b.facings}${u.behindEach ? '·↩' + u.behindEach : ''}${view === 'side' ? '·S' : ''}${view === 'unboxed' ? '·U' : ''}</span>`;
         el.draggable = true;
         el.addEventListener('click', ev => { ev.stopPropagation(); selectBlock(si, li, idx); });
         el.addEventListener('dragstart', ev => {
@@ -919,9 +936,17 @@ function onDrop(e, si, li, div) {
   const p = byId(block.pid);
   const tpl = tplOf(themeShelves(activeTheme)[si]);
   if (p.h > levelsBU(tpl)[li] - 1) { toast('Too tall for level ' + levelNo(tpl, li)); return; }
+  // free placement: insert at the drop x-position, no auto-sort, so the
+  // arrangement the user builds by hand always sticks (Nina: move items around)
+  const blocksEls = [...div.querySelectorAll('.block')];
+  let insert = blocksEls.length;
+  for (let k = 0; k < blocksEls.length; k++) {
+    const br = blocksEls[k].getBoundingClientRect();
+    if (e.clientX < br.left + br.width / 2) { insert = k; break; }
+  }
   layout.shelves[src.si].levels[src.lvl].splice(src.idx, 1);
-  layout.shelves[si].levels[li].push(block);
-  sortLevels();
+  if (src.si === si && src.lvl === li && src.idx < insert) insert--;
+  layout.shelves[si].levels[li].splice(insert, 0, block);
   selBlock = null;
   renderAll(); save();
 }
@@ -937,13 +962,14 @@ function selectBlock(si, lvl, idx) {
     `${p.w}×${p.h}×${p.d} cm · qty ${p.qty} · ${esc(p.category)}` +
     (p.topSeller ? ' · <b>★ Top-100</b>' : '') + (p.star ? ' · <b>★ featured</b>' : '') +
     `<br>${totalFacingsOf(p.id)} facing(s) total · ${u.behindEach} behind each front unit · fits ${u.deep} deep`;
+  const view = blockView(b);
   $('edFacings').value = b.facings;
-  $('edFacings').max = maxBlockFacings(p);
-  $('edFacings').disabled = p.view !== 'side';
-  $('edView').value = p.view;
+  $('edFacings').max = maxBlockFacings(view);
+  $('edFacings').disabled = view === 'unboxed';
+  $('edView').value = view;
   const ts = themeShelves(activeTheme);
-  $('edUbw').value = Math.round(footW(p, tplOf(ts[si])));
-  $('edUbw').disabled = p.view !== 'unboxed';
+  $('edUbw').value = Math.round(footW(p, view, tplOf(ts[si])));
+  $('edUbw').disabled = view !== 'unboxed';
   $('edLevel').innerHTML = ts.map((s, i) => {
     const tpl = tplOf(s);
     return levelsBU(tpl).map((h, li) =>
@@ -954,54 +980,41 @@ function selectBlock(si, lvl, idx) {
   renderBays();
 }
 $('edView').onchange = () => {
-  $('edFacings').disabled = $('edView').value !== 'side';
-  $('edUbw').disabled = $('edView').value !== 'unboxed';
+  const v = $('edView').value;
+  $('edFacings').disabled = v === 'unboxed';
+  $('edFacings').max = maxBlockFacings(v);
+  $('edUbw').disabled = v !== 'unboxed';
 };
 $('edApply').onclick = () => {
   if (!selBlock) return;
   const layout = curLayout();
   const b = layout.shelves[selBlock.si].levels[selBlock.lvl][selBlock.idx];
   const p = byId(b.pid);
-  p.view = $('edView').value;
-  b.facings = Math.max(1, Math.min(maxBlockFacings(p), +$('edFacings').value || 1));
-  if (p.view === 'unboxed') { b.facings = 1; p.ubW = Math.max(p.w, +$('edUbw').value || p.w); }
+  b.view = $('edView').value;                          // view is per placement now
+  b.facings = Math.max(1, Math.min(maxBlockFacings(b.view), +$('edFacings').value || 1));
+  if (b.view === 'unboxed') { b.facings = 1; p.ubW = Math.max(p.w, +$('edUbw').value || p.w); }
   const [tsi, tli] = $('edLevel').value.split(':').map(Number);
   if (tsi !== selBlock.si || tli !== selBlock.lvl) {
     layout.shelves[selBlock.si].levels[selBlock.lvl].splice(selBlock.idx, 1);
     layout.shelves[tsi].levels[tli].push(b);
   }
-  sortLevels(); selBlock = null;
+  selBlock = null;
   $('editor').style.display = 'none';
   renderAll(); save();
 };
 $('edDup').onclick = () => {
   if (!selBlock) return;
   const layout = curLayout();
-  const b = layout.shelves[selBlock.si].levels[selBlock.lvl][selBlock.idx];
+  const lvl = layout.shelves[selBlock.si].levels[selBlock.lvl];
+  const b = lvl[selBlock.idx];
   const p = byId(b.pid);
-  const tShelves = themeShelves(activeTheme);
-  // find a level with room, preferring one that doesn't already show it
-  let placed = false;
-  for (const avoid of [true, false]) {
-    for (let si = 0; si < layout.shelves.length && !placed; si++) {
-      const tpl = tplOf(tShelves[si]);
-      for (let li = 0; li < layout.shelves[si].levels.length && !placed; li++) {
-        if (p.h > levelsBU(tpl)[li] - 1) continue;
-        if (avoid && p.view === 'front' && layout.shelves[si].levels[li].some(x => x.pid === p.id)) continue;
-        const used = layout.shelves[si].levels[li].reduce((s, x) => s + footW(byId(x.pid), tpl) * x.facings + GAP, 0);
-        if (tpl.widthCm - used >= footW(p, tpl) + GAP) {
-          layout.shelves[si].levels[li].push({ bid: nid(), pid: p.id, facings: 1 });
-          placed = true;
-        }
-      }
-    }
-    if (placed) break;
-  }
-  if (!placed) { toast('No space for another row of this product'); return; }
-  sortLevels(); selBlock = null;
+  // place the copy immediately to the RIGHT of the original (Nina: "right next
+  // to it so I can place it there myself"); user drags it wherever they want
+  lvl.splice(selBlock.idx + 1, 0, { bid: nid(), pid: p.id, facings: 1, view: b.view });
+  selBlock = null;
   $('editor').style.display = 'none';
   renderAll(); save();
-  toast(p.article + ' duplicated');
+  toast(p.article + ' duplicated — drag it into place');
 };
 $('edRemove').onclick = () => {
   if (!selBlock) return;
@@ -1038,7 +1051,7 @@ function renderStats() {
   layout.shelves.forEach((ls, si) => {
     const tpl = tplOf(tShelves[si]);
     areaTotal += levelsBU(tpl).reduce((s, h) => s + h * tpl.widthCm, 0);
-    ls.levels.forEach(lvl => lvl.forEach(b => { const p = byId(b.pid); areaUsed += b.facings * footW(p, tpl) * p.h; }));
+    ls.levels.forEach(lvl => lvl.forEach(b => { const p = byId(b.pid); areaUsed += b.facings * footW(p, blockView(b), tpl) * p.h; }));
   });
   const util = Math.round(areaUsed / Math.max(1, areaTotal) * 100);
   const selCount = products.filter(p => p.selTheme === activeTheme).length;
@@ -1082,16 +1095,17 @@ function assignmentRows() {
       let x = 0;
       const centers = blocks.map(b => {
         const p = byId(b.pid);
-        const w = b.facings * footW(p, tpl) + (b.facings - 1) * 0.4;
+        const w = b.facings * footW(p, blockView(b), tpl) + (b.facings - 1) * 0.4;
         const c = x + w / 2; x += w + 1;
         return c;
       });
       blocks.forEach((b, i) => {
         const p = byId(b.pid);
+        const view = blockView(b);
         const u = units.get(b.bid) || { behindEach: 0, units: b.facings };
         const pos = centers[i] < tpl.widthCm / 3 ? 'left' : centers[i] < tpl.widthCm * 2 / 3 ? 'mid' : 'right';
         rows.push([`Shelf ${shelf.num}`, `Level ${levelNo(tpl, li)}`, p.article, p.title,
-          p.view === 'side' ? 'Side' : p.view === 'unboxed' ? 'Unboxed' : 'Front',
+          view === 'side' ? 'Side' : view === 'unboxed' ? 'Unboxed' : 'Front',
           b.facings, u.behindEach, u.units, pos, activeTheme]);
       });
     }
@@ -1202,14 +1216,14 @@ function exportXlsx() {
 /* the answer to Nina's "how should the order Excel look?" — downloadable */
 function exportOrderTemplate() {
   const rows = [
-    ['EAN', 'Artikelnummer', 'Titel', 'Untergruppe', 'Bestellmenge', 'Breite (cm)', 'Höhe (cm)', 'Tiefe (cm)', 'Preis (EUR)', 'Regalkategorie (optional)'],
-    ['4005556123456', '12345678', 'Beispielprodukt A', 'Spiele', 6, 27.5, 19, 5.5, 12.99, ''],
-    ['7312350362022', '63620200', 'Beispielprodukt B', 'Exklusiv', 10, 4.5, 8, 7, '', 'Für unsere Kleinsten'],
+    ['EAN', 'Artikelnummer', 'Titel', 'Bestellmenge', 'Breite (cm)', 'Höhe (cm)', 'Tiefe (cm)', 'Regalkategorie (optional)', 'Bild Front (J)', 'Bild Seite (K)', 'Bild offen (L)'],
+    ['4005556123456', '12345678', 'Beispielprodukt A', 6, 27.5, 19, 5.5, '', '', '', ''],
+    ['7312350362022', '63620200', 'Beispielprodukt B', 10, 4.5, 8, 7, 'Für unsere Kleinsten', '', '', ''],
     [],
     ['Hinweise:'],
-    ['- Ein Tabellenblatt genügt; alle Produkte untereinander (weitere Blätter werden ebenfalls gelesen).'],
+    ['- Ein konsolidiertes File mit einem Tab je Kategorie/Regal (z. B. "BRIO Flora", "tiptoi") — Produkte werden automatisch dem passenden Themenbereich zugeordnet. Mehrere Tabs werden gelesen.'],
+    ['- Bilder direkt in die Zeile einfügen: Spalte J = Vorderansicht, Spalte K = Seitenansicht, Spalte L = ausgepackt/offen. Die Überschrift entscheidet, nicht die Reihenfolge.'],
     ['- Die Regalkategorie wird automatisch aus der Matrix ermittelt; die Spalte ist nur zum Übersteuern nötig.'],
-    ['- Bilder direkt in die Zeile einfügen: 1. Bild = Vorderansicht, 2. Bild = Seitenansicht (optional).'],
     ['- Maße in cm (mm werden erkannt und umgerechnet). Spaltenreihenfolge ist egal — die Überschriften zählen.']
   ];
   downloadBlob(buildXlsx([{ name: 'Bestellung', rows }]), 'Ravensburger_Bestellvorlage.xlsx');
@@ -1347,7 +1361,27 @@ async function readXlsx(buf) {
       }
     }
   } catch { /* photos are best-effort; the data still loads */ }
-  return { sheets, imagesBySheet };
+  // sheet display names (e.g. "BRIO Flora", "tiptoi") aligned to `sheets`,
+  // so a combined workbook auto-splits products into their theme areas
+  const sheetTitles = sheetNames.map(() => '');
+  try {
+    const wbRels = await file('xl/_rels/workbook.xml.rels');
+    const relTarget = {};
+    if (wbRels) for (const r of new DOMParser().parseFromString(wbRels, 'application/xml').getElementsByTagName('Relationship'))
+      relTarget[r.getAttribute('Id')] = (r.getAttribute('Target') || '').replace(/^\//, '');
+    const wbXml = await file('xl/workbook.xml');
+    if (wbXml) {
+      const nameByFile = {};
+      for (const sh of new DOMParser().parseFromString(wbXml, 'application/xml').getElementsByTagName('sheet')) {
+        const rid = sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || sh.getAttribute('r:id');
+        let tgt = relTarget[rid]; if (!tgt) continue;
+        tgt = tgt.startsWith('xl/') ? tgt : 'xl/' + tgt;
+        nameByFile[tgt] = sh.getAttribute('name');
+      }
+      sheetNames.forEach((sn, i) => { sheetTitles[i] = nameByFile[sn] || ''; });
+    }
+  } catch { /* names are best-effort */ }
+  return { sheets, imagesBySheet, sheetTitles };
 }
 function colIndex(letters) { let n = 0; for (const ch of letters) n = n * 26 + (ch.charCodeAt(0) - 64); return Math.max(0, n - 1); }
 
@@ -1435,10 +1469,15 @@ function detectOrderColumns(grid) {
   return null;
 }
 /* reads ALL sheets of the workbook; appending is offered when data exists */
-function loadOrderGrids(sheets, imagesBySheet, fname) {
+function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
   const out = [];
   const diag = [];
+  const existingThemes = themeNames();
   sheets.forEach((grid, sIdx) => {
+    // theme for this sheet = its tab name, matched to an existing theme area
+    // (case-insensitive) or taken verbatim so a new area can be assigned later
+    const rawTitle = (sheetTitles[sIdx] || '').trim();
+    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase()) || rawTitle || activeTheme;
     const det = detectOrderColumns(grid);
     if (!det) { if (grid.some(r => (r || []).some(c => c))) diag.push(`sheet ${sIdx + 1}: no header found — skipped`); return; }
     const { headerRow, map, headers } = det;
@@ -1473,9 +1512,10 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
     diag.push('sheet ' + (sIdx + 1) + ': ' + Object.entries(map).map(([k, ci]) => `${k}→${colName(ci)}`).join(', '));
     const mmCols = new Set(Object.entries(map)
       .filter(([k, ci]) => 'whd'.includes(k) && /mm/i.test(String(headers[ci]))).map(([k]) => k));
-    // image columns whose header names a side view ('Side view', 'Seitenansicht')
-    const sideCols = new Set();
-    headers.forEach((hh, ci) => { if (/side|seiten|seitl/i.test(String(hh ?? ''))) sideCols.add(ci); });
+    // images per row are taken left-to-right by anchor column: 1st = front,
+    // 2nd = side, 3rd = open/unboxed. In real files the pictures float in
+    // varying columns and header labels don't line up, so order is the
+    // reliable signal (a lone image is always the front/main view).
     const imgs = imagesBySheet[sIdx] || {};
     for (let ri = headerRow + 1; ri < grid.length; ri++) {
       const row = grid[ri] || [];
@@ -1496,18 +1536,17 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
         const cat = String(row[map.category]).trim();
         if (cat) { categoryMap[normArt(art)] = cat; if (!CATEGORIES.includes(cat)) CATEGORIES.push(cat); }
       }
-      const rowImgs = imgs[ri] || [];
+      const rowImgs = (imgs[ri] || []).slice().sort((a, b) => a.col - b.col);
       out.push(makeProduct({
         article: art,
         ean: map.ean != null ? row[map.ean] : null,
-        title: map.title != null ? row[map.title] : art,
+        title: map.title != null ? String(row[map.title] ?? art) : art,
         subcat: map.subcat != null ? row[map.subcat] : null,
         qty: map.qty != null ? num('qty') || 1 : 1,
         w, h, d,
         price: map.price != null ? num('price') : null,
-        img: (rowImgs.find(x => !sideCols.has(x.col)) || rowImgs[0])?.uri || null,
-        imgSide: (rowImgs.find(x => sideCols.has(x.col)) || rowImgs[1])?.uri || null,
-        selTheme: activeTheme
+        img: rowImgs[0]?.uri || null, imgSide: rowImgs[1]?.uri || null, imgOpen: rowImgs[2]?.uri || null,
+        selTheme: sheetTheme
       }));
     }
   });
@@ -1523,8 +1562,10 @@ function loadOrderGrids(sheets, imagesBySheet, fname) {
   refreshFlags();
   $('demoBanner').style.display = 'none';
   $('loadDiag').innerHTML = 'Detected columns — ' + esc(diag.join(' · '));
-  const nImg = out.filter(p => p.img).length;
-  toast(`Order file ${mode}: ${out.length} products → ${activeTheme} (${out.filter(p => p.missingDims).length} missing sizes, ${nImg} photos)`);
+  const themeCounts = {};
+  out.forEach(p => { themeCounts[p.selTheme] = (themeCounts[p.selTheme] || 0) + 1; });
+  const spread = Object.entries(themeCounts).map(([t, n]) => `${n}→${t}`).join(', ');
+  toast(`Order file ${mode}: ${out.length} products (${spread}); ${out.filter(p => p.missingDims).length} missing sizes, ${out.filter(p => p.img).length} photos`);
   generate();
 }
 
@@ -1606,14 +1647,15 @@ $('imgInput').onchange = async e => {
     const p = products.find(pr => pr.article && digits.includes(pr.article))
       || products.find(pr => pr.ean && digits.includes(pr.ean));
     if (!p) { skipped++; continue; }
-    const side = /side|seite/i.test(f.name);
     try {
       const uri = await shrinkImage(f);
-      if (side) p.imgSide = uri; else p.img = uri;
+      if (/side|seite/i.test(f.name)) p.imgSide = uri;
+      else if (/open|offen|ausgepackt/i.test(f.name)) p.imgOpen = uri;
+      else p.img = uri;
       matched++;
     } catch { skipped++; }
   }
-  toast(`Images: ${matched} matched (filenames with "_side"/"_seite" become side views)` + (skipped ? `, ${skipped} skipped` : ''));
+  toast(`Images: ${matched} matched ("_side"/"_seite" = side, "_open"/"_offen" = open view)` + (skipped ? `, ${skipped} skipped` : ''));
   renderAll(); save();
 };
 $('fileInput').onchange = async e => {
@@ -1623,14 +1665,14 @@ $('fileInput').onchange = async e => {
   $('loadStatus').innerHTML = `<span class="pill">Reading ${esc(f.name)}…</span>`;
   $('loadDiag').innerHTML = '';
   try {
-    let sheets, imagesBySheet = [];
+    let sheets, imagesBySheet = [], sheetTitles = [];
     if (/\.csv$/i.test(f.name)) { sheets = parseCsv(await f.text()); imagesBySheet = sheets.map(() => ({})); }
     else {
       if (typeof DecompressionStream === 'undefined')
         throw new Error('This browser cannot unzip .xlsx — save the file as CSV and load that instead.');
-      ({ sheets, imagesBySheet } = await readXlsx(await f.arrayBuffer()));
+      ({ sheets, imagesBySheet, sheetTitles } = await readXlsx(await f.arrayBuffer()));
     }
-    if (fileMode === 'order') loadOrderGrids(sheets, imagesBySheet, f.name);
+    if (fileMode === 'order') loadOrderGrids(sheets, imagesBySheet, f.name, sheetTitles);
     else if (fileMode === 'matrix') loadMatrixSheets(sheets);
     else loadTop100Sheets(sheets);
     $('loadStatus').innerHTML = `<span class="pill ok">${esc(f.name)} ✓</span>`;
@@ -1646,17 +1688,19 @@ $('btnAddProduct').onclick = () => {
   $('dlgAdd').showModal();
 };
 $('apCancel').onclick = () => $('dlgAdd').close();
-$('apOk').onclick = () => {
+$('apOk').onclick = async () => {
   const art = $('apArticle').value.trim();
   if (!art) { toast('Article number required'); return; }
   if (normArt(art)) categoryMap[normArt(art)] = $('apCat').value;
+  const readImg = async id => { const f = $(id).files[0]; return f ? await shrinkImage(f).catch(() => null) : null; };
+  const [img, imgSide, imgOpen] = await Promise.all([readImg('apImgF'), readImg('apImgS'), readImg('apImgO')]);
   products.push(makeProduct({
     article: art, ean: $('apEan').value, title: $('apTitle').value, qty: $('apQty').value,
     w: $('apW').value, h: $('apH').value, d: $('apD').value,
-    price: $('apPrice').value, selTheme: activeTheme
+    price: $('apPrice').value, img, imgSide, imgOpen, selTheme: activeTheme
   }));
   $('dlgAdd').close();
-  ['apArticle', 'apEan', 'apTitle', 'apW', 'apH', 'apD', 'apPrice'].forEach(i => $(i).value = '');
+  ['apArticle', 'apEan', 'apTitle', 'apW', 'apH', 'apD', 'apPrice', 'apImgF', 'apImgS', 'apImgO'].forEach(i => $(i).value = '');
   generate();
 };
 
@@ -1682,13 +1726,14 @@ $('btnPng').onclick = async () => {
   const tShelves = themeShelves(activeTheme);
   if (!layout || !tShelves.length) { toast('Generate a layout first'); return; }
   const photos = {};
-  await Promise.all(products.flatMap(p => [['f', p.img], ['s', p.imgSide]].filter(([, u]) => u).map(([k, u]) => new Promise(res => {
+  await Promise.all(products.flatMap(p => [['f', p.img], ['s', p.imgSide], ['o', p.imgOpen]].filter(([, u]) => u).map(([k, u]) => new Promise(res => {
     const im = new Image();
     im.onload = () => { photos[k + p.id] = im; res(); };
     im.onerror = () => res();
     im.src = u;
   }))));
-  const photoFor = p => p.view === 'side' ? (photos['s' + p.id] || photos['f' + p.id]) : photos['f' + p.id];
+  const photoFor = (p, view) => view === 'side' ? (photos['s' + p.id] || photos['f' + p.id])
+    : view === 'unboxed' ? (photos['o' + p.id] || photos['f' + p.id]) : photos['f' + p.id];
   const S = 8, M = 70, HEAD = 60, BAYGAP = 40;
   const units = computeUnits();
   const heights = tShelves.map(s => {
@@ -1722,9 +1767,12 @@ $('btnPng').onclick = async () => {
       g.addColorStop(0, '#2f6bb0'); g.addColorStop(1, '#1c4f8d');
       ctx.fillStyle = g;
       ctx.fillRect(X - 6, bayTop - blende * S, bayW + 12, blende * S);
-      ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
-      ctx.fillText(activeTheme.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
-      ctx.textAlign = 'left';
+      const bl = blendeFor(activeTheme);
+      if (bl.text) {
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(bl.text.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
+        ctx.textAlign = 'left';
+      }
     }
     ctx.fillStyle = '#0f4c81'; ctx.font = 'bold 13px Arial'; ctx.textAlign = 'center';
     ctx.fillText(`Shelf ${shelf.num}`, X + bayW / 2, bayBot + 24);
@@ -1749,20 +1797,22 @@ $('btnPng').onclick = async () => {
       let x = X + 3;
       for (const b of ls.levels[li]) {
         const p = byId(b.pid);
-        const wcm = footW(p, tpl);
+        const view = blockView(b);
+        const wcm = footW(p, view, tpl);
         const bw = (b.facings * wcm + (b.facings - 1) * 0.4) * S;
         const bh = p.h * S;
-        const im = photoFor(p);
-        ctx.fillStyle = im ? '#fff' : catColor(p.category);
-        if (p.view === 'unboxed') ctx.fillStyle = '#eef4e5';
+        const im = photoFor(p, view);
+        const openNoImg = view === 'unboxed' && !photos['o' + p.id];
+        ctx.fillStyle = im && !openNoImg ? '#fff' : catColor(p.category);
+        if (openNoImg) ctx.fillStyle = '#eef4e5';
         ctx.fillRect(x, yBasePx - bh, bw, bh);
         if (im) {
-          if (p.view === 'unboxed') drawContain(ctx, im, x, yBasePx - bh, bw, bh);
+          if (view === 'unboxed') drawContain(ctx, im, x, yBasePx - bh, bw, bh);
           else for (let f = 0; f < b.facings; f++)
             drawContain(ctx, im, x + f * (wcm + 0.4) * S, yBasePx - bh, wcm * S, bh);
         }
         ctx.strokeStyle = 'rgba(0,0,0,.45)';
-        if (p.view === 'unboxed') ctx.setLineDash([5, 4]);
+        if (view === 'unboxed') ctx.setLineDash([5, 4]);
         ctx.strokeRect(x, yBasePx - bh, bw, bh);
         ctx.setLineDash([]);
         for (let f = 1; f < b.facings; f++) {
@@ -1777,7 +1827,7 @@ $('btnPng').onclick = async () => {
         ctx.fillStyle = 'rgba(255,255,255,.75)';
         ctx.fillRect(x, yBasePx - 14, bw, 14);
         ctx.fillStyle = '#111'; ctx.font = '10px Arial';
-        ctx.fillText(p.article.slice(-5) + ' ×' + b.facings + (p.view === 'side' ? ' S' : p.view === 'unboxed' ? ' U' : ''), x + 3, yBasePx - 4);
+        ctx.fillText(p.article.slice(-5) + ' ×' + b.facings + (view === 'side' ? ' S' : view === 'unboxed' ? ' U' : ''), x + 3, yBasePx - 4);
         ctx.restore();
         if (p.star || p.topSeller) { ctx.fillStyle = '#e7000e'; ctx.fillText('★', x + bw - 12, yBasePx - bh + 12); }
         x += bw + 1 * S;
@@ -1791,14 +1841,24 @@ $('btnPng').onclick = async () => {
 };
 
 /* --------------------------- persistence ---------------------------- */
-const STORE_KEY = 'rvShelfPlanner4';
+const STORE_KEY = 'rvShelfPlanner5';
+function snapshot() {
+  return { v: 5, templates, shelves, products, layouts, activeTheme, themeBlende, CATEGORIES, categoryMap, top100: [...top100], nextId };
+}
+function loadSnapshot(s) {
+  templates = s.templates; shelves = s.shelves; products = s.products;
+  layouts = s.layouts || {}; activeTheme = s.activeTheme || (themeNames()[0] || 'BRIO Flora');
+  themeBlende = s.themeBlende || {};
+  CATEGORIES = s.CATEGORIES || MATRIX.catOrder.slice(); categoryMap = s.categoryMap || {};
+  top100 = new Set(s.top100 || []); nextId = s.nextId || 10000;
+}
 function save() {
-  const state = { templates, shelves, products, layouts, activeTheme, CATEGORIES, categoryMap, top100: [...top100], nextId };
+  const state = snapshot();
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
   } catch (e) {
     try {
-      state.products = products.map(p => ({ ...p, img: null, imgSide: null }));
+      state.products = products.map(p => ({ ...p, img: null, imgSide: null, imgOpen: null }));
       localStorage.setItem(STORE_KEY, JSON.stringify(state));
     } catch (e2) { /* still blocked — non-fatal */ }
   }
@@ -1807,13 +1867,34 @@ function restore() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY));
     if (!s || !s.templates || !s.shelves || !s.products) return false;
-    templates = s.templates; shelves = s.shelves; products = s.products;
-    layouts = s.layouts || {}; activeTheme = s.activeTheme || 'BRIO Flora';
-    CATEGORIES = s.CATEGORIES; categoryMap = s.categoryMap;
-    top100 = new Set(s.top100); nextId = s.nextId || 10000;
+    loadSnapshot(s);
     return true;
   } catch { return false; }
 }
+/* project files — one per store; keeps images and the whole setup */
+$('btnSaveProject').onclick = () => {
+  const name = (prompt('Project / store name:', activeProjectName || 'Store') || 'Store').trim() || 'Store';
+  activeProjectName = name;
+  const data = { ...snapshot(), projectName: name };
+  downloadBlob(new Blob([JSON.stringify(data)], { type: 'application/json' }),
+    `Ravensburger_Planogram_${name.replace(/\W+/g, '_')}.rvproj.json`);
+  toast('Project "' + name + '" saved to file');
+};
+$('btnLoadProject').onclick = () => $('projectInput').click();
+$('projectInput').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const s = JSON.parse(await f.text());
+    if (!s.templates || !s.shelves || !s.products) throw new Error('Not a planner project file');
+    loadSnapshot(s);
+    activeProjectName = s.projectName || f.name.replace(/\.rvproj\.json$|\.json$/i, '');
+    $('demoBanner').style.display = 'none';
+    renderAll(); save();
+    toast('Project "' + activeProjectName + '" loaded');
+  } catch (err) { toast('Could not load project: ' + err.message); }
+};
+let activeProjectName = '';
 $('btnClear').onclick = () => {
   if (!confirm('Reset everything back to the built-in defaults (shelves, templates, Flora pilot)?')) return;
   localStorage.removeItem(STORE_KEY);
