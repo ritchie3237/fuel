@@ -280,7 +280,7 @@ function render(D, O){
       if(pl.hardPct) h += `<div class="polhard" style="width:${pl.hardPct}%">${pl.hardPct}%</div>`;
       h += `</div>`;
       h += `<div class="pollegend"><b>Easy</b> ${pl.easyPct}% (${pl.easyMin}m · ${pl.easyMi} mi) · <b>Gray</b> ${pl.grayPct}% (${pl.grayMin}m · ${pl.grayMi} mi) · <b>Hard</b> ${pl.hardPct}% (${pl.hardMin}m · ${pl.hardMi} mi)</div>`;
-      h += `<div class="cap">Polarized ideal ≈ <b>80% easy / 20% hard</b> with almost no gray. Now carved <b>by time in each HR zone within every run</b> (not by run-average) — so interval and tempo reps count as hard even when the whole-run average lands mid-pack. The problem is clear: <b>54% of your time sits in the gray zone (Z3, 129–146 bpm)</b>, mostly easy runs drifting over your <b>Z2/Z3 line of 129</b>. Fix: cap easy days at 128 bpm. Easy = Z1–Z2 (&lt;129) · Gray = Z3 (129–146) · Hard = Z4–Z5 (147 bpm+, i.e. threshold &amp; above; Z5 = your 166 lactate-threshold HR).</div>`;
+      h += `<div class="cap">Polarized ideal ≈ <b>80% easy / 20% hard</b> with almost no gray. Now carved <b>by time in each HR zone within every run</b> (not by run-average) — so interval and tempo reps count as hard even when the whole-run average lands mid-pack. The problem is clear: <b>54% of your time sits in the gray zone (Z3, 129–146 bpm)</b> — not brief hill-crests (the method only counts the seconds you're actually there) but runs that <i>sit</i> at 132–142. Aim to keep easy days around <b>128–130</b>; a drift into the low 130s on a climb is fine. Easy = Z1–Z2 (&lt;129) · Gray = Z3 (129–146) · Hard = Z4–Z5 (147 bpm+, i.e. threshold &amp; above; Z5 = your 166 lactate-threshold HR).</div>`;
       h += `</div>`;
     }
   }
