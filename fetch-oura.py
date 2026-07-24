@@ -96,6 +96,14 @@ def main():
         "tempDeviation": trend(lambda d: round(ready_by_day[d]["temperature_deviation"], 2)
                                if ready_by_day[d].get("temperature_deviation") is not None else None,
                                ready_by_day),
+        # Respiratory rate + SpO2 trends power the daily illness early-warning gate
+        # (both rise/fall a day or two before you feel sick). Baseline = recent mean.
+        "respiratoryRate": trend(lambda d: round(main_sleep[d]["average_breath"], 1)
+                                 if d in main_sleep and main_sleep[d].get("average_breath") is not None else None,
+                                 main_sleep),
+        "spo2": trend(lambda d: round((spo2_by_day[d].get("spo2_percentage") or {}).get("average"), 1)
+                      if (spo2_by_day[d].get("spo2_percentage") or {}).get("average") is not None else None,
+                      spo2_by_day),
     }
 
     # Latest snapshot — align on the most recent day that has a main sleep record.
