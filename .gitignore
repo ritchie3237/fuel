@@ -3,3 +3,5 @@
 gh
 gh.zip
 .claude/
+__pycache__/
+*.pyc
