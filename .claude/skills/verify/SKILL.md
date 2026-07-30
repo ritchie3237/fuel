@@ -20,8 +20,13 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
 
 ## Gotchas learned
 
-- `ravensburger-shelf-planner.html` persists state in localStorage key `rvShelfPlanner5`;
+- `ravensburger-shelf-planner.html` persists state in localStorage key `rvShelfPlanner6`;
   run `localStorage.clear(); location.reload()` for a fresh boot before asserting.
+- Per-shelf blende (fascia) config lives in `shelfBlende` keyed by shelf id; icons are
+  inline white SVGs by category (kids/toddler/metime/fan/games/explorers/flora), and the
+  Special Offer category renders as a red gradient panel (all others blue). Import splits
+  products by sheet-tab name → matching theme (else active theme). Front/side/open images
+  map to labelled columns (front→J, side→K, open→L) with a fallback to the first image.
 - HTML5 drag-and-drop tests: use a viewport tall enough that the whole page fits
   (e.g. 1500×2100). If Playwright scrolls mid-drag, the dragstart hit-tests against
   the post-scroll element and grabs the wrong block — a harness artifact, not an app bug.

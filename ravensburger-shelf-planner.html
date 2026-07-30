@@ -71,7 +71,7 @@
   .bay-wrap { flex: 0 0 auto; }
   .bay-cap { text-align: center; font-size: 12px; font-weight: 600; color: var(--rv-blue); margin-bottom: 4px; }
   .blende { position: relative; background: linear-gradient(180deg, #3a78c0 0%, #1c4f8d 55%, #164277 100%); border: 3px solid #7c6647; border-bottom: 0; border-radius: 7px 7px 0 0; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; font-size: 15px; text-shadow: 0 1px 2px rgba(0,0,0,.45); box-shadow: inset 0 2px 3px rgba(255,255,255,.28), inset 0 -3px 6px rgba(0,0,0,.25); }
-  .blende .bicon { font-size: 20px; line-height: 1; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
+  .blende .bicon { flex: 0 0 auto; vertical-align: middle; filter: drop-shadow(0 1px 1px rgba(0,0,0,.4)); }
   .bay { position: relative; background: linear-gradient(180deg, #fdfbf6, #f1ebdd); border: 4px solid; border-image: linear-gradient(180deg, #9c7d55, #7c6142) 1; box-shadow: inset 7px 0 9px -7px rgba(0,0,0,.4), inset -7px 0 9px -7px rgba(0,0,0,.4), 0 6px 16px rgba(60,45,25,.18); }
   .level { position: absolute; left: 0; right: 0; background: linear-gradient(180deg, rgba(255,255,255,.5), rgba(255,255,255,0) 30%); border-top: 7px solid; border-image: linear-gradient(180deg, #d8bd93, #a6835a) 1; box-shadow: 0 4px 6px -3px rgba(0,0,0,.4); }
   .level.dragover { background: #e3edf7; }
@@ -195,9 +195,9 @@
         theme area. Theme names are free text &mdash; regional areas (e.g. Spieleland) can be added any time. The planner lays
         each theme out on exactly its own shelves and reports anything that doesn't fit.</p>
         <datalist id="themeList">
-          <option>BRIO Flora</option><option>Toddler</option><option>Kids</option>
-          <option>Me Time</option><option>Fan Highlights</option><option>Special Offers</option>
-          <option>Explorers</option><option>Games Party</option><option>tiptoi</option><option>Spieleland</option>
+          <option>Toddler</option><option>Kids</option><option>Me-Time</option>
+          <option>Fan-Highlights</option><option>Special Offer</option><option>Explorers</option>
+          <option>Games Party</option><option>BRIO Flora</option><option>tiptoi</option><option>Spieleland</option>
         </datalist>
       </div>
 
@@ -242,9 +242,7 @@
           <select id="themeSelect"></select>
           <span class="note" id="themeShelfInfo"></span>
           <span style="flex:1"></span>
-          <label style="margin:0;font-size:12px;color:var(--muted)">Blende:</label>
-          <input type="text" id="blendeText" placeholder="(theme name)" style="width:150px" title="Text shown on the header panel of this theme's shelves">
-          <label style="margin:0;font-size:12px;color:var(--muted)"><input type="checkbox" id="blendeBlank" style="width:auto"> blank (plain blue)</label>
+          <span class="note">Tip: click a shelf's blue header panel to set its icon/label or make it plain blue.</span>
         </div>
         <h2>Planogram <span class="note" style="text-transform:none;font-weight:400">&mdash; drag products between levels &amp; shelves, click a product to edit</span></h2>
         <div id="bays"></div>
@@ -281,6 +279,21 @@
   </div>
   <p class="note" style="margin:8px 0 0">Front view allows 1 facing per row (no identical neighbours); side view up to 2.
   Duplicate adds another row of this product elsewhere.</p>
+</div>
+
+<div id="blendeEditor" style="display:none;position:fixed;right:18px;bottom:18px;width:280px;background:#fff;border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 30px rgba(0,0,0,.18);padding:14px;z-index:50">
+  <h3 style="margin:0 0 8px;font-size:14px;color:var(--rv-blue)" id="beTitle">Shelf header panel</h3>
+  <label>Label text</label>
+  <input type="text" id="beText" placeholder="(theme name)">
+  <label style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text)">
+    <input type="checkbox" id="beBlank" style="width:auto"> Plain blue panel (no icon or text)
+  </label>
+  <div class="btnrow" style="margin-top:10px">
+    <button class="small" id="beApply">Apply</button>
+    <button class="small ghost" id="beReset">Reset to theme</button>
+    <button class="small ghost" id="beClose">Close</button>
+  </div>
+  <p class="note" style="margin:8px 0 0">Sets only this one shelf. The icon comes automatically from the theme.</p>
 </div>
 
 <dialog id="dlgAdd">
@@ -366,28 +379,49 @@ let shelves = [];
 let products = [];
 let layouts = {};       // theme -> {shelves: [{shelfId, levels(bottom->up): [[{bid,pid,facings}]]}], unplaced: [pid]}
 let activeTheme = 'BRIO Flora';
-let themeBlende = {};   // theme name -> { text, blank }  (header panel content)
+let shelfBlende = {};   // shelf id -> { text, blank }  (per-shelf header panel)
 let selBlock = null;
 let editTplId = null;
 
-function blendeFor(theme) {
-  const c = themeBlende[theme] || {};
-  return { text: c.blank ? '' : (c.text || theme), blank: !!c.blank };
+/* per-SHELF header panel (Nina: each shelf set individually — icon+text, or
+   plain blue). Default text = the shelf's theme; colour red for Special
+   Offer areas, blue otherwise. */
+function blendeForShelf(shelf) {
+  const c = shelfBlende[shelf.id] || {};
+  return { text: c.blank ? '' : (c.text ?? shelf.theme), blank: !!c.blank, kind: themeKind(shelf.theme) };
 }
-/* a simple category icon for the shelf header panel (like Nina's layout) */
-function themeIcon(name) {
+function themeKind(name) {
   const n = (name || '').toLowerCase();
-  if (/flora/.test(n)) return '🌸';
-  if (/toddler|kleinst/.test(n)) return '🧸';
-  if (/\bkids?\b|kind/.test(n)) return '🧒';
-  if (/tiptoi|schlau/.test(n)) return '🖊️';
-  if (/me.?time|zeit für mich|puzzle/.test(n)) return '🧩';
-  if (/fan|highlight/.test(n)) return '⭐';
-  if (/offer|aktion|angebot|special/.test(n)) return '🏷️';
-  if (/explor|tüftler|entdeck/.test(n)) return '🔍';
-  if (/game|spiel|party/.test(n)) return '🎲';
-  if (/spieleland/.test(n)) return '🎡';
-  return '🛍️';
+  if (/flora/.test(n)) return 'flora';
+  if (/toddler|kleinst/.test(n)) return 'toddler';
+  if (/\bkids?\b|kind|tiptoi|schlau/.test(n)) return 'kids';
+  if (/me.?time|zeit für mich|puzzle/.test(n)) return 'metime';
+  if (/fan|highlight/.test(n)) return 'fan';
+  if (/offer|aktion|angebot|special|%/.test(n)) return 'offer';
+  if (/explor|tüftler|entdeck/.test(n)) return 'explorers';
+  if (/game|spiel|party/.test(n)) return 'games';
+  return 'other';
+}
+function themeColor(kind) { return kind === 'offer' ? { a: '#e2103a', b: '#b60d2e' } : { a: '#3a78c0', b: '#1c4f8d' }; }
+/* white category icons matching Nina's shelf layout (inline SVG, CSP-safe) */
+function themeIconSvg(kind, px) {
+  const p = `fill="#fff"`, s = px || 22;
+  const wrap = inner => `<svg class="bicon" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
+  switch (kind) {
+    case 'kids': return wrap(`<circle cx="12" cy="7" r="3.4" ${p}/><path d="M5 21c0-4.4 3.1-7 7-7s7 2.6 7 7z" ${p}/>`);
+    case 'toddler': return wrap(`<path d="M12 2 3.5 6.5v9L12 20l8.5-4.5v-9z" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="9" cy="9.5" r="1.1" ${p}/><circle cx="14" cy="8" r="1.1" ${p}/><circle cx="12" cy="13" r="1.1" ${p}/>`);
+    case 'metime': return wrap(`<path d="M4 4h6v2.2a2 2 0 1 0 4 0V4h6v6h-2.2a2 2 0 1 0 0 4H20v6h-6v-2.2a2 2 0 1 0-4 0V20H4v-6h2.2a2 2 0 1 0 0-4H4z" ${p}/>`);
+    case 'fan': return wrap(`<path d="M12 2.5l2.6 5.9 6.4.6-4.8 4.3 1.4 6.3L12 17l-5.6 2.9 1.4-6.3L3 9l6.4-.6z" ${p}/>`);
+    case 'games': return wrap(`<rect x="4" y="4" width="16" height="16" rx="3" ${p}/><circle cx="9" cy="9" r="1.4" fill="#1c4f8d"/><circle cx="15" cy="9" r="1.4" fill="#1c4f8d"/><circle cx="12" cy="12" r="1.4" fill="#1c4f8d"/><circle cx="9" cy="15" r="1.4" fill="#1c4f8d"/><circle cx="15" cy="15" r="1.4" fill="#1c4f8d"/>`);
+    case 'explorers': return wrap(`<circle cx="8" cy="8" r="3" ${p}/><circle cx="16" cy="9" r="2.6" ${p}/><path d="M2.5 20c0-3.3 2.4-5.5 5.5-5.5s5.5 2.2 5.5 5.5z" ${p}/><path d="M13.5 20c.2-2.6 2-4.3 4.3-4.3 2.2 0 3.7 1.7 3.7 4.3z" ${p}/>`);
+    case 'offer': return wrap(`<text x="12" y="17" font-size="15" font-weight="700" text-anchor="middle" ${p}>%</text>`);
+    case 'flora': return wrap(`<circle cx="12" cy="12" r="2.4" ${p}/><g ${p}><ellipse cx="12" cy="6.5" rx="1.8" ry="3"/><ellipse cx="12" cy="17.5" rx="1.8" ry="3"/><ellipse cx="6.5" cy="12" rx="3" ry="1.8"/><ellipse cx="17.5" cy="12" rx="3" ry="1.8"/></g>`);
+    default: return wrap(`<circle cx="12" cy="12" r="7" fill="none" stroke="#fff" stroke-width="1.8"/>`);
+  }
+}
+/* single-glyph fallback for the PNG canvas */
+function themeGlyph(kind) {
+  return ({ kids: '\u{1F464}', toddler: '\u{1F9F8}', metime: '\u{1F9E9}', fan: '★', games: '\u{1F3B2}', explorers: '\u{1F9ED}', offer: '%', flora: '❀' })[kind] || '';
 }
 
 const $ = id => document.getElementById(id);
@@ -447,6 +481,9 @@ function footD(p, view) { return view === 'side' ? p.w : p.d; }
 function unitsDeep(p, view, tpl) { return view === 'unboxed' ? 1 : Math.max(1, Math.floor(tpl.depthCm / footD(p, view))); }
 function maxBlockFacings(view) { return view === 'unboxed' ? 1 : 2; } // front now allows an identical pair (max 2)
 function imgForView(p, view) {
+  // Front shows ONLY the front image (never borrows the side image — Nina's
+  // bug); side and open may fall back to the front so a single-image product
+  // isn't blank when rotated.
   if (view === 'side') return p.imgSide || p.img;
   if (view === 'unboxed') return p.imgOpen || p.img;
   return p.img;
@@ -474,11 +511,13 @@ function makeProduct(o) {
     missingDims: missing
   };
 }
+let isDemo = false;
 function loadDemo() {
   products = DEMO_PRODUCTS.map(r => makeProduct({
     article: r.art, ean: r.ean, title: r.titel, subcat: r.subcat,
     qty: r.qty, w: r.w, h: r.h, d: r.d, img: r.img, selTheme: 'BRIO Flora'
   }));
+  isDemo = true;
   activeTheme = 'BRIO Flora';
   toast('Flora pilot loaded: ' + products.length + ' products assigned to BRIO Flora');
   generate();
@@ -677,13 +716,32 @@ function renderThemeBar() {
     ? `shelves ${ts.map(s => s.num).join(', ')}`
     : 'no shelves assigned to this theme';
   $('asgThemeName').textContent = activeTheme;
-  const bc = themeBlende[activeTheme] || {};
-  $('blendeText').value = bc.text ?? '';
-  $('blendeText').placeholder = '(' + activeTheme + ')';
-  $('blendeBlank').checked = !!bc.blank;
 }
-$('blendeText').oninput = () => { (themeBlende[activeTheme] = themeBlende[activeTheme] || {}).text = $('blendeText').value; renderBays(); save(); };
-$('blendeBlank').onchange = () => { (themeBlende[activeTheme] = themeBlende[activeTheme] || {}).blank = $('blendeBlank').checked; renderBays(); save(); };
+/* click a shelf's header panel to configure just that shelf */
+let editBlendeShelf = null;
+window.openBlendeEditor = (shelfId) => {
+  const shelf = shelves.find(s => s.id === shelfId);
+  if (!shelf) return;
+  editBlendeShelf = shelfId;
+  const c = shelfBlende[shelfId] || {};
+  $('beTitle').textContent = `Shelf ${shelf.num} header (${shelf.theme})`;
+  $('beText').value = c.text ?? '';
+  $('beText').placeholder = '(' + shelf.theme + ')';
+  $('beBlank').checked = !!c.blank;
+  $('blendeEditor').style.display = 'block';
+};
+$('beApply').onclick = () => {
+  if (editBlendeShelf == null) return;
+  shelfBlende[editBlendeShelf] = { text: $('beText').value, blank: $('beBlank').checked };
+  $('blendeEditor').style.display = 'none'; editBlendeShelf = null;
+  renderBays(); save();
+};
+$('beReset').onclick = () => {
+  if (editBlendeShelf != null) delete shelfBlende[editBlendeShelf];
+  $('blendeEditor').style.display = 'none'; editBlendeShelf = null;
+  renderBays(); save();
+};
+$('beClose').onclick = () => { $('blendeEditor').style.display = 'none'; editBlendeShelf = null; };
 $('themeSelect').onchange = () => {
   activeTheme = $('themeSelect').value;
   selBlock = null; $('editor').style.display = 'none';
@@ -872,10 +930,11 @@ function renderBays() {
     const totalH = (lv.reduce((a, b) => a + b, 0) + tpl.plinthCm + lv.length * 1.2) * PXCM;
     const bw = document.createElement('div');
     bw.className = 'bay-wrap';
-    const bl = blendeFor(activeTheme);
-    const blInner = bl.blank ? '' : `<span class="bicon">${themeIcon(activeTheme)}</span><span>${esc(bl.text)}</span>`;
+    const bl = blendeForShelf(shelf);
+    const col = themeColor(bl.kind);
+    const blInner = bl.blank ? '' : `${themeIconSvg(bl.kind, Math.min(28, tpl.blendeCm * PXCM * 0.5))}<span>${esc(bl.text)}</span>`;
     bw.innerHTML = `<div class="bay-cap">Shelf ${shelf.num} <span style="font-weight:400;color:var(--muted)">· ${esc(tpl.name)}</span></div>` +
-      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" style="width:${W + 8}px;height:${tpl.blendeCm * PXCM}px">${blInner}</div>` : '');
+      ((tpl.blendeCm || 0) > 0 ? `<div class="blende" data-shelf="${shelf.id}" title="Click to set this shelf's header panel" style="cursor:pointer;width:${W + 8}px;height:${tpl.blendeCm * PXCM}px;background:linear-gradient(180deg, ${col.a} 0%, ${col.b} 55%, ${col.b} 100%)">${blInner}</div>` : '');
     const bayEl = document.createElement('div');
     bayEl.className = 'bay';
     bayEl.style.width = W + 'px';
@@ -943,6 +1002,8 @@ function renderBays() {
     plinth.style.height = tpl.plinthCm * PXCM + 'px';
     plinth.innerHTML = `<span>plinth ${tpl.plinthCm} cm</span>`;
     bayEl.appendChild(plinth);
+    const blEl = bw.querySelector('.blende');
+    if (blEl) blEl.addEventListener('click', () => openBlendeEditor(shelf.id));
     bw.appendChild(bayEl);
     wrap.appendChild(bw);
   });
@@ -1495,10 +1556,12 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
   const diag = [];
   const existingThemes = themeNames();
   sheets.forEach((grid, sIdx) => {
-    // theme for this sheet = its tab name, matched to an existing theme area
-    // (case-insensitive) or taken verbatim so a new area can be assigned later
+    // theme for this sheet: use the tab name ONLY if it matches an existing
+    // theme area (so a combined file with "BRIO Flora"/"tiptoi" tabs splits);
+    // otherwise everything goes to the theme the user is currently viewing —
+    // so a single-tab file lands on the shelves she set up (Nina).
     const rawTitle = (sheetTitles[sIdx] || '').trim();
-    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase()) || rawTitle || activeTheme;
+    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase()) || activeTheme;
     const det = detectOrderColumns(grid);
     if (!det) { if (grid.some(r => (r || []).some(c => c))) diag.push(`sheet ${sIdx + 1}: no header found — skipped`); return; }
     const { headerRow, map, headers } = det;
@@ -1533,10 +1596,18 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
     diag.push('sheet ' + (sIdx + 1) + ': ' + Object.entries(map).map(([k, ci]) => `${k}→${colName(ci)}`).join(', '));
     const mmCols = new Set(Object.entries(map)
       .filter(([k, ci]) => 'whd'.includes(k) && /mm/i.test(String(headers[ci]))).map(([k]) => k));
-    // images per row are taken left-to-right by anchor column: 1st = front,
-    // 2nd = side, 3rd = open/unboxed. In real files the pictures float in
-    // varying columns and header labels don't line up, so order is the
-    // reliable signal (a lone image is always the front/main view).
+    // image columns: if the sheet names the views ("Front view"=J, "Side
+    // view"=K, open/offen=L), map each picture STRICTLY to the nearest named
+    // column — front never borrows the side image (Nina). Otherwise (a plain
+    // "Bild" column) fall back to order: 1st=front, 2nd=side, 3rd=open.
+    const viewCols = [];
+    headers.forEach((hh, ci) => {
+      const s = String(hh ?? '').toLowerCase();
+      if (/front|vorder/.test(s)) viewCols.push({ ci, kind: 'front' });
+      else if (/side|seiten|seitl/.test(s)) viewCols.push({ ci, kind: 'side' });
+      else if (/open|offen|ausgepackt|unbox/.test(s)) viewCols.push({ ci, kind: 'open' });
+    });
+    const labeledViews = viewCols.length > 0;
     const imgs = imagesBySheet[sIdx] || {};
     for (let ri = headerRow + 1; ri < grid.length; ri++) {
       const row = grid[ri] || [];
@@ -1558,6 +1629,22 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
         if (cat) { categoryMap[normArt(art)] = cat; if (!CATEGORIES.includes(cat)) CATEGORIES.push(cat); }
       }
       const rowImgs = (imgs[ri] || []).slice().sort((a, b) => a.col - b.col);
+      let fImg = null, sImg = null, oImg = null;
+      if (labeledViews) {
+        for (const im of rowImgs) {
+          let best = null;
+          for (const vc of viewCols) { const dist = Math.abs(vc.ci - im.col); if (!best || dist < best.dist) best = { kind: vc.kind, dist }; }
+          if (best.kind === 'front' && !fImg) fImg = im.uri;
+          else if (best.kind === 'side' && !sImg) sImg = im.uri;
+          else if (best.kind === 'open' && !oImg) oImg = im.uri;
+        }
+        // if there's no explicit front-column image but the row has a picture,
+        // use it as the front (main) view so single-image products still show —
+        // a real Front-view (J) image always wins over the side one (Nina's bug)
+        if (!fImg && rowImgs.length) fImg = rowImgs[0].uri;
+      } else {
+        fImg = rowImgs[0]?.uri || null; sImg = rowImgs[1]?.uri || null; oImg = rowImgs[2]?.uri || null;
+      }
       out.push(makeProduct({
         article: art,
         ean: map.ean != null ? row[map.ean] : null,
@@ -1566,19 +1653,23 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
         qty: map.qty != null ? num('qty') || 1 : 1,
         w, h, d,
         price: map.price != null ? num('price') : null,
-        img: rowImgs[0]?.uri || null, imgSide: rowImgs[1]?.uri || null, imgOpen: rowImgs[2]?.uri || null,
+        img: fImg, imgSide: sImg, imgOpen: oImg,
         selTheme: sheetTheme
       }));
     }
   });
   if (!out.length) throw new Error('No product rows found (need a header with at least article/EAN + title/qty)');
   let mode = 'replaced';
-  if (products.length && !confirm(`Replace the current ${products.length} products with "${fname}"?\n\nOK = replace · Cancel = ADD to the current list`)) {
+  // the pre-loaded Flora demo is replaced silently; a real list you've built
+  // asks before it's wiped (so you don't accidentally mix two orders).
+  if (products.length && !isDemo &&
+      !confirm(`Replace the current ${products.length} products with "${fname}"?\n\nOK = replace · Cancel = ADD to the current list`)) {
     products = products.concat(out);
     mode = 'appended';
   } else {
     products = out;
   }
+  isDemo = false;
   layouts = {};
   refreshFlags();
   $('demoBanner').style.display = 'none';
@@ -1784,14 +1875,16 @@ $('btnPng').onclick = async () => {
     const bayTop = HEAD + (maxH - totalH) * S + blende * S;
     const bayBot = HEAD + maxH * S;
     if (blende > 0) {
+      const bl = blendeForShelf(shelf);
+      const col = themeColor(bl.kind);
       const g = ctx.createLinearGradient(0, bayTop - blende * S, 0, bayTop);
-      g.addColorStop(0, '#2f6bb0'); g.addColorStop(1, '#1c4f8d');
+      g.addColorStop(0, col.a); g.addColorStop(1, col.b);
       ctx.fillStyle = g;
       ctx.fillRect(X - 6, bayTop - blende * S, bayW + 12, blende * S);
-      const bl = blendeFor(activeTheme);
       if (bl.text) {
         ctx.fillStyle = '#fff'; ctx.font = 'bold 16px Arial'; ctx.textAlign = 'center';
-        ctx.fillText(themeIcon(activeTheme) + '  ' + bl.text.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
+        const glyph = themeGlyph(bl.kind);
+        ctx.fillText((glyph ? glyph + '  ' : '') + bl.text.toUpperCase(), X + bayW / 2, bayTop - blende * S / 2 + 6);
         ctx.textAlign = 'left';
       }
     }
@@ -1874,14 +1967,14 @@ $('btnPng').onclick = async () => {
 };
 
 /* --------------------------- persistence ---------------------------- */
-const STORE_KEY = 'rvShelfPlanner5';
+const STORE_KEY = 'rvShelfPlanner6';
 function snapshot() {
-  return { v: 5, templates, shelves, products, layouts, activeTheme, themeBlende, CATEGORIES, categoryMap, top100: [...top100], nextId };
+  return { v: 6, templates, shelves, products, layouts, activeTheme, shelfBlende, CATEGORIES, categoryMap, top100: [...top100], nextId };
 }
 function loadSnapshot(s) {
   templates = s.templates; shelves = s.shelves; products = s.products;
   layouts = s.layouts || {}; activeTheme = s.activeTheme || (themeNames()[0] || 'BRIO Flora');
-  themeBlende = s.themeBlende || {};
+  shelfBlende = s.shelfBlende || {};
   CATEGORIES = s.CATEGORIES || MATRIX.catOrder.slice(); categoryMap = s.categoryMap || {};
   top100 = new Set(s.top100 || []); nextId = s.nextId || 10000;
 }
