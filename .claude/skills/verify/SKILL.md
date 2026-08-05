@@ -24,9 +24,16 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
   run `localStorage.clear(); location.reload()` for a fresh boot before asserting.
 - Per-shelf blende (fascia) config lives in `shelfBlende` keyed by shelf id; icons are
   inline white SVGs by category (kids/toddler/metime/fan/games/explorers/flora), and the
-  Special Offer category renders as a red gradient panel (all others blue). Import splits
-  products by sheet-tab name → matching theme (else active theme). Front/side/open images
-  map to labelled columns (front→J, side→K, open→L) with a fallback to the first image.
+  Special Offer category renders as a red gradient panel (all others blue). The blende
+  editor has an explicit icon/category picker (7 categories per Nina's Übersicht PDF); an
+  explicit `kind` in shelfBlende wins over the theme-name guess. Import splits products by
+  sheet-tab name → matching theme; a single unmatched tab lands on the SOLE theme area when
+  only one exists (Nina's "one Kids shelf" flow), else the active theme. Front/side/open map
+  to labelled columns (front→J, side→K, open→L); Front never borrows the Side image when a
+  Front column exists. NB: real Ravensburger files store the Front (J) photo as an Excel
+  "image in cell" rich value (cell `vm=` → metadata.xml futureMetadata → rdrichvalue.xml →
+  rdRichValueWebImage.xml blip → media), NOT a drawing anchor — the reader resolves that
+  chain; Side (K) photos are ordinary floating drawings. Test file: scratchpad NZ2.xlsx.
 - HTML5 drag-and-drop tests: use a viewport tall enough that the whole page fits
   (e.g. 1500×2100). If Playwright scrolls mid-drag, the dragstart hit-tests against
   the post-scroll element and grabs the wrong block — a harness artifact, not an app bug.

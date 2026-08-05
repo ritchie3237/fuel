@@ -127,11 +127,12 @@
 </header>
 <main>
   <div class="banner" id="demoBanner">
-    <b>Updated with Nina's July&nbsp;21 feedback (v5):</b> 6-level fixture 33.5&nbsp;/&nbsp;5&times;35&nbsp;cm, 38&nbsp;cm board
-    depth, 50&nbsp;cm blende &middot; new layout: up to <b>2 different products face-out in the centre</b>, everything else
-    turned sideways left&nbsp;&amp;&nbsp;right to fill the shelf &middot; up to 2 identical facings allowed &middot; front /
-    side / open images per product (columns J&nbsp;/&nbsp;K&nbsp;/&nbsp;L) &middot; move &amp; duplicate items freely &middot;
-    a combined order file auto-splits Flora / tiptoi into their theme areas &middot; save &amp; reload a project per store.
+    <b>Updated with your latest feedback:</b> <b>Front</b> view now reads its own picture from column&nbsp;<b>J</b> and
+    <b>Side</b> from column&nbsp;<b>K</b> &mdash; including &ldquo;image in cell&rdquo; photos &mdash; so Front never shows the
+    side image &middot; a single-tab order lands entirely on the one shelf area you set up (no Flora mixing) &middot; each
+    shelf&rsquo;s header panel is set individually (click it): pick its icon/category, custom text, or a plain panel &mdash;
+    Special&nbsp;Offer shows red &middot; 6-level fixture 33.5&nbsp;/&nbsp;5&times;35&nbsp;cm, 38&nbsp;cm depth &middot; up to
+    2 products face-out in the centre, the rest turned sideways &middot; save &amp; reload a project per store.
     Pick a theme above the planogram and press <b>Generate</b>.
   </div>
   <div class="cols">
@@ -151,9 +152,11 @@
         <p class="note" style="margin-bottom:0">
           <b>Order file structure</b> (see the downloadable template): one sheet, one row per product &mdash; EAN, article
           number, title, order quantity, package W&times;H&times;D &mdash; with the category in its own column (no separate
-          tabs needed; extra tabs are read too). Photos embedded in the row load automatically: <b>1st image = front,
-          2nd image = side view</b>. Missing sizes are held aside, never guessed. <b>Load images</b> matches photo files by
-          article number (add <i>_side</i> or <i>_seite</i> to the filename for side views).
+          tabs needed; extra tabs are read too). Photos embedded in the row load automatically, mapped by column heading:
+          <b>&ldquo;Front view&rdquo; column&nbsp;J</b>, <b>&ldquo;Side view&rdquo; column&nbsp;K</b>, open/unpacked column&nbsp;L
+          &mdash; both floating pictures and Excel&rsquo;s &ldquo;image in cell&rdquo; photos are read. Front uses only its own
+          J&nbsp;image, never the side one. Missing sizes are held aside, never guessed. <b>Load images</b> matches photo files
+          by article number (add <i>_side</i> or <i>_seite</i> to the filename for side views).
         </p>
         <div id="loadStatus" style="margin-top:8px"></div>
         <div id="loadDiag" class="note"></div>
@@ -285,8 +288,21 @@
   <h3 style="margin:0 0 8px;font-size:14px;color:var(--rv-blue)" id="beTitle">Shelf header panel</h3>
   <label>Label text</label>
   <input type="text" id="beText" placeholder="(theme name)">
+  <label style="margin-top:8px">Icon / category</label>
+  <select id="beKind">
+    <option value="">Auto (from theme name)</option>
+    <option value="toddler">Toddler</option>
+    <option value="kids">Kids</option>
+    <option value="offer">Special Offer (red)</option>
+    <option value="explorers">Explorers</option>
+    <option value="games">Games Party</option>
+    <option value="metime">Me-Time</option>
+    <option value="fan">Fan-Highlights</option>
+    <option value="flora">BRIO Flora</option>
+    <option value="other">No icon</option>
+  </select>
   <label style="margin-top:8px;display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text)">
-    <input type="checkbox" id="beBlank" style="width:auto"> Plain blue panel (no icon or text)
+    <input type="checkbox" id="beBlank" style="width:auto"> Plain panel (no icon or text)
   </label>
   <div class="btnrow" style="margin-top:10px">
     <button class="small" id="beApply">Apply</button>
@@ -386,9 +402,15 @@ let editTplId = null;
 /* per-SHELF header panel (Nina: each shelf set individually — icon+text, or
    plain blue). Default text = the shelf's theme; colour red for Special
    Offer areas, blue otherwise. */
+const KIND_LABEL = { toddler: 'Toddler', kids: 'Kids', offer: 'Special Offer', explorers: 'Explorers', games: 'Games Party', metime: 'Me-Time', fan: 'Fan-Highlights', flora: 'BRIO Flora', other: '' };
 function blendeForShelf(shelf) {
   const c = shelfBlende[shelf.id] || {};
-  return { text: c.blank ? '' : (c.text ?? shelf.theme), blank: !!c.blank, kind: themeKind(shelf.theme) };
+  // icon/category: an explicit per-shelf choice wins; otherwise infer from the
+  // theme name. Default text follows the same source so picking "Kids" shows
+  // "Kids" even when the shelf's theme is called something else (Nina).
+  const kind = c.kind || themeKind(shelf.theme);
+  const dfltText = c.kind ? (KIND_LABEL[c.kind] ?? shelf.theme) : shelf.theme;
+  return { text: c.blank ? '' : (c.text ?? dfltText), blank: !!c.blank, kind };
 }
 function themeKind(name) {
   const n = (name || '').toLowerCase();
@@ -726,13 +748,23 @@ window.openBlendeEditor = (shelfId) => {
   const c = shelfBlende[shelfId] || {};
   $('beTitle').textContent = `Shelf ${shelf.num} header (${shelf.theme})`;
   $('beText').value = c.text ?? '';
-  $('beText').placeholder = '(' + shelf.theme + ')';
+  $('beKind').value = c.kind || '';
+  $('beText').placeholder = '(' + (c.kind ? (KIND_LABEL[c.kind] || shelf.theme) : shelf.theme) + ')';
   $('beBlank').checked = !!c.blank;
   $('blendeEditor').style.display = 'block';
 };
+$('beKind').onchange = () => {
+  const shelf = shelves.find(s => s.id === editBlendeShelf);
+  const k = $('beKind').value;
+  $('beText').placeholder = '(' + (k ? (KIND_LABEL[k] || (shelf ? shelf.theme : '')) : (shelf ? shelf.theme : '')) + ')';
+};
 $('beApply').onclick = () => {
   if (editBlendeShelf == null) return;
-  shelfBlende[editBlendeShelf] = { text: $('beText').value, blank: $('beBlank').checked };
+  shelfBlende[editBlendeShelf] = {
+    text: $('beText').value.trim() || null,   // empty -> fall back to the category/theme label
+    kind: $('beKind').value || null,
+    blank: $('beBlank').checked
+  };
   $('blendeEditor').style.display = 'none'; editBlendeShelf = null;
   renderBays(); save();
 };
@@ -1356,14 +1388,21 @@ async function readXlsx(buf) {
       shared.push([...si.getElementsByTagName('t')].map(t => t.textContent).join(''));
   }
   const sheets = [];
+  // "Image in cell" photos (Excel's Place-in-Cell / rich values) store the
+  // picture as a cell value flagged with a `vm=` (value-metadata) index rather
+  // than as a floating drawing. Nina's Front-view (column J) images arrive this
+  // way, so we capture each vm cell's row+col to resolve to a media file later.
+  const richBySheet = [];
   const sheetNames = Object.keys(entries).filter(n => /^xl\/worksheets\/sheet\d+\.xml$/.test(n)).sort(
     (a, b) => +a.match(/\d+/)[0] - +b.match(/\d+/)[0]);
   for (const name of sheetNames) {
     const xml = await file(name);
     const doc = new DOMParser().parseFromString(xml, 'application/xml');
     const grid = [];
+    const richCells = [];
     for (const row of doc.getElementsByTagName('row')) {
       const r = [];
+      const richInRow = [];
       for (const c of row.getElementsByTagName('c')) {
         const ref = c.getAttribute('r') || '';
         const ci = colIndex(ref.replace(/\d+/g, ''));
@@ -1375,11 +1414,17 @@ async function readXlsx(buf) {
           if (v) val = t === 's' ? (shared[+v.textContent] ?? '') : v.textContent;
         }
         r[ci] = val;
+        const vm = c.getAttribute('vm');
+        if (vm) richInRow.push({ col: ci, vm: +vm });
       }
       const rn = parseInt(row.getAttribute('r'));
-      if (rn > 0) grid[rn - 1] = r; else grid.push(r);
+      let rowIdx;
+      if (rn > 0) { grid[rn - 1] = r; rowIdx = rn - 1; }
+      else { grid.push(r); rowIdx = grid.length - 1; }
+      for (const rc of richInRow) richCells.push({ row: rowIdx, col: rc.col, vm: rc.vm });
     }
     sheets.push(grid);
+    richBySheet.push(richCells);
   }
   /* embedded photos, ALL sheets: per row an ordered list of images
      (left-to-right); 1st = front view, 2nd = side view */
@@ -1439,6 +1484,58 @@ async function readXlsx(buf) {
           : /\.(jpe?g)$/i.test(f.mediaPath) ? 'image/jpeg' : null;
         if (!mime) continue; // emf/wmf etc. — browsers can't decode
         try { list.push({ col: f.col, uri: await shrinkImage(new Blob([bin], { type: mime })) }); }
+        catch { /* undecodable image — skip */ }
+      }
+    }
+    /* "Image in cell" rich-value photos (Front column J in Nina's files).
+       Chain: cell vm= -> metadata.xml futureMetadata[XLRICHVALUE] bk[vm-1] ->
+       rvb i -> rdrichvalue.xml rv[i] first <v> = web-image id ->
+       rdRichValueWebImage.xml webImageSrd[id] blip r:id -> media file. */
+    let richMedia = null;
+    const metaXml = await file('xl/metadata.xml');
+    const rvXml = await file('xl/richData/rdrichvalue.xml');
+    const wiXml = await file('xl/richData/rdRichValueWebImage.xml');
+    const wiRelsXml = await file('xl/richData/_rels/rdRichValueWebImage.xml.rels');
+    if (metaXml && rvXml && wiXml && wiRelsXml) {
+      const mdoc = parse(metaXml);
+      let fm = null;
+      for (const f of mdoc.getElementsByTagNameNS('*', 'futureMetadata'))
+        if (f.getAttribute('name') === 'XLRICHVALUE') fm = f;
+      const rvbForVm = [];
+      if (fm) for (const bk of fm.getElementsByTagNameNS('*', 'bk')) {
+        const rvb = bk.getElementsByTagNameNS('*', 'rvb')[0];
+        rvbForVm.push(rvb ? +rvb.getAttribute('i') : -1);
+      }
+      const webIdForRv = [...parse(rvXml).getElementsByTagNameNS('*', 'rv')].map(rv => {
+        const v = rv.getElementsByTagNameNS('*', 'v')[0];
+        return v ? +v.textContent : -1;
+      });
+      const blipRid = [...parse(wiXml).getElementsByTagNameNS('*', 'webImageSrd')].map(w => {
+        const b = w.getElementsByTagNameNS('*', 'blip')[0];
+        return b ? (b.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id')
+          || b.getAttribute('r:id')) : null;
+      });
+      const wiRels = relTargets(wiRelsXml);
+      richMedia = vm => {
+        const rvb = rvbForVm[vm - 1]; if (rvb == null || rvb < 0) return null;
+        const wid = webIdForRv[rvb]; if (wid == null || wid < 0) return null;
+        const rid = blipRid[wid]; if (!rid) return null;
+        return norm('xl/richData/rdRichValueWebImage.xml', wiRels[rid]);
+      };
+    }
+    if (richMedia) for (let sIdx = 0; sIdx < richBySheet.length; sIdx++) {
+      for (const rc of richBySheet[sIdx]) {
+        const mediaPath = richMedia(rc.vm);
+        if (!mediaPath) continue;
+        const list = imagesBySheet[sIdx][rc.row] = imagesBySheet[sIdx][rc.row] || [];
+        if (list.length >= 3) continue;
+        const bin = await fileBin(mediaPath);
+        if (!bin) continue;
+        const mime = /\.png$/i.test(mediaPath) ? 'image/png'
+          : /\.gif$/i.test(mediaPath) ? 'image/gif'
+          : /\.(jpe?g)$/i.test(mediaPath) ? 'image/jpeg' : null;
+        if (!mime) continue;
+        try { list.push({ col: rc.col, uri: await shrinkImage(new Blob([bin], { type: mime })) }); }
         catch { /* undecodable image — skip */ }
       }
     }
@@ -1556,12 +1653,17 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
   const diag = [];
   const existingThemes = themeNames();
   sheets.forEach((grid, sIdx) => {
-    // theme for this sheet: use the tab name ONLY if it matches an existing
-    // theme area (so a combined file with "BRIO Flora"/"tiptoi" tabs splits);
-    // otherwise everything goes to the theme the user is currently viewing —
-    // so a single-tab file lands on the shelves she set up (Nina).
+    // theme for this sheet, in order of preference:
+    //   1. the tab name IF it matches an existing theme area (so a combined
+    //      "BRIO Flora"/"tiptoi" file splits into its areas);
+    //   2. else, if the user has set up exactly ONE theme area, use it — this
+    //      makes Nina's workaround ("I created only the 'Kids' shelf and
+    //      re-uploaded") land every product on that one shelf area, never
+    //      mixed with Flora;
+    //   3. else the theme currently being viewed.
     const rawTitle = (sheetTitles[sIdx] || '').trim();
-    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase()) || activeTheme;
+    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase())
+      || (existingThemes.length === 1 ? existingThemes[0] : activeTheme);
     const det = detectOrderColumns(grid);
     if (!det) { if (grid.some(r => (r || []).some(c => c))) diag.push(`sheet ${sIdx + 1}: no header found — skipped`); return; }
     const { headerRow, map, headers } = det;
@@ -1638,10 +1740,12 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
           else if (best.kind === 'side' && !sImg) sImg = im.uri;
           else if (best.kind === 'open' && !oImg) oImg = im.uri;
         }
-        // if there's no explicit front-column image but the row has a picture,
-        // use it as the front (main) view so single-image products still show —
-        // a real Front-view (J) image always wins over the side one (Nina's bug)
-        if (!fImg && rowImgs.length) fImg = rowImgs[0].uri;
+        // Borrow a picture into Front only when the file has NO dedicated Front
+        // column, so single-image ("Bild") files still show. When a real Front
+        // column (J) exists, Front must be its own image or empty — it must
+        // never fall back to the Side (K) image (Nina's exact bug).
+        const hasFrontCol = viewCols.some(vc => vc.kind === 'front');
+        if (!fImg && !hasFrontCol && rowImgs.length) fImg = rowImgs[0].uri;
       } else {
         fImg = rowImgs[0]?.uri || null; sImg = rowImgs[1]?.uri || null; oImg = rowImgs[2]?.uri || null;
       }
@@ -1660,10 +1764,11 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
   });
   if (!out.length) throw new Error('No product rows found (need a header with at least article/EAN + title/qty)');
   let mode = 'replaced';
-  // the pre-loaded Flora demo is replaced silently; a real list you've built
-  // asks before it's wiped (so you don't accidentally mix two orders).
+  // The pre-loaded Flora demo is replaced silently. A real list you've built
+  // defaults to REPLACE (so a fresh order never mixes with leftover products);
+  // adding is the deliberate opt-in, phrased so the default action is replace.
   if (products.length && !isDemo &&
-      !confirm(`Replace the current ${products.length} products with "${fname}"?\n\nOK = replace · Cancel = ADD to the current list`)) {
+      confirm(`Loading "${fname}" (${out.length} products).\n\nReplace the current ${products.length} products?\n\nOK = replace (recommended) · Cancel = ADD to the current list`) === false) {
     products = products.concat(out);
     mode = 'appended';
   } else {
