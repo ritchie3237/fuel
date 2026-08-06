@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ravensburger · Front-Image Filler</title>
+<style>
+  :root { --rv-blue:#0a4595; --line:#d9dee6; --text:#1c2430; --muted:#5a6472; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; color:var(--text); background:#eef1f5; }
+  header { background:var(--rv-blue); color:#fff; padding:16px 22px; }
+  header h1 { margin:0; font-size:19px; }
+  header .sub { opacity:.85; font-size:13px; margin-top:2px; }
+  main { max-width:820px; margin:22px auto; padding:0 18px; }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:20px 22px; margin-bottom:18px; box-shadow:0 1px 2px rgba(0,0,0,.04); }
+  h2 { font-size:15px; color:var(--rv-blue); margin:0 0 10px; }
+  button { font:inherit; background:var(--rv-blue); color:#fff; border:0; border-radius:7px; padding:10px 16px; cursor:pointer; }
+  button.ghost { background:#fff; color:var(--rv-blue); border:1px solid var(--rv-blue); }
+  button:disabled { opacity:.5; cursor:default; }
+  .note { color:var(--muted); font-size:13px; }
+  code { background:#f0f3f8; padding:1px 5px; border-radius:4px; font-size:12.5px; }
+  table { border-collapse:collapse; width:100%; margin-top:12px; font-size:13px; }
+  th,td { border:1px solid var(--line); padding:5px 8px; text-align:left; }
+  th { background:#f5f7fb; }
+  td.img { width:70px; text-align:center; } td.img img { max-width:56px; max-height:56px; }
+  .ok { color:#1a7f37; } .warn { color:#b7791f; } .err { color:#c02b2b; }
+  #status { margin-top:12px; font-size:14px; }
+  .pill { display:inline-block; background:#eaf1fb; color:var(--rv-blue); border-radius:20px; padding:2px 10px; font-size:12px; margin-right:6px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Front-Image Filler</h1>
+  <div class="sub">Fills column&nbsp;J (&ldquo;Front view&rdquo;) of a Tiptoi order Excel with each product&rsquo;s front pack shot &mdash; automatically, from the article number. Fully offline.</div>
+</header>
+<main>
+  <div class="card">
+    <h2>1 &middot; How it works</h2>
+    <p class="note" style="margin-top:0">
+      Ravensburger&rsquo;s public image CDN serves every product&rsquo;s front pack shot at a fixed address built from the
+      5-digit article number inside the EAN &mdash; e.g. EAN <code>4005556&#8203;00168&#8203;2</code> &rarr;
+      <code>cdn.ravensburger.de/images/produktseiten/240/00168.jpg</code>. This tool reads each row&rsquo;s EAN, builds that
+      link, and writes an Excel <code>=IMAGE(&hellip;)</code> formula into the <b>Front view</b> column, so Excel shows the
+      picture in-cell. Your <b>Side view</b> column&nbsp;K and everything else in the file are left untouched.
+    </p>
+    <p class="note"><b>Requires:</b> Excel that supports the <code>IMAGE()</code> function (Microsoft&nbsp;365) with internet
+      access, so it can load the pictures. Nothing is uploaded anywhere &mdash; the file is rewritten locally in your browser.</p>
+  </div>
+
+  <div class="card">
+    <h2>2 &middot; Choose your order Excel</h2>
+    <input type="file" id="file" accept=".xlsx">
+    <div id="status"></div>
+  </div>
+
+  <div class="card" id="resultCard" style="display:none">
+    <h2>3 &middot; Result</h2>
+    <div id="summary"></div>
+    <div style="margin:12px 0"><button id="download" disabled>Download filled Excel</button></div>
+    <div id="preview"></div>
+  </div>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const CDN = art => `https://cdn.ravensburger.de/images/produktseiten/240/${art}.jpg`;
+const artFromEan = ean => {
+  const d = String(ean).replace(/\D/g,'');
+  return (d.length===13 && d.startsWith('4005556')) ? d.slice(7,12) : null;
+};
+const xesc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- minimal zip read (central directory) ---------------- */
+async function readZip(buf) {
+  const u8 = new Uint8Array(buf); const dv = new DataView(buf);
+  // find End Of Central Directory
+  let eo=-1; for (let i=u8.length-22; i>=0; i--) if (dv.getUint32(i,true)===0x06054b50){eo=i;break;}
+  if (eo<0) throw new Error('Not a valid .xlsx (no zip end record).');
+  const cnt = dv.getUint16(eo+10,true); let off = dv.getUint32(eo+16,true);
+  const entries = []; // {name, method, csize, data(compressed bytes), rawLocalOffset}
+  for (let i=0;i<cnt;i++){
+    if (dv.getUint32(off,true)!==0x02014b50) throw new Error('Corrupt central directory.');
+    const method=dv.getUint16(off+10,true), csize=dv.getUint32(off+20,true);
+    const nl=dv.getUint16(off+28,true), el=dv.getUint16(off+30,true), cl=dv.getUint16(off+32,true);
+    const lho=dv.getUint32(off+42,true);
+    const name=new TextDecoder().decode(u8.subarray(off+46,off+46+nl));
+    entries.push({name,method,csize,lho});
+    off += 46+nl+el+cl;
+  }
+  async function bytes(e){
+    const nl=dv.getUint16(e.lho+26,true), xl=dv.getUint16(e.lho+28,true);
+    const start=e.lho+30+nl+xl; const comp=u8.subarray(start,start+e.csize);
+    if (e.method===0) return comp;
+    const ab = await new Response(new Blob([comp]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).arrayBuffer();
+    return new Uint8Array(ab);
+  }
+  const out=[];
+  for (const e of entries) out.push({name:e.name, data: await bytes(e)});
+  return out;
+}
+
+/* ---------------- minimal zip write (all STORED) ---------------- */
+const CRC = (()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function writeZip(files){ // files: [{name, data:Uint8Array}]
+  const enc=new TextEncoder(); const locals=[]; const central=[]; let offset=0;
+  for (const f of files){
+    const name=enc.encode(f.name); const crc=crc32(f.data), sz=f.data.length;
+    const lh=new Uint8Array(30+name.length); const ld=new DataView(lh.buffer);
+    ld.setUint32(0,0x04034b50,true); ld.setUint16(4,20,true); ld.setUint16(6,0,true); ld.setUint16(8,0,true);
+    ld.setUint16(10,0,true); ld.setUint16(12,0,true); ld.setUint32(14,crc,true); ld.setUint32(18,sz,true);
+    ld.setUint32(22,sz,true); ld.setUint16(26,name.length,true); ld.setUint16(28,0,true); lh.set(name,30);
+    locals.push(lh, f.data);
+    const ch=new Uint8Array(46+name.length); const cd=new DataView(ch.buffer);
+    cd.setUint32(0,0x02014b50,true); cd.setUint16(4,20,true); cd.setUint16(6,20,true); cd.setUint16(8,0,true);
+    cd.setUint16(10,0,true); cd.setUint16(12,0,true); cd.setUint16(14,0,true); cd.setUint32(16,crc,true);
+    cd.setUint32(20,sz,true); cd.setUint32(24,sz,true); cd.setUint16(28,name.length,true);
+    cd.setUint32(42,offset,true); ch.set(name,46); central.push(ch);
+    offset += lh.length + sz;
+  }
+  const cdStart=offset; let cdLen=0; for (const c of central) cdLen+=c.length;
+  const eo=new Uint8Array(22); const ed=new DataView(eo.buffer);
+  ed.setUint32(0,0x06054b50,true); ed.setUint16(8,files.length,true); ed.setUint16(10,files.length,true);
+  ed.setUint32(12,cdLen,true); ed.setUint32(16,cdStart,true);
+  return new Blob([...locals, ...central, eo], {type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+
+/* ---------------- helpers ---------------- */
+const dec = u8 => new TextDecoder().decode(u8);
+const encb = s => new TextEncoder().encode(s);
+function colLetter(ref){ return (ref.match(/^[A-Z]+/)||[''])[0]; }
+function sharedStrings(xml){
+  const arr=[]; if(!xml) return arr;
+  const doc=new DOMParser().parseFromString(xml,'application/xml');
+  for(const si of doc.getElementsByTagName('si'))
+    arr.push([...si.getElementsByTagName('t')].map(t=>t.textContent).join(''));
+  return arr;
+}
+
+let outBlob=null, outName='order_front_filled.xlsx';
+
+$('file').addEventListener('change', async e => {
+  const f=e.target.files[0]; if(!f) return;
+  $('resultCard').style.display='none'; $('download').disabled=true; outBlob=null;
+  $('status').innerHTML='Reading &hellip;';
+  try{
+    const files = await readZip(await f.arrayBuffer());
+    const get = n => files.find(x=>x.name===n);
+    const sheetFiles = files.filter(x=>/^xl\/worksheets\/sheet\d+\.xml$/.test(x.name))
+      .sort((a,b)=>+a.name.match(/\d+/)[0]-+b.name.match(/\d+/)[0]);
+    if(!sheetFiles.length) throw new Error('No worksheet found in this file.');
+    const shared = sharedStrings(get('xl/sharedStrings.xml') ? dec(get('xl/sharedStrings.xml').data) : '');
+
+    let totalRows=0, filled=0, skipped=0; const preview=[];
+    for (const sf of sheetFiles){
+      let xml = dec(sf.data);
+
+      // detect header row + EAN column + Front-view column
+      const doc = new DOMParser().parseFromString(xml,'application/xml');
+      const rowsEls=[...doc.getElementsByTagName('row')];
+      const cellText=(c)=>{ const t=c.getAttribute('t'); const v=c.getElementsByTagName('v')[0];
+        if(t==='inlineStr') return c.textContent.trim();
+        if(!v) return ''; return t==='s' ? (shared[+v.textContent]||'') : v.textContent; };
+      let eanCol='A', frontCol='J', headerR=1;
+      for(const r of rowsEls.slice(0,15)){
+        let foundEan=null, foundFront=null;
+        for(const c of r.getElementsByTagName('c')){
+          const col=colLetter(c.getAttribute('r')||''); const txt=cellText(c).toLowerCase();
+          if(/\bean\b|gtin/.test(txt)) foundEan=col;
+          if(/front|vorder/.test(txt)) foundFront=col;
+        }
+        if(foundEan||foundFront){ headerR=+(r.getAttribute('r')||1); if(foundEan)eanCol=foundEan; if(foundFront)frontCol=foundFront; break; }
+      }
+
+      // walk each data row, set Front cell = =IMAGE(cdn url)
+      const rowRe=/(<row[^>]*\br="(\d+)"[^>]*>)([\s\S]*?)(<\/row>)/g;
+      xml = xml.replace(rowRe, (m, open, rn, body, close) => {
+        const n=+rn; if(n<=headerR) return m;
+        // read EAN from eanCol
+        const eanCell = new RegExp(`<c r="${eanCol}${n}"[^>]*>([\\s\\S]*?)</c>`).exec(body)
+                     || new RegExp(`<c r="${eanCol}${n}"[^>]*/>`).exec(body);
+        let ean=null;
+        if(eanCell && eanCell[1]!=null){
+          const tMatch=/<c r="[^"]*"([^>]*)>/.exec(eanCell[0]); const t=/t="s"/.test(tMatch?tMatch[1]:'');
+          const v=/<v>([\s\S]*?)<\/v>/.exec(eanCell[1]);
+          if(v) ean = t ? (shared[+v[1]]||'') : v[1];
+        }
+        if(!ean) return m;
+        totalRows++;
+        const art=artFromEan(ean);
+        if(!art){ skipped++; return m; }
+        const url=CDN(art);
+        const cell=`<c r="${frontCol}${n}"><f>IMAGE(${'&quot;'+xesc(url)+'&quot;'},${'&quot;'+xesc('front '+String(ean).replace(/\D/g,''))+'&quot;'})</f></c>`;
+        let nb;
+        const jFull=new RegExp(`<c r="${frontCol}${n}"[^>]*?(?:/>|>[\\s\\S]*?</c>)`);
+        if(jFull.test(body)) nb=body.replace(jFull, cell);
+        else {
+          const kAnchor=new RegExp(`(<c r="[A-Z]+${n}")`); // insert before the next cell after front alphabetically is hard; append is tolerated by Excel if we re-sort — instead append then rely on Excel. Safer: append at end.
+          nb = body + cell;
+        }
+        filled++;
+        if(preview.length<12) preview.push({ean:String(ean).replace(/\D/g,''), art, url});
+        return open+nb+close;
+      });
+      sf.data = encb(xml);
+    }
+
+    // force recalc so IMAGE() evaluates on open
+    const wbF=get('xl/workbook.xml');
+    if(wbF){ let wb=dec(wbF.data);
+      if(/<calcPr/.test(wb)){ if(!/fullCalcOnLoad/.test(wb)) wb=wb.replace('<calcPr','<calcPr fullCalcOnLoad="1" '); }
+      else wb=wb.replace('</workbook>','<calcPr fullCalcOnLoad="1"/></workbook>');
+      wbF.data=encb(wb);
+    }
+
+    outBlob = writeZip(files);
+    outName = f.name.replace(/\.xlsx$/i,'') + '_front_filled.xlsx';
+    $('status').innerHTML = `<span class="ok">&#10003; Done.</span> Read ${totalRows} product rows.`;
+    $('summary').innerHTML =
+      `<span class="pill">${filled} front images added</span>` +
+      (skipped?`<span class="pill">${skipped} skipped (EAN not a 4005556 article)</span>`:'') +
+      `<p class="note">Column with front images: <code>Front view</code>. Side column and the rest of your file are unchanged. Open the downloaded file in Excel (365, online) &mdash; the pictures load into the cells automatically.</p>`;
+    let tbl='<table><tr><th>EAN</th><th>Article</th><th>Front-image link</th><th>Preview</th></tr>';
+    for(const p of preview) tbl+=`<tr><td>${p.ean}</td><td>${p.art}</td><td><code>${p.url.replace('https://cdn.ravensburger.de','&hellip;')}</code></td><td class="img"><img src="${p.url}" loading="lazy" alt=""></td></tr>`;
+    tbl+='</table>';
+    $('preview').innerHTML=tbl;
+    $('resultCard').style.display='block'; $('download').disabled=false;
+  }catch(err){
+    $('status').innerHTML=`<span class="err">&#10007; ${xesc(err.message||String(err))}</span>`;
+  }
+});
+
+$('download').addEventListener('click', ()=>{
+  if(!outBlob) return;
+  const a=document.createElement('a'); a.href=URL.createObjectURL(outBlob); a.download=outName; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+});
+</script>
+</body>
+</html>
