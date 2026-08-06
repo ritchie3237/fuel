@@ -1,94 +1,392 @@
 {
-  "generated": "2026-06-28",
-  "athlete": "Mike Ritchie",
-  "snapshot": {
-    "vo2max": 52.2,
-    "vo2maxLabel": "Superior for age",
-    "fitnessAge": 31.6,
-    "chronoAge": 36,
-    "achievableFitnessAge": 30.5,
-    "rhr": 52,
-    "rhr7d": 48,
-    "hrv": 52,
-    "hrvStatus": "Balanced",
-    "readiness": 63,
-    "readinessLevel": "Moderate — jet-lag recovery",
-    "sleepScoreLast": 70,
-    "sleepAvg": 80,
-    "trainingStatus": "Recovery",
-    "acwr": 0.6,
-    "acwrStatus": "Low",
-    "acwrPercent": 25,
-    "stressLatest": 39,
-    "stressWeek": 28,
-    "stressQualifier": "Elevated (travel)",
-    "vigorousDays": 2.6,
-    "vigorousTarget": 3,
-    "weight": 173.7,
-    "weightAsOf": "2026-06-22",
-    "bmi": 24.2,
-    "bmiTarget": 21.1,
-    "bmiAsOf": "2026-06-22",
-    "steps": 8897,
-    "stepGoal": 12040,
-    "racePredictions": { "5K": "20:52", "10K": "44:30", "Half": "1:40:20", "Marathon": "3:40:49" },
-    "goal": { "text": "Sub-3:00 marathon", "race": "Oct 2027", "current": "3:40:49", "pace": "6:51/mi" }
+ "generated": "2026-08-02",
+ "athlete": "Mike Ritchie",
+ "snapshot": {
+  "vo2max": 52.0,
+  "vo2maxPrecise": 52.3,
+  "vo2maxLabel": "Superior for age",
+  "fitnessAge": 28.2,
+  "chronoAge": 36,
+  "achievableFitnessAge": 30.5,
+  "rhr": 52,
+  "rhr7d": 50,
+  "hrv": 47,
+  "hrvStatus": "Balanced",
+  "readiness": 70,
+  "readinessLevel": "Good \u2014 Oura 70 at wake. Sleep is strong (8.7h) but body temp is +0.45\u00b0 and rising three days running, with HRV at 44. Treat the quality day as conditional.",
+  "sleepScoreLast": 66,
+  "sleepAvg": 76,
+  "trainingStatus": "Maintaining",
+  "acwr": 1.0,
+  "acwrStatus": "Optimal",
+  "acwrPercent": 42,
+  "acuteLoad": 548,
+  "chronicLoad": 538,
+  "loadBalance": "Balanced (anaerobic above target)",
+  "stressLatest": 27,
+  "stressWeek": 28,
+  "stressQualifier": "Balanced",
+  "vigorousDays": 4.3,
+  "vigorousTarget": 3,
+  "weight": 169.8,
+  "weightAsOf": "2026-07-29",
+  "bmi": 23.7,
+  "bmiTarget": 21.1,
+  "bmiAsOf": "2026-07-29",
+  "steps": 10013,
+  "stepGoal": 13950,
+  "stepsAsOf": "2026-08-02",
+  "racePredictions": {
+   "5K": "20:50",
+   "10K": "44:20",
+   "Half": "1:40:23",
+   "Marathon": "3:43:55"
   },
-  "trends": {
-    "vo2max": [
-      {"d":"04-21","v":54},{"d":"05-01","v":54},{"d":"05-14","v":53},{"d":"05-21","v":53},
-      {"d":"06-01","v":53},{"d":"06-05","v":52},{"d":"06-10","v":52},{"d":"06-16","v":53},{"d":"06-22","v":52},{"d":"06-28","v":52}
-    ],
-    "hrv": [
-      {"d":"05-25","v":47},{"d":"05-29","v":46},{"d":"06-02","v":51},{"d":"06-06","v":51},
-      {"d":"06-10","v":50},{"d":"06-14","v":53},{"d":"06-16","v":55},{"d":"06-20","v":55},{"d":"06-22","v":53},{"d":"06-28","v":52}
-    ],
-    "rhr": [
-      {"d":"06-03","v":49},{"d":"06-06","v":48},{"d":"06-08","v":49},{"d":"06-10","v":52},
-      {"d":"06-12","v":49},{"d":"06-14","v":46},{"d":"06-16","v":48},{"d":"06-20","v":48},{"d":"06-22","v":50},{"d":"06-28","v":52}
-    ],
-    "sleepScore": [
-      {"d":"06-12","v":69},{"d":"06-13","v":85},{"d":"06-14","v":94},{"d":"06-15","v":89},
-      {"d":"06-16","v":82},{"d":"06-18","v":89},{"d":"06-20","v":73},{"d":"06-22","v":86},{"d":"06-28","v":70}
-    ],
-    "sleepHours": [
-      {"d":"06-12","v":8.3},{"d":"06-13","v":7.1},{"d":"06-14","v":8.2},{"d":"06-15","v":7.2},
-      {"d":"06-16","v":7.0},{"d":"06-18","v":8.5},{"d":"06-22","v":8.7},{"d":"06-28","v":7.7}
-    ],
-    "stressWeekly": [
-      {"d":"05-13","v":30},{"d":"05-20","v":30},{"d":"05-27","v":30},
-      {"d":"06-03","v":26},{"d":"06-10","v":23},{"d":"06-22","v":28}
-    ]
-  },
-  "running": {
-    "ytd": 327,
-    "runsYtd": 70,
-    "thisWeek": 18.7,
-    "last7": 18.7,
-    "avg4": 20.0,
-    "weekly": [
-      {"d":"04-06","v":15.1},{"d":"04-13","v":10.1},{"d":"04-20","v":19.1},{"d":"04-27","v":8.1},
-      {"d":"05-04","v":17.1},{"d":"05-11","v":9.1},{"d":"05-18","v":9.0},{"d":"05-25","v":9.1},
-      {"d":"06-01","v":21.1},{"d":"06-08","v":17.1},{"d":"06-15","v":23.1},{"d":"06-22","v":18.7}
-    ],
-    "polarized": {
-      "window": "last 30 days",
-      "easyPct": 43, "grayPct": 38, "hardPct": 19,
-      "easyMi": 35.8, "grayMi": 32.1, "hardMi": 16.1
-    }
-  },
-  "recommendations": {
-    "continue": [
-      "Big polarized improvement — easy miles jumped to 43% (from 33%) and the gray zone fell to 38%. Every Germany run was genuinely easy (today: 6 mi @ avg HR 127), and that's precisely what's pulling you toward the 80/20 a sub-3 build needs.",
-      "You stayed consistent through travel — ~19 mi this week (home run Mon, a travel-day treadmill shakeout Tue, easy runs Thu + today) all easy, despite jet lag. That discipline is exactly what a long build is made of.",
-      "Resting metrics are holding for a trip — HRV factor still strong and today's 6-miler was easy and controlled. You're managing the travel well."
-    ],
-    "change": [
-      "Polarized split is now 43% easy / 38% gray / 19% hard — a real step toward ~80% easy / ~20% hard. The remaining gray is mostly older moderate runs aging out of the 30-day window; keep new easy days truly easy and it'll keep climbing.",
-      "You're in a planned deload — ACWR dropped to 0.6 (“Low”) and Garmin reads “Recovery” because the travel week cut your training load. That's by design, not a problem; you'll be fresh to rebuild. Ease back into volume next week when you're home.",
-      "Jet lag is showing in sleep — last night 70 (fair, 7.7 h) and your sleep-history factor is “poor” from the trip. Prioritize sleep + morning daylight the next few days; it's your highest-leverage recovery lever right now.",
-      "Aerobic base remains the #1 job (Garmin still flags “Aerobic Low Shortage”). Back home and rested, resume the consistent easy-volume ramp toward 40–50 mi/wk.",
-      "Weight is paused at 173.7 (Jun 22) — no scale on the road. Re-log a morning weigh-in when you're home to keep the trend tracking toward your low-160s."
-    ]
+  "goal": {
+   "text": "Sub-3:00 marathon",
+   "race": "Oct 2027",
+   "current": "3:43:55",
+   "pace": "6:51/mi"
   }
+ },
+ "trends": {
+  "vo2max": [
+   {
+    "d": "06-01",
+    "v": 53
+   },
+   {
+    "d": "06-05",
+    "v": 52
+   },
+   {
+    "d": "06-16",
+    "v": 53
+   },
+   {
+    "d": "06-22",
+    "v": 52
+   },
+   {
+    "d": "06-28",
+    "v": 52
+   },
+   {
+    "d": "07-12",
+    "v": 52
+   },
+   {
+    "d": "07-22",
+    "v": 52
+   },
+   {
+    "d": "08-02",
+    "v": 52.3
+   }
+  ],
+  "hrv": [
+   {
+    "d": "07-08",
+    "v": 53
+   },
+   {
+    "d": "07-11",
+    "v": 51
+   },
+   {
+    "d": "07-14",
+    "v": 55
+   },
+   {
+    "d": "07-17",
+    "v": 57
+   },
+   {
+    "d": "07-20",
+    "v": 55
+   },
+   {
+    "d": "07-23",
+    "v": 56
+   },
+   {
+    "d": "07-26",
+    "v": 55
+   },
+   {
+    "d": "07-28",
+    "v": 53
+   },
+   {
+    "d": "08-02",
+    "v": 47
+   }
+  ],
+  "rhr": [
+   {
+    "d": "07-18",
+    "v": 51.0
+   },
+   {
+    "d": "07-20",
+    "v": 46.0
+   },
+   {
+    "d": "07-22",
+    "v": 47.0
+   },
+   {
+    "d": "07-24",
+    "v": 47.0
+   },
+   {
+    "d": "07-26",
+    "v": 49.0
+   },
+   {
+    "d": "07-28",
+    "v": 47.0
+   },
+   {
+    "d": "07-30",
+    "v": 51.0
+   },
+   {
+    "d": "08-01",
+    "v": 52.0
+   }
+  ],
+  "sleepScore": [
+   {
+    "d": "07-20",
+    "v": 96
+   },
+   {
+    "d": "07-21",
+    "v": 85
+   },
+   {
+    "d": "07-22",
+    "v": 75
+   },
+   {
+    "d": "07-23",
+    "v": 73
+   },
+   {
+    "d": "07-24",
+    "v": 78
+   },
+   {
+    "d": "07-25",
+    "v": 56
+   },
+   {
+    "d": "07-26",
+    "v": 82
+   },
+   {
+    "d": "07-27",
+    "v": 60
+   },
+   {
+    "d": "07-28",
+    "v": 89
+   },
+   {
+    "d": "07-29",
+    "v": 82
+   },
+   {
+    "d": "07-30",
+    "v": 74
+   },
+   {
+    "d": "07-31",
+    "v": 81
+   },
+   {
+    "d": "08-01",
+    "v": 68
+   },
+   {
+    "d": "08-02",
+    "v": 66
+   }
+  ],
+  "sleepHours": [
+   {
+    "d": "07-20",
+    "v": 8.3
+   },
+   {
+    "d": "07-21",
+    "v": 7.6
+   },
+   {
+    "d": "07-22",
+    "v": 5.7
+   },
+   {
+    "d": "07-23",
+    "v": 7.0
+   },
+   {
+    "d": "07-24",
+    "v": 6.5
+   },
+   {
+    "d": "07-25",
+    "v": 8.2
+   },
+   {
+    "d": "07-26",
+    "v": 8.2
+   },
+   {
+    "d": "07-27",
+    "v": 6.5
+   },
+   {
+    "d": "07-28",
+    "v": 8.3
+   },
+   {
+    "d": "07-29",
+    "v": 8.0
+   },
+   {
+    "d": "07-30",
+    "v": 6.1
+   },
+   {
+    "d": "07-31",
+    "v": 7.9
+   },
+   {
+    "d": "08-01",
+    "v": 7.7
+   },
+   {
+    "d": "08-02",
+    "v": 9.4
+   }
+  ],
+  "stressWeekly": [
+   {
+    "d": "06-22",
+    "v": 29
+   },
+   {
+    "d": "06-29",
+    "v": 34
+   },
+   {
+    "d": "07-06",
+    "v": 22
+   },
+   {
+    "d": "07-13",
+    "v": 30
+   },
+   {
+    "d": "07-20",
+    "v": 27
+   },
+   {
+    "d": "07-27",
+    "v": 28
+   }
+  ]
+ },
+ "running": {
+  "ytd": 417.5,
+  "runsYtd": 88,
+  "thisWeek": 26.7,
+  "last7": 26.7,
+  "avg4": 16.0,
+  "weekly": [
+   {
+    "d": "05-11",
+    "v": 9.1
+   },
+   {
+    "d": "05-18",
+    "v": 9.0
+   },
+   {
+    "d": "05-25",
+    "v": 9.1
+   },
+   {
+    "d": "06-01",
+    "v": 21.1
+   },
+   {
+    "d": "06-08",
+    "v": 17.1
+   },
+   {
+    "d": "06-15",
+    "v": 23.1
+   },
+   {
+    "d": "06-22",
+    "v": 18.7
+   },
+   {
+    "d": "06-29",
+    "v": 11.1
+   },
+   {
+    "d": "07-06",
+    "v": 4.5
+   },
+   {
+    "d": "07-13",
+    "v": 23.1
+   },
+   {
+    "d": "07-20",
+    "v": 25.4
+   },
+   {
+    "d": "07-27",
+    "v": 26.7
+   }
+  ],
+  "polarized": {
+   "window": "last 30 days",
+   "method": "time-in-zone",
+   "runs": 16,
+   "easyPct": 44,
+   "grayPct": 45,
+   "hardPct": 10,
+   "easyMi": 36.3,
+   "grayMi": 37.6,
+   "hardMi": 9.9,
+   "easyMin": 368,
+   "grayMin": 376,
+   "hardMin": 84,
+   "last14": {
+    "easyPct": 49,
+    "grayPct": 39,
+    "hardPct": 12
+   }
+  }
+ },
+ "recommendations": {
+  "change": [
+   "The gray zone is still where your training lives: over the last 30 days, 45% of your running time (376 min, 37.6 mi) sat in Z3 versus 44% genuinely easy. The last 14 days are better \u2014 49% easy / 39% gray / 12% hard \u2014 so it is moving in the right direction.",
+   "The long run is now the single biggest lever. Aug 1's 10-miler averaged 128 bpm, which looks perfect on paper, but 48 of its 105 minutes were actually in Z3. The average hides the drift \u2014 walk the hills and take a 60-second break whenever you cross 132.",
+   "Anaerobic load is above target (571 against a 173\u2013519 band) and aerobic-low is over too (966 vs 398\u2013917), while aerobic-high sits near the bottom of its range (595 of 554\u20131073). The gap is filled by steady threshold work and more genuinely easy volume, not by more hard intervals.",
+   "Recovery is quietly softening. Garmin resting HR drifted 47 \u2192 52 over two weeks, training status slipped Productive \u2192 Maintaining, and Oura shows body temp +0.45\u00b0 with HRV at 44. None of those alone is alarming; together they say hold this week rather than build."
+  ],
+  "continue": [
+   "Long-run HR control is real progress. Jul 25's 9-miler ran 61 of 93 minutes easy and Aug 1's 10-miler ran 57 of 105. Compare Jul 18's 9-miler, which managed 10 easy minutes out of 94. Same distances, completely different runs.",
+   "Volume built cleanly across three weeks \u2014 23.1 \u2192 25.4 \u2192 26.7 mi \u2014 with acute:chronic load still optimal at 1.0 (acute 548, chronic 538). That is a well-executed ramp toward the 40\u201350 mi/wk base you need for next October.",
+   "Your quality days stay genuinely hard. Jul 28's session put 23 of 54 minutes in Z4\u2013Z5 and Jul 22 hit 22 of 46. You are not fooling yourself about intensity \u2014 the problem is the easy days, not the hard ones.",
+   "Sleep has turned around at exactly the right time. Oura logged 8.6h and 8.7h the last two nights after a rough 5\u20136h stretch mid-July. Bank that while you can, with the baby due late this month."
+  ]
+ }
 }
