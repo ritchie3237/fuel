@@ -41,7 +41,8 @@
       5-digit article number inside the EAN &mdash; e.g. EAN <code>4005556&#8203;00168&#8203;2</code> &rarr;
       <code>cdn.ravensburger.de/images/produktseiten/240/00168.jpg</code>. This tool reads each row&rsquo;s EAN, builds that
       link, and writes an Excel <code>=IMAGE(&hellip;)</code> formula into the <b>Front view</b> column, so Excel shows the
-      picture in-cell. Your <b>Side view</b> column&nbsp;K and everything else in the file are left untouched.
+      picture in-cell. In German Excel this same formula appears as <code>=BILD(&hellip;)</code>. Your <b>Side view</b>
+      column&nbsp;K and everything else in the file are left untouched.
     </p>
     <p class="note"><b>Requires:</b> Excel that supports the <code>IMAGE()</code> function (Microsoft&nbsp;365) with internet
       access, so it can load the pictures. Nothing is uploaded anywhere &mdash; the file is rewritten locally in your browser.</p>
@@ -190,7 +191,10 @@ $('file').addEventListener('change', async e => {
         const art=artFromEan(ean);
         if(!art){ skipped++; return m; }
         const url=CDN(art);
-        const cell=`<c r="${frontCol}${n}"><f>IMAGE(${'&quot;'+xesc(url)+'&quot;'},${'&quot;'+xesc('front '+String(ean).replace(/\D/g,''))+'&quot;'})</f></c>`;
+        // Stored as _xlfn.IMAGE — the required prefix for post-2007 functions.
+        // Without it Excel doesn't recognise the function and shows =@IMAGE / #NAME?.
+        // With it, German Excel displays and evaluates it as =BILD("…";"…").
+        const cell=`<c r="${frontCol}${n}"><f>_xlfn.IMAGE(${'&quot;'+xesc(url)+'&quot;'},${'&quot;'+xesc('front '+String(ean).replace(/\D/g,''))+'&quot;'})</f></c>`;
         let nb;
         const jFull=new RegExp(`<c r="${frontCol}${n}"[^>]*?(?:/>|>[\\s\\S]*?</c>)`);
         if(jFull.test(body)) nb=body.replace(jFull, cell);

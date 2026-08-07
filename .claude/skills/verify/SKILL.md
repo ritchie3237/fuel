@@ -20,8 +20,14 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
 
 ## Gotchas learned
 
-- `ravensburger-shelf-planner.html` persists state in localStorage key `rvShelfPlanner6`;
-  run `localStorage.clear(); location.reload()` for a fresh boot before asserting.
+- `ravensburger-shelf-planner.html` persists the working state in localStorage key
+  `rvShelfPlanner6`, and a named **project library** (history) under `rvProjects6`
+  (`{id:{name,snap,savedAt,accessedAt}}`; `saveProjectToLibrary`/`openProjectFromLibrary`).
+  Uploading a new order never touches `rvProjects6`, and offers to save unsaved work first
+  (`guardUnsavedBeforeReplace`). Run `localStorage.clear(); location.reload()` before asserting.
+- `rv-front-image-filler.html` writes the Front column as `<f>_xlfn.IMAGE("url","alt")</f>` —
+  the `_xlfn.` prefix is REQUIRED for post-2007 functions (without it Excel shows `=@IMAGE`/
+  `#NAME?`). German Excel renders/evaluates it as `=BILD(…)`.
 - Per-shelf blende (fascia) config lives in `shelfBlende` keyed by shelf id; icons are
   inline white SVGs by category (kids/toddler/metime/fan/games/explorers/flora), and the
   Special Offer category renders as a red gradient panel (all others blue). The blende

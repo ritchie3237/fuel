@@ -96,8 +96,13 @@
   .stat span { font-size: 11px; color: var(--muted); }
   #editor { position: fixed; right: 18px; bottom: 18px; width: 330px; background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,.18); padding: 14px; z-index: 50; display: none; }
   #editor h3 { margin: 0 0 8px; font-size: 14px; color: var(--rv-blue); }
-  dialog { border: 1px solid var(--line); border-radius: 8px; padding: 18px; max-width: 430px; }
+  dialog { border: 1px solid var(--line); border-radius: 8px; padding: 18px; max-width: 460px; }
   dialog::backdrop { background: rgba(15,76,129,.35); }
+  .projrow { display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); }
+  .projrow:last-child { border-bottom:0; }
+  .projrow.active { background:#f2f7fd; margin:0 -8px; padding:10px 8px; border-radius:6px; }
+  .projrow .projmeta { min-width:0; }
+  #projList { max-height:340px; overflow-y:auto; }
   .banner { background: #e9f2fb; border: 1px solid #b9d2ea; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #17456e; margin-bottom: 12px; line-height: 1.45; }
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #222; color: #fff; padding: 9px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 99; }
   @media print {
@@ -120,8 +125,9 @@
     <button class="ghost" id="btnPng" style="background:#fff">Export PNG</button>
     <button class="ghost" id="btnPrint" style="background:#fff">Print</button>
     <button class="ghost" id="btnXlsx" style="background:#fff">Export Excel</button>
-    <button class="ghost" id="btnSaveProject" style="background:#fff" title="Save this whole store setup to a file">Save project</button>
-    <button class="ghost" id="btnLoadProject" style="background:#fff" title="Load a saved store project file">Load project</button>
+    <button class="ghost" id="btnProjects" style="background:#fff" title="Save projects inside the tool and reopen them any time (with history)">&#9733; My projects</button>
+    <button class="ghost" id="btnSaveProject" style="background:#fff" title="Save this whole store setup to a file on disk (backup / share)">Backup to file</button>
+    <button class="ghost" id="btnLoadProject" style="background:#fff" title="Restore a store setup from a saved file">Restore file</button>
     <input type="file" id="projectInput" accept=".json" style="display:none">
   </div>
 </header>
@@ -132,7 +138,8 @@
     side image &middot; a single-tab order lands entirely on the one shelf area you set up (no Flora mixing) &middot; each
     shelf&rsquo;s header panel is set individually (click it): pick its icon/category, custom text, or a plain panel &mdash;
     Special&nbsp;Offer shows red &middot; 6-level fixture 33.5&nbsp;/&nbsp;5&times;35&nbsp;cm, 38&nbsp;cm depth &middot; up to
-    2 products face-out in the centre, the rest turned sideways &middot; save &amp; reload a project per store.
+    2 products face-out in the centre, the rest turned sideways &middot; <b>&#9733;&nbsp;My&nbsp;projects</b> keeps every
+    shelf setup you build &mdash; save it, reopen it later, and upload a new order without losing it.
     Pick a theme above the planogram and press <b>Generate</b>.
   </div>
   <div class="cols">
@@ -337,6 +344,20 @@
   <div class="btnrow" style="margin-top:12px">
     <button id="apOk">Add</button>
     <button class="ghost" id="apCancel">Cancel</button>
+  </div>
+</dialog>
+
+<dialog id="dlgProjects">
+  <h3 style="margin-top:0;color:var(--rv-blue)">&#9733; My projects</h3>
+  <p class="note" style="margin-top:0">Saved inside this browser and listed newest first. Uploading a new order never deletes a saved project &mdash; your shelves and layout are kept here and can be reopened any time.</p>
+  <div class="btnrow" style="margin:10px 0">
+    <input type="text" id="projName" placeholder="Project name — e.g. Kids · tiptoi" style="flex:1;min-width:160px">
+    <button class="small" id="projSave">Save</button>
+    <button class="small ghost" id="projSaveAs" title="Store the current setup as a separate new project">Save as new</button>
+  </div>
+  <div id="projList"></div>
+  <div class="btnrow" style="margin-top:12px">
+    <button class="small ghost" id="projClose">Close</button>
   </div>
 </dialog>
 
@@ -1772,7 +1793,11 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
     products = products.concat(out);
     mode = 'appended';
   } else {
+    // about to discard the current products — offer to save them as a project first,
+    // and start a fresh working set (the shelves you built are kept)
+    guardUnsavedBeforeReplace();
     products = out;
+    activeProjectId = null; activeProjectName = '';
   }
   isDemo = false;
   layouts = {};
@@ -2084,6 +2109,7 @@ function loadSnapshot(s) {
   top100 = new Set(s.top100 || []); nextId = s.nextId || 10000;
 }
 function save() {
+  projectDirty = true;   // working state changed since the last library save
   const state = snapshot();
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify(state));
@@ -2126,6 +2152,100 @@ $('projectInput').onchange = async e => {
   } catch (err) { toast('Could not load project: ' + err.message); }
 };
 let activeProjectName = '';
+
+/* ---------- in-tool project library (history), separate from file backup ----------
+   Nina: keep the shelves/layout she has built so a new order upload doesn't wipe it,
+   and reopen recent projects again and again. Stored under its own localStorage key,
+   so uploads (which only touch the working state) never delete a saved project. */
+const PROJ_KEY = 'rvProjects6';
+let activeProjectId = null;
+let projectDirty = false;
+function loadProjects() { try { return JSON.parse(localStorage.getItem(PROJ_KEY)) || {}; } catch { return {}; } }
+function persistProjects(map) {
+  try { localStorage.setItem(PROJ_KEY, JSON.stringify(map)); return true; }
+  catch (e) { // storage full: drop images from stored snapshots and retry
+    try {
+      for (const id in map) { const s = map[id].snap; if (s && s.products) s.products = s.products.map(p => ({ ...p, img: null, imgSide: null, imgOpen: null })); }
+      localStorage.setItem(PROJ_KEY, JSON.stringify(map)); return true;
+    } catch (e2) { return false; }
+  }
+}
+function relTime(ts) {
+  if (!ts) return '';
+  const s = (Date.now() - ts) / 1000;
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s / 60) + ' min ago';
+  if (s < 86400) return Math.floor(s / 3600) + ' h ago';
+  if (s < 86400 * 7) return Math.floor(s / 86400) + ' d ago';
+  return new Date(ts).toLocaleDateString();
+}
+function saveProjectToLibrary(name, id) {
+  const map = loadProjects();
+  id = id || ('p' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6));
+  const prev = map[id] || {};
+  map[id] = { name: (name || prev.name || 'Untitled').trim(), snap: snapshot(), savedAt: Date.now(), accessedAt: Date.now() };
+  const ok = persistProjects(map);
+  if (ok) { activeProjectId = id; activeProjectName = map[id].name; projectDirty = false; }
+  return ok;
+}
+function openProjectFromLibrary(id) {
+  const map = loadProjects(); const e = map[id]; if (!e) return;
+  loadSnapshot(e.snap);
+  e.accessedAt = Date.now(); persistProjects(map);
+  activeProjectId = id; activeProjectName = e.name;
+  isDemo = false; $('demoBanner').style.display = 'none';
+  renderAll(); save(); projectDirty = false;
+  toast('Opened project "' + e.name + '"');
+}
+function deleteProjectFromLibrary(id) {
+  const map = loadProjects(); if (!map[id]) return;
+  const nm = map[id].name; delete map[id]; persistProjects(map);
+  if (activeProjectId === id) { activeProjectId = null; activeProjectName = ''; }
+  renderProjectsList(); toast('Deleted "' + nm + '"');
+}
+function renderProjectsList() {
+  const map = loadProjects();
+  const items = Object.entries(map).sort((a, b) => (b[1].accessedAt || b[1].savedAt) - (a[1].accessedAt || a[1].savedAt));
+  const box = $('projList');
+  if (!items.length) { box.innerHTML = '<p class="note">No saved projects yet. Build your shelves, type a name above and press <b>Save</b>.</p>'; return; }
+  box.innerHTML = items.map(([id, e]) => {
+    const active = id === activeProjectId;
+    const nSh = (e.snap && e.snap.shelves && e.snap.shelves.length) || 0;
+    const nPr = (e.snap && e.snap.products && e.snap.products.length) || 0;
+    return `<div class="projrow${active ? ' active' : ''}">
+      <div class="projmeta"><b>${esc(e.name)}</b>${active ? ' <span class="pill">open</span>' : ''}<br>
+        <span class="note">${nSh} shelves &middot; ${nPr} products &middot; edited ${relTime(e.savedAt)}</span></div>
+      <div class="btnrow"><button class="small" data-open="${id}">Open</button><button class="small ghost" data-del="${id}">Delete</button></div>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('[data-open]').forEach(b => b.onclick = () => openProjectFromLibrary(b.dataset.open));
+  box.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { if (confirm('Delete this project? This cannot be undone.')) deleteProjectFromLibrary(b.dataset.del); });
+}
+$('btnProjects').onclick = () => { $('projName').value = activeProjectName || ''; renderProjectsList(); $('dlgProjects').showModal(); };
+$('projSave').onclick = () => {
+  const name = ($('projName').value || '').trim();
+  if (!name) { toast('Give the project a name first'); return; }
+  const ok = saveProjectToLibrary(name, activeProjectId);   // updates the open project (incl. rename), or creates one
+  renderProjectsList();
+  toast(ok ? 'Saved "' + name + '"' : 'Storage full — could not save');
+};
+$('projSaveAs').onclick = () => {
+  const name = ($('projName').value || '').trim();
+  if (!name) { toast('Give the new project a name first'); return; }
+  const ok = saveProjectToLibrary(name, null);              // always a fresh entry
+  renderProjectsList();
+  toast(ok ? 'Saved a new project "' + name + '"' : 'Storage full — could not save');
+};
+$('projClose').onclick = () => $('dlgProjects').close();
+/* offer to save unsaved work before an order upload replaces it (called from loadOrderGrids) */
+function guardUnsavedBeforeReplace() {
+  if (isDemo || !products.length || !projectDirty) return;
+  if (confirm('Save your current planogram to “My projects” before loading this order?\n\nOK = name it and save · Cancel = load without saving')) {
+    const name = (prompt('Project name:', activeProjectName || 'Store') || '').trim();
+    if (name) saveProjectToLibrary(name, activeProjectId && loadProjects()[activeProjectId] ? activeProjectId : null);
+  }
+}
+
 $('btnClear').onclick = () => {
   if (!confirm('Reset everything back to the built-in defaults (shelves, templates, Flora pilot)?')) return;
   localStorage.removeItem(STORE_KEY);

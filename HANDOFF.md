@@ -29,7 +29,7 @@ Nina's team plans true-to-scale **retail shelf planograms** for Ravensburger toy
 - **Auto-arranges** each shelf to Nina's "consistent look": up to **2 different products face-out in the centre**, everything else turned **sideways** on the left/right to fill the shelf; up to 2 identical facings; larger / higher-value / Top-100 items pushed to eye level (~140 cm). Manual edits (drag, duplicate, change view/facings) are preserved and never re-arranged.
 - Renders a **true-to-scale** planogram (wood-look shelves, per-shelf coloured **blende** header with category icon) and lets the user **drag/duplicate/edit** blocks.
 - Exports an **editable Excel** shelf-assignment workbook and a **PNG/print** planogram.
-- Persists to `localStorage` (key `rvShelfPlanner6`) and can **save/load a project file** per store.
+- Persists the working state to `localStorage` (`rvShelfPlanner6`), keeps a named **project library / history** (`rvProjects6`) so shelf setups survive a new upload and can be reopened, and can **backup/restore a project file** per store.
 
 ### Architecture (all in the one file, one `<script>`)
 - **Custom XLSX reader** (`readXlsx`, ~line 1300–1470): parses the zip via `DecompressionStream('deflate-raw')` + `DOMParser`. Reads sheet grids, shared strings, sheet tab names, and **two kinds of embedded images** (see §4 — this is the subtle part).
@@ -73,7 +73,7 @@ EAN 4005556 00168 2   →   https://cdn.ravensburger.de/images/produktseiten/240
 (`240` is a fixed size bucket; 120/480/960 return 404.) This is confirmed against Nina's file for every item.
 
 ### What the tool does
-Load an order `.xlsx` → for each row whose EAN is a `4005556…` article, it writes `=IMAGE("<cdn url>")` into the **Front view** column, and hands the file back. Opened in **Excel 365 with internet**, the front picture appears in each cell. The **Side column K and everything else** (side-image drawings, rich data, the PIM add-in, styles) are copied through untouched. Same zip reader/writer + EAN→article logic as the shelf planner.
+Load an order `.xlsx` → for each row whose EAN is a `4005556…` article, it writes `=IMAGE("<cdn url>")` into the **Front view** column, and hands the file back. Opened in **Excel 365 with internet**, the front picture appears in each cell. The formula is stored as `_xlfn.IMAGE(…)` — the `_xlfn.` prefix is **required** for post-2007 functions; without it Excel shows `=@IMAGE`/`#NAME?`. In **German** Excel it displays and evaluates as `=BILD(…)`. The **Side column K and everything else** (side-image drawings, rich data, the PIM add-in, styles) are copied through untouched. Same zip reader/writer + EAN→article logic as the shelf planner.
 
 ### The half that is NOT solved (and why) — important
 The clean **side/spine** shot (`…_RIGHT_FLAT.tif`) is **not** on the public CDN. It lives only in **PIM/ContentServ**, and its URL carries an internal asset-ID hash **plus an expiring auth token** (`CSToken=…`). So it **cannot** be derived from the EAN, and a copied link stops working. To automate the side column too, PIM must expose **one thing**: a **stable/permanent delivery URL by EAN + view type** (e.g. `…/ImageServer.php?ean=…&view=RIGHT_FLAT`, no expiring token). If they provide that, extend this tool to fill column K exactly like J. This is a small, specific PIM request — not a full PIM project. See the "PIM pictures" email thread.
