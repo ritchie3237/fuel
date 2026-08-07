@@ -1682,8 +1682,12 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
     //      re-uploaded") land every product on that one shelf area, never
     //      mixed with Flora;
     //   3. else the theme currently being viewed.
+    // match the tab name to a shelf area ignoring case AND separators, so an Excel
+    // tab "Me_Time" lands on a shelf area named "Me Time" / "Me-Time" (Nina: tabs use
+    // underscores, shelves use spaces — they must still line up).
+    const normName = s => String(s || '').toLowerCase().replace(/[\s_\-]+/g, ' ').trim();
     const rawTitle = (sheetTitles[sIdx] || '').trim();
-    const sheetTheme = existingThemes.find(t => t.toLowerCase() === rawTitle.toLowerCase())
+    const sheetTheme = existingThemes.find(t => normName(t) === normName(rawTitle))
       || (existingThemes.length === 1 ? existingThemes[0] : activeTheme);
     const det = detectOrderColumns(grid);
     if (!det) { if (grid.some(r => (r || []).some(c => c))) diag.push(`sheet ${sIdx + 1}: no header found — skipped`); return; }

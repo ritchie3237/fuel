@@ -44,8 +44,12 @@
       picture in-cell. In German Excel this same formula appears as <code>=BILD(&hellip;)</code>. Your <b>Side view</b>
       column&nbsp;K and everything else in the file are left untouched.
     </p>
-    <p class="note"><b>Requires:</b> Excel that supports the <code>IMAGE()</code> function (Microsoft&nbsp;365) with internet
-      access, so it can load the pictures. Nothing is uploaded anywhere &mdash; the file is rewritten locally in your browser.</p>
+    <p class="note">It first <b>checks whether each image actually exists</b> on the server. Only products with a published
+      picture are filled; the rest are left <b>empty</b> &mdash; no <code>#BLOCKED</code> error &mdash; ready for you to paste
+      a screenshot. (Re-running also clears any old error formula from a previous version.)</p>
+    <p class="note"><b>Requires:</b> Excel that supports the <code>IMAGE()</code> function (Microsoft&nbsp;365), and internet
+      access while this tool runs (to check the images) and in Excel (to display them). Nothing is uploaded anywhere &mdash;
+      the file is rewritten locally in your browser.</p>
   </div>
 
   <div class="card">
@@ -140,6 +144,26 @@ function sharedStrings(xml){
 
 let outBlob=null, outName='order_front_filled.xlsx';
 
+/* does an image URL actually resolve? loads it as an <img> (works cross-origin,
+   no CORS needed) — onload = exists, onerror/timeout = missing. */
+function imageExists(url){
+  return new Promise(res=>{
+    const img=new Image(); let done=false;
+    const fin=v=>{ if(!done){ done=true; res(v); } };
+    img.onload=()=>fin((img.naturalWidth||0)>0);
+    img.onerror=()=>fin(false);
+    setTimeout(()=>fin(false), 8000);
+    try { img.src=url; } catch { fin(false); }
+  });
+}
+async function checkImages(urls){
+  const uniq=[...new Set(urls)]; const out={}; let i=0;
+  const N=Math.min(8, Math.max(1, uniq.length));
+  async function worker(){ while(i<uniq.length){ const u=uniq[i++]; out[u]=await imageExists(u); } }
+  await Promise.all(Array.from({length:N}, worker));
+  return out;
+}
+
 $('file').addEventListener('change', async e => {
   const f=e.target.files[0]; if(!f) return;
   $('resultCard').style.display='none'; $('download').disabled=true; outBlob=null;
@@ -152,11 +176,11 @@ $('file').addEventListener('change', async e => {
     if(!sheetFiles.length) throw new Error('No worksheet found in this file.');
     const shared = sharedStrings(get('xl/sharedStrings.xml') ? dec(get('xl/sharedStrings.xml').data) : '');
 
-    let totalRows=0, filled=0, skipped=0; const preview=[];
+    // ---- PASS 1: find each row's EAN and its candidate front-image URL ----
+    let totalRows=0, filled=0, noImage=0, cleared=0, skipped=0; const preview=[];
+    const sheets=[];
     for (const sf of sheetFiles){
-      let xml = dec(sf.data);
-
-      // detect header row + EAN column + Front-view column
+      const xml = dec(sf.data);
       const doc = new DOMParser().parseFromString(xml,'application/xml');
       const rowsEls=[...doc.getElementsByTagName('row')];
       const cellText=(c)=>{ const t=c.getAttribute('t'); const v=c.getElementsByTagName('v')[0];
@@ -172,41 +196,56 @@ $('file').addEventListener('change', async e => {
         }
         if(foundEan||foundFront){ headerR=+(r.getAttribute('r')||1); if(foundEan)eanCol=foundEan; if(foundFront)frontCol=foundFront; break; }
       }
-
-      // walk each data row, set Front cell = =IMAGE(cdn url)
-      const rowRe=/(<row[^>]*\br="(\d+)"[^>]*>)([\s\S]*?)(<\/row>)/g;
-      xml = xml.replace(rowRe, (m, open, rn, body, close) => {
-        const n=+rn; if(n<=headerR) return m;
-        // read EAN from eanCol
-        const eanCell = new RegExp(`<c r="${eanCol}${n}"[^>]*>([\\s\\S]*?)</c>`).exec(body)
-                     || new RegExp(`<c r="${eanCol}${n}"[^>]*/>`).exec(body);
+      const cands=[];
+      const rowRe=/<row[^>]*\br="(\d+)"[^>]*>([\s\S]*?)<\/row>/g; let mm;
+      while((mm=rowRe.exec(xml))){
+        const n=+mm[1]; if(n<=headerR) continue; const body=mm[2];
+        const ec=new RegExp(`<c r="${eanCol}${n}"[^>]*>([\\s\\S]*?)</c>`).exec(body);
         let ean=null;
-        if(eanCell && eanCell[1]!=null){
-          const tMatch=/<c r="[^"]*"([^>]*)>/.exec(eanCell[0]); const t=/t="s"/.test(tMatch?tMatch[1]:'');
-          const v=/<v>([\s\S]*?)<\/v>/.exec(eanCell[1]);
-          if(v) ean = t ? (shared[+v[1]]||'') : v[1];
-        }
-        if(!ean) return m;
+        if(ec){ const tM=/<c r="[^"]*"([^>]*)>/.exec(ec[0]); const t=/t="s"/.test(tM?tM[1]:'');
+          const v=/<v>([\s\S]*?)<\/v>/.exec(ec[1]); if(v) ean=t?(shared[+v[1]]||''):v[1]; }
+        if(!ean) continue;
         totalRows++;
         const art=artFromEan(ean);
-        if(!art){ skipped++; return m; }
-        const url=CDN(art);
-        // Stored as _xlfn.IMAGE — the required prefix for post-2007 functions.
-        // Without it Excel doesn't recognise the function and shows =@IMAGE / #NAME?.
-        // With it, German Excel displays and evaluates it as =BILD("…";"…").
-        const cell=`<c r="${frontCol}${n}"><f>_xlfn.IMAGE(${'&quot;'+xesc(url)+'&quot;'},${'&quot;'+xesc('front '+String(ean).replace(/\D/g,''))+'&quot;'})</f></c>`;
-        let nb;
-        const jFull=new RegExp(`<c r="${frontCol}${n}"[^>]*?(?:/>|>[\\s\\S]*?</c>)`);
-        if(jFull.test(body)) nb=body.replace(jFull, cell);
-        else {
-          const kAnchor=new RegExp(`(<c r="[A-Z]+${n}")`); // insert before the next cell after front alphabetically is hard; append is tolerated by Excel if we re-sort — instead append then rely on Excel. Safer: append at end.
-          nb = body + cell;
+        if(!art){ skipped++; continue; }
+        cands.push({ n, url:CDN(art), art, ean:String(ean).replace(/\D/g,'') });
+      }
+      sheets.push({ sf, xml, frontCol, cands });
+    }
+
+    // ---- check which of those images actually exist on the image server ----
+    $('status').innerHTML='Checking which front images exist on the image server &hellip;';
+    const allUrls=[]; sheets.forEach(s=>s.cands.forEach(c=>allUrls.push(c.url)));
+    const existing = await checkImages(allUrls);
+    // safety net: if nothing was reachable (offline / images blocked), don't blank
+    // the whole file — fall back to writing every link as before.
+    const reachable = Object.values(existing).some(Boolean);
+
+    // ---- PASS 2: fill Front only where the image exists; leave the rest empty ----
+    for (const s of sheets){
+      let xml=s.xml; const frontCol=s.frontCol;
+      for (const c of s.cands){
+        const n=c.n, url=c.url, ok = reachable ? existing[url] : true;
+        const jRe=new RegExp(`<c r="${frontCol}${n}"[^>]*?(?:/>|>[\\s\\S]*?</c>)`);
+        const curM=jRe.exec(xml); const cur=curM?curM[0]:'';
+        if (ok){
+          // Stored as _xlfn.IMAGE — the required prefix for post-2007 functions
+          // (without it Excel shows =@IMAGE / #NAME?). German Excel shows =BILD(…).
+          const cell=`<c r="${frontCol}${n}"><f>_xlfn.IMAGE(&quot;${xesc(url)}&quot;,&quot;${xesc('front '+c.ean)}&quot;)</f></c>`;
+          if (cur) xml=xml.replace(jRe, cell);
+          else xml=xml.replace(new RegExp(`(<row[^>]*\\br="${n}"[^>]*>)([\\s\\S]*?)(</row>)`), (m,o,b,cl)=>o+b+cell+cl);
+          filled++;
+          if(preview.length<14) preview.push({ ean:c.ean, art:c.art, url, ok:true });
+        } else {
+          // no published image → never write a broken formula (that is the #BLOCKED /
+          // #BLOCKIERT error). Remove a formula we wrote on a previous run so the cell
+          // is clean; leave any manually inserted picture untouched.
+          if (cur && /IMAGE/i.test(cur)){ xml=xml.replace(jRe, `<c r="${frontCol}${n}"/>`); cleared++; }
+          noImage++;
+          if(preview.length<14) preview.push({ ean:c.ean, art:c.art, url, ok:false });
         }
-        filled++;
-        if(preview.length<12) preview.push({ean:String(ean).replace(/\D/g,''), art, url});
-        return open+nb+close;
-      });
-      sf.data = encb(xml);
+      }
+      s.sf.data=encb(xml);
     }
 
     // force recalc so IMAGE() evaluates on open
@@ -219,13 +258,15 @@ $('file').addEventListener('change', async e => {
 
     outBlob = writeZip(files);
     outName = f.name.replace(/\.xlsx$/i,'') + '_front_filled.xlsx';
-    $('status').innerHTML = `<span class="ok">&#10003; Done.</span> Read ${totalRows} product rows.`;
+    $('status').innerHTML = `<span class="ok">&#10003; Done.</span> Checked ${totalRows} product rows.`;
     $('summary').innerHTML =
       `<span class="pill">${filled} front images added</span>` +
+      (noImage?`<span class="pill">${noImage} left empty (no image on server)</span>`:'') +
+      (cleared?`<span class="pill">${cleared} old error formulas cleared</span>`:'') +
       (skipped?`<span class="pill">${skipped} skipped (EAN not a 4005556 article)</span>`:'') +
-      `<p class="note">Column with front images: <code>Front view</code>. Side column and the rest of your file are unchanged. Open the downloaded file in Excel (365, online) &mdash; the pictures load into the cells automatically.</p>`;
-    let tbl='<table><tr><th>EAN</th><th>Article</th><th>Front-image link</th><th>Preview</th></tr>';
-    for(const p of preview) tbl+=`<tr><td>${p.ean}</td><td>${p.art}</td><td><code>${p.url.replace('https://cdn.ravensburger.de','&hellip;')}</code></td><td class="img"><img src="${p.url}" loading="lazy" alt=""></td></tr>`;
+      `<p class="note">The <code>Front view</code> column is filled only where the picture actually exists on the image server. Rows with no published image are left <b>empty</b> (and any old <code>#BLOCKED</code> formula is removed) so you can drop in a screenshot yourself. Your Side column and the rest of the file are unchanged. Open in Excel (365, online) and the front pictures load automatically.</p>`;
+    let tbl='<table><tr><th>EAN</th><th>Article</th><th>Front image</th><th>Preview</th></tr>';
+    for(const p of preview) tbl+=`<tr><td>${p.ean}</td><td>${p.art}</td><td>${p.ok?'<span class="ok">&#10003; added</span>':'<span class="warn">&mdash; none on server</span>'}</td><td class="img">${p.ok?`<img src="${p.url}" loading="lazy" alt="">`:'&nbsp;'}</td></tr>`;
     tbl+='</table>';
     $('preview').innerHTML=tbl;
     $('resultCard').style.display='block'; $('download').disabled=false;
