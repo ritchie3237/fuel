@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ravensburger Shelf Tools — User Guide</title>
+<style>
+  :root { --rv-blue:#0a4595; --rv-red:#e2103a; --ink:#1b2532; --muted:#5c6675; --line:#dce3ec; --paper:#fff; --soft:#f4f7fb; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#eef2f7; color:var(--ink); font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:820px; margin:0 auto; padding:0 20px; }
+  header { background:linear-gradient(180deg,#0a4595,#0d3878); color:#fff; padding:34px 0 30px; }
+  header h1 { margin:0 0 6px; font-size:28px; letter-spacing:-.01em; }
+  header p { margin:0; opacity:.9; font-size:15px; }
+  main { padding:26px 0 70px; }
+  .toc { background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin:22px 0; }
+  .toc h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 8px; }
+  .toc ol { margin:0; padding-left:20px; columns:2; column-gap:26px; font-size:14.5px; }
+  .toc a { color:var(--rv-blue); text-decoration:none; }
+  section { background:var(--paper); border:1px solid var(--line); border-radius:14px; padding:22px 24px; margin:16px 0; }
+  h2.sec { font-size:20px; margin:0 0 4px; color:var(--rv-blue); }
+  h2.sec .n { font:600 12px/1 ui-monospace,monospace; background:#e7eef8; color:var(--rv-blue); padding:5px 7px; border-radius:6px; margin-right:8px; vertical-align:middle; }
+  h3 { font-size:15.5px; margin:20px 0 6px; }
+  p { margin:10px 0; }
+  ol.steps { margin:10px 0; padding-left:22px; }
+  ol.steps li { margin:8px 0; }
+  ul { margin:10px 0; padding-left:22px; }
+  li { margin:5px 0; }
+  code { background:var(--soft); border:1px solid var(--line); padding:.05em .4em; border-radius:5px; font:13px ui-monospace,Menlo,Consolas,monospace; }
+  .note { background:var(--soft); border-left:3px solid var(--rv-blue); border-radius:0 8px 8px 0; padding:10px 14px; margin:14px 0; font-size:14.5px; }
+  .warn { border-left-color:var(--rv-red); }
+  .tablewrap { overflow-x:auto; }
+  table { border-collapse:collapse; width:100%; font-size:14px; margin:12px 0; min-width:34rem; }
+  th,td { border:1px solid var(--line); padding:8px 10px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); font-size:12.5px; }
+  kbd { background:#fff; border:1px solid var(--line); border-bottom-width:2px; border-radius:5px; padding:1px 6px; font:13px ui-monospace,monospace; }
+  .pill { display:inline-block; background:#e7eef8; color:var(--rv-blue); border-radius:20px; padding:2px 10px; font-size:12.5px; font-weight:600; }
+  a.top { font-size:12px; color:var(--muted); text-decoration:none; float:right; }
+  @media print { body { background:#fff; } section,.toc { break-inside:avoid; border-color:#ccc; } header { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Shelf Planner &amp; Image Filler</h1>
+  <p>User guide for the two Ravensburger planning tools &mdash; no installation, works offline, your data never leaves your computer.</p>
+</div></header>
+<main class="wrap">
+
+  <div class="toc">
+    <h2>Contents</h2>
+    <ol>
+      <li><a href="#start">Before you start</a></li>
+      <li><a href="#shelves">Set up your shelves</a></li>
+      <li><a href="#order">Load your order Excel</a></li>
+      <li><a href="#edit">Arrange &amp; edit the shelf</a></li>
+      <li><a href="#banners">Shelf banners &amp; icons</a></li>
+      <li><a href="#projects">Save &amp; reopen projects</a></li>
+      <li><a href="#export">Export for the store</a></li>
+      <li><a href="#filler">Filling product images</a></li>
+      <li><a href="#sources">Adding a new brand of images</a></li>
+      <li><a href="#faq">Good to know / FAQ</a></li>
+    </ol>
+  </div>
+
+  <section id="start">
+    <h2 class="sec"><span class="n">01</span>Before you start</h2>
+    <p>There are <b>two separate files</b>, each a single web page you open in your browser (recent Edge, Chrome or Firefox):</p>
+    <ul>
+      <li><b>Shelf Planner</b> (<code>ravensburger-shelf-planner.html</code>) &mdash; turns an order list into a true-to-scale shelf plan and an editable Excel.</li>
+      <li><b>Front-Image Filler</b> (<code>rv-front-image-filler.html</code>) &mdash; fills the &ldquo;Front view&rdquo; column of an order Excel with product pictures.</li>
+    </ul>
+    <p>Save each file anywhere and <b>double-click to open</b>. Nothing installs, nothing is uploaded &mdash; everything happens on your machine. When you first open the planner it loads a small <b>BRIO Flora demo</b> so you can try every button safely.</p>
+    <div class="note">Your work is remembered in that browser on that computer. To move it to another PC, use <b>Backup to file</b> / <b>Restore file</b> (see <a href="#projects">Projects</a>).</div>
+  </section>
+
+  <section id="shelves">
+    <h2 class="sec"><span class="n">02</span>Set up your shelves <a class="top" href="#start">top ↑</a></h2>
+    <p>In the planner, section <b>3 &middot; Store shelves &amp; theme areas</b> is where you build your fixture:</p>
+    <ol class="steps">
+      <li>Each row is one physical shelf: give it a <b>fixture template</b> (size / number of levels) and a <b>theme area</b> name (free text &mdash; e.g. <code>Kids</code>, <code>Me Time</code>, <code>Fan Highlights</code>).</li>
+      <li>Add as many shelves as you need with <b>+ Add shelf</b>. Shelves that share a theme name form one area.</li>
+      <li>Pick the area you want to see from the <b>Theme area</b> dropdown above the planogram.</li>
+    </ol>
+    <div class="note"><b>Name shelves to match your Excel tabs.</b> When you upload a workbook, each tab&rsquo;s products go to the shelf area with the same name. Spaces, underscores and capital letters don&rsquo;t matter &mdash; a tab called <code>Me_Time</code> lands on a <code>Me Time</code> shelf. So the rule is simple: <b>create a shelf area named like the tab, and its products land there automatically.</b></div>
+  </section>
+
+  <section id="order">
+    <h2 class="sec"><span class="n">03</span>Load your order Excel <a class="top" href="#start">top ↑</a></h2>
+    <p>Use <b>Load order file (.xlsx / .csv)</b> in section 1. The tool reads one row per product: EAN, article number, title, order quantity, package width×height×depth, and category. It understands German or English headers.</p>
+    <h3>Product pictures in the order file</h3>
+    <p>Photos embedded in the sheet are read by column heading:</p>
+    <ul>
+      <li><b>Front view → column J</b></li>
+      <li><b>Side view → column K</b></li>
+      <li><b>Open / unpacked → column L</b></li>
+    </ul>
+    <p>Both floating pictures and Excel&rsquo;s &ldquo;image in cell&rdquo; photos are picked up. Front always uses its own column-J picture and never borrows the side one.</p>
+    <div class="note">A product with no size given is placed in <b>&ldquo;Held aside&rdquo;</b> rather than guessed &mdash; type its dimensions in and it joins the shelf. Uploading a new order <b>replaces</b> the current products by default (your saved <a href="#projects">projects</a> are untouched); choose <i>Cancel</i> on the prompt to add instead.</div>
+  </section>
+
+  <section id="edit">
+    <h2 class="sec"><span class="n">04</span>Arrange &amp; edit the shelf <a class="top" href="#start">top ↑</a></h2>
+    <p>Press <b>⚙ Generate layout</b> and the tool arranges the active area to the house style: up to two different products face-out in the centre, the rest turned sideways to fill the shelf, best-sellers and larger items nearer eye level.</p>
+    <ul>
+      <li><b>Drag</b> a product to another level or shelf.</li>
+      <li><b>Click</b> a product to change its facings, switch it between front / side / open view, duplicate it, or remove it.</li>
+      <li>Your hand edits stick &mdash; only pressing Generate re-arranges from scratch.</li>
+    </ul>
+  </section>
+
+  <section id="banners">
+    <h2 class="sec"><span class="n">05</span>Shelf banners &amp; icons <a class="top" href="#start">top ↑</a></h2>
+    <p><b>Click the coloured banner</b> above any shelf to set that one shelf: pick its category / icon, type custom text, or make it a plain panel. Special Offer shows red; the others blue. Each shelf is independent.</p>
+    <h3>Adding an icon for a new category</h3>
+    <p>The built-in icons (Kids, Toddler, Me-Time, Fan-Highlights, Games Party, Explorers, Special Offer, BRIO Flora) appear automatically from the area name. If you invent a <b>new category</b>, open <b>Category icons</b> in the top bar and add a row: type the category name and choose which icon it should use. From then on any shelf in that area shows it automatically. Use <b>Export / Import</b> to share your list with a colleague.</p>
+    <div class="note">A brand-new picture that isn&rsquo;t in the icon list yet needs a developer to add &mdash; but you can always point a new category at the closest existing icon yourself.</div>
+  </section>
+
+  <section id="projects">
+    <h2 class="sec"><span class="n">06</span>Save &amp; reopen projects <a class="top" href="#start">top ↑</a></h2>
+    <p>Click <b>★ My projects</b> (top bar) to keep a shelf setup and come back to it:</p>
+    <ol class="steps">
+      <li>Build your shelves, type a name (e.g. <code>Kids · tiptoi</code>) and press <b>Save</b>.</li>
+      <li>Saved projects are listed newest first, with how many shelves / products each has and when you last edited it.</li>
+      <li>Press <b>Open</b> on any of them to load it back. <b>Save as new</b> keeps the current one and stores a separate copy.</li>
+    </ol>
+    <p>Uploading a new order never deletes a saved project, so you can build <code>Kids</code>, save it, then start <code>Toddler</code> without losing <code>Kids</code>. For a copy outside the browser (another PC, a backup), use <b>Backup to file</b> and <b>Restore file</b>.</p>
+  </section>
+
+  <section id="export">
+    <h2 class="sec"><span class="n">07</span>Export for the store <a class="top" href="#start">top ↑</a></h2>
+    <ul>
+      <li><b>Export Excel</b> &mdash; the shelf-assignment workbook (shelf, level, article, product, view, facings, position, theme, plus a summary).</li>
+      <li><b>Export PNG</b> or <b>Print</b> &mdash; the visual planogram for the stocking team.</li>
+    </ul>
+  </section>
+
+  <section id="filler">
+    <h2 class="sec"><span class="n">08</span>Filling product images (Image Filler) <a class="top" href="#start">top ↑</a></h2>
+    <p>Open <code>rv-front-image-filler.html</code> and pick your order Excel. For each product it builds the picture link from the EAN, <b>checks the image actually exists</b>, and writes it into the <b>Front view</b> column as an <code>=IMAGE(&hellip;)</code> formula (shown as <code>=BILD(&hellip;)</code> in German Excel). Then press <b>Download filled Excel</b>.</p>
+    <ul>
+      <li>Products <b>with</b> a published picture are filled automatically.</li>
+      <li>Products <b>without</b> one are left <b>empty</b> &mdash; no error &mdash; ready for you to paste a screenshot. Click the empty cell and use <kbd>Insert ▸ Pictures ▸ Place in Cell</kbd>. Cells you fill yourself are never overwritten if you run the tool again.</li>
+    </ul>
+    <div class="note"><b>Requires</b> Excel 365 (the <code>IMAGE</code> / <code>BILD</code> function) and internet, so the pictures can load. The Side-view column is left for you to fill.</div>
+  </section>
+
+  <section id="sources">
+    <h2 class="sec"><span class="n">09</span>Adding a new brand of images <a class="top" href="#start">top ↑</a></h2>
+    <p>The Image Filler has an <b>Image sources</b> table (section 2) that you can edit yourself &mdash; one row per brand:</p>
+    <div class="tablewrap"><table>
+      <tr><th>Brand</th><th>EAN starts with</th><th>Image URL template</th></tr>
+      <tr><td>Ravensburger</td><td><code>4005556</code></td><td><code>https://cdn.ravensburger.de/images/produktseiten/240/{art5}.jpg</code></td></tr>
+      <tr><td>BRIO</td><td><code>7312350</code></td><td><i>paste the pattern here when you have it</i></td></tr>
+    </table></div>
+    <p>The template uses placeholders the tool fills in for you:</p>
+    <ul>
+      <li><code>{art5}</code> &mdash; the 5-digit article number inside the EAN (what Ravensburger&rsquo;s server uses).</li>
+      <li><code>{ean}</code> &mdash; the whole barcode, for a brand whose images are named by full EAN.</li>
+    </ul>
+    <p>Add a row with <b>+ Add brand</b>, fill in the prefix and template, and that brand&rsquo;s products get pictures too &mdash; no help from IT needed. <b>Export / Import</b> shares the table with colleagues. If you don&rsquo;t yet know a brand&rsquo;s URL pattern, ask whoever manages that brand&rsquo;s image server (PIM) for a permanent link by article number, then paste it in.</p>
+  </section>
+
+  <section id="faq">
+    <h2 class="sec"><span class="n">10</span>Good to know / FAQ <a class="top" href="#start">top ↑</a></h2>
+    <h3>Some products have no picture</h3>
+    <p>Only items whose image is published on the public server can be filled automatically. The rest are left empty on purpose &mdash; add a screenshot as above. The clean <b>side view</b> generally isn&rsquo;t on the public server at all; that needs a permanent PIM link (in progress).</p>
+    <h3>An item shows an error in Excel (e.g. #BLOCKED / #BLOCKIERT)</h3>
+    <p>That happens when a picture link can&rsquo;t be reached. The current Image Filler avoids it by only writing links that work and clearing old broken ones &mdash; re-run your file through the latest version and the error disappears.</p>
+    <h3>Products landed on the wrong shelf</h3>
+    <p>Check that a <b>shelf area exists with the same name as the Excel tab</b>. If no area matches, the products fall onto the area you&rsquo;re currently viewing. Create the matching area (spaces / underscores / case don&rsquo;t matter) and re-upload.</p>
+    <h3>Is my data sent anywhere?</h3>
+    <p>No. Both tools run entirely in your browser. Files you open are processed locally; nothing is uploaded.</p>
+  </section>
+
+  <p style="text-align:center;color:var(--muted);font-size:13px;margin-top:24px">Ravensburger &middot; internal planning tools &middot; keep this guide with the two tool files.</p>
+</main>
+</body>
+</html>

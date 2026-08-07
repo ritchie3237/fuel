@@ -25,6 +25,11 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
   (`{id:{name,snap,savedAt,accessedAt}}`; `saveProjectToLibrary`/`openProjectFromLibrary`).
   Uploading a new order never touches `rvProjects6`, and offers to save unsaved work first
   (`guardUnsavedBeforeReplace`). Run `localStorage.clear(); location.reload()` before asserting.
+- Both tools carry user-editable reference tables persisted in localStorage: the planner's
+  **Category→icon** map is `rvIconRules` (`[{category,kind}]`, consulted first by `themeKind`);
+  the filler's **Image sources** table is `rvImgSources` (`[{label,prefix,template}]`, driving
+  `urlForEan` — template tokens `{art5}` = EAN digits 8–12, `{ean}` = full barcode). Both have
+  add/delete/reset/export-import. `ravensburger-tools-user-guide.html` is the end-user guide.
 - `rv-front-image-filler.html` writes the Front column as `<f>_xlfn.IMAGE("url","alt")</f>` —
   the `_xlfn.` prefix is REQUIRED for post-2007 functions (without it Excel shows `=@IMAGE`/
   `#NAME?`). German Excel renders/evaluates it as `=BILD(…)`.

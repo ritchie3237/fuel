@@ -16,6 +16,7 @@ Nina's team plans true-to-scale **retail shelf planograms** for Ravensburger toy
 |---|---|---|
 | **Shelf Planner** | `ravensburger-shelf-planner.html` | Takes a product/order Excel → generates a scale planogram + an editable Excel shelf assignment, applying Ravensburger merchandising rules. |
 | **Front-Image Filler** | `rv-front-image-filler.html` | Fills the "Front view" column of an order Excel with each product's front pack shot automatically (from a public CDN link derived from the EAN). |
+| **User guide** | `ravensburger-tools-user-guide.html` | End-user instructions for Nina & other category managers (offline, printable) covering both tools and the editable reference tables. |
 
 **Design constraint that governs everything:** each tool is a **single, self-contained HTML file**. No build step, no server, no dependencies, no network at runtime. Nina saves the file and double-clicks it; it runs offline in her browser and her data never leaves her machine. Keep it that way — it's a hard requirement (corporate/data-privacy driven).
 
@@ -106,6 +107,11 @@ There is no build. Edit the HTML, open it in a browser. For automated checks the
 - **Render a supplied PDF** (Nina's icon overview) with `pymupdf` (`fitz`) — it's an image-based InDesign export, so text extraction is useless; render the page to an image and read it.
 
 Test material: the shelf planner has a **built-in Flora demo** (loads on first boot) and a **"Download order template"** button — both are safe, non-confidential ways to exercise it. Nina's real files are internal Ravensburger data (product names, EANs, dimensions, images) — see §7 before putting them anywhere shared.
+
+**Extending without a developer.** Two things that used to be hardcoded are now **user-editable reference tables**, so Nina can add brands/categories herself:
+- Filler → **Image sources** (`rvImgSources`): rows of `label / EAN-prefix / URL-template`; `urlForEan` picks the longest matching prefix and expands `{art5}` (EAN digits 8–12) or `{ean}`. Add BRIO/ThinkFun here once their image URL pattern is known — no code change.
+- Planner → **Category icons** (`rvIconRules`): rows of `category-name / icon-kind`, consulted first by `themeKind`. A genuinely new *glyph* still needs code (SVG in `themeIconSvg`), but mapping a new name to an existing icon is self-service.
+Both persist per browser and have export/import (JSON) for sharing. The end-user guide documents both.
 
 ---
 

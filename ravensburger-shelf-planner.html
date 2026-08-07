@@ -103,6 +103,13 @@
   .projrow.active { background:#f2f7fd; margin:0 -8px; padding:10px 8px; border-radius:6px; }
   .projrow .projmeta { min-width:0; }
   #projList { max-height:340px; overflow-y:auto; }
+  .reftable { width:100%; border-collapse:collapse; font-size:13px; }
+  .reftable th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); padding:4px 6px; }
+  .reftable td { padding:4px 6px; border-top:1px solid var(--line); }
+  .reftable input, .reftable select { width:100%; padding:5px 6px; border:1px solid var(--line); border-radius:5px; font:inherit; font-size:13px; background:#fff; }
+  .reftable td.del { width:32px; text-align:center; }
+  .reftable button.x { border:0; background:none; color:#c02b2b; font-size:17px; cursor:pointer; line-height:1; }
+  #iconTableWrap { max-height:320px; overflow:auto; }
   .banner { background: #e9f2fb; border: 1px solid #b9d2ea; border-radius: 6px; padding: 8px 12px; font-size: 12px; color: #17456e; margin-bottom: 12px; line-height: 1.45; }
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #222; color: #fff; padding: 9px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 99; }
   @media print {
@@ -126,6 +133,7 @@
     <button class="ghost" id="btnPrint" style="background:#fff">Print</button>
     <button class="ghost" id="btnXlsx" style="background:#fff">Export Excel</button>
     <button class="ghost" id="btnProjects" style="background:#fff" title="Save projects inside the tool and reopen them any time (with history)">&#9733; My projects</button>
+    <button class="ghost" id="btnIcons" style="background:#fff" title="Map your own category names to shelf-banner icons">Category icons</button>
     <button class="ghost" id="btnSaveProject" style="background:#fff" title="Save this whole store setup to a file on disk (backup / share)">Backup to file</button>
     <button class="ghost" id="btnLoadProject" style="background:#fff" title="Restore a store setup from a saved file">Restore file</button>
     <input type="file" id="projectInput" accept=".json" style="display:none">
@@ -347,6 +355,21 @@
   </div>
 </dialog>
 
+<dialog id="dlgIcons">
+  <h3 style="margin-top:0;color:var(--rv-blue)">Category icons</h3>
+  <p class="note" style="margin-top:0">Map a category / theme name to a shelf-banner icon. Add a row for any new category you
+    create &mdash; the banner then shows the right icon automatically (spaces, underscores and capitalisation don&rsquo;t
+    matter). Built-in categories already work without a row here.</p>
+  <div id="iconTableWrap"></div>
+  <div class="btnrow" style="margin:10px 0 0">
+    <button class="small" id="icoAdd">+ Add category</button>
+    <button class="small ghost" id="icoExport">Export</button>
+    <button class="small ghost" id="icoImport">Import</button>
+    <button class="small ghost" id="icoClose">Close</button>
+    <input type="file" id="icoImportInput" accept=".json" style="display:none">
+  </div>
+</dialog>
+
 <dialog id="dlgProjects">
   <h3 style="margin-top:0;color:var(--rv-blue)">&#9733; My projects</h3>
   <p class="note" style="margin-top:0">Saved inside this browser and listed newest first. Uploading a new order never deletes a saved project &mdash; your shelves and layout are kept here and can be reopened any time.</p>
@@ -424,6 +447,13 @@ let editTplId = null;
    plain blue). Default text = the shelf's theme; colour red for Special
    Offer areas, blue otherwise. */
 const KIND_LABEL = { toddler: 'Toddler', kids: 'Kids', offer: 'Special Offer', explorers: 'Explorers', games: 'Games Party', metime: 'Me-Time', fan: 'Fan-Highlights', flora: 'BRIO Flora', other: '' };
+// normalise a name so spaces / underscores / hyphens / case don't matter
+const normName = s => String(s || '').toLowerCase().replace(/[\s_\-]+/g, ' ').trim();
+/* user-editable Category → icon table (Nina can map a new category to an icon
+   without a code change). Stored separately so it applies across all projects. */
+const ICON_KEY = 'rvIconRules';
+let iconRules = (() => { try { const a = JSON.parse(localStorage.getItem(ICON_KEY)); return Array.isArray(a) ? a : []; } catch { return []; } })();
+function saveIconRules() { try { localStorage.setItem(ICON_KEY, JSON.stringify(iconRules)); } catch {} }
 function blendeForShelf(shelf) {
   const c = shelfBlende[shelf.id] || {};
   // icon/category: an explicit per-shelf choice wins; otherwise infer from the
@@ -434,6 +464,9 @@ function blendeForShelf(shelf) {
   return { text: c.blank ? '' : (c.text ?? dfltText), blank: !!c.blank, kind };
 }
 function themeKind(name) {
+  // a user-defined Category→icon row wins (exact name match, separators ignored)
+  const nn = normName(name);
+  for (const r of iconRules) if (r.category && normName(r.category) === nn) return r.kind || 'other';
   const n = (name || '').toLowerCase();
   if (/flora/.test(n)) return 'flora';
   if (/toddler|kleinst/.test(n)) return 'toddler';
@@ -1684,8 +1717,7 @@ function loadOrderGrids(sheets, imagesBySheet, fname, sheetTitles = []) {
     //   3. else the theme currently being viewed.
     // match the tab name to a shelf area ignoring case AND separators, so an Excel
     // tab "Me_Time" lands on a shelf area named "Me Time" / "Me-Time" (Nina: tabs use
-    // underscores, shelves use spaces — they must still line up).
-    const normName = s => String(s || '').toLowerCase().replace(/[\s_\-]+/g, ' ').trim();
+    // underscores, shelves use spaces — they must still line up). normName is global.
     const rawTitle = (sheetTitles[sIdx] || '').trim();
     const sheetTheme = existingThemes.find(t => normName(t) === normName(rawTitle))
       || (existingThemes.length === 1 ? existingThemes[0] : activeTheme);
@@ -2249,6 +2281,36 @@ function guardUnsavedBeforeReplace() {
     if (name) saveProjectToLibrary(name, activeProjectId && loadProjects()[activeProjectId] ? activeProjectId : null);
   }
 }
+
+/* ---------- editable Category → icon reference table ---------- */
+const ICON_KINDS = ['kids', 'toddler', 'metime', 'fan', 'games', 'explorers', 'offer', 'flora', 'other'];
+const iconKindLabel = k => k === 'other' ? 'No icon' : (KIND_LABEL[k] || k);
+function renderIconTable() {
+  const opts = k => ICON_KINDS.map(v => `<option value="${v}"${v === k ? ' selected' : ''}>${esc(iconKindLabel(v))}</option>`).join('');
+  const rows = iconRules.map((r, i) => `<tr>
+    <td><input data-i="${i}" value="${esc(r.category || '')}" placeholder="e.g. Nachhaltigkeit"></td>
+    <td><select data-i="${i}">${opts(r.kind || 'other')}</select></td>
+    <td class="del"><button class="x" data-del="${i}" title="Remove">&times;</button></td></tr>`).join('');
+  $('iconTableWrap').innerHTML =
+    `<table class="reftable"><tr><th>Category / theme name</th><th style="width:44%">Icon</th><th></th></tr>${rows}</table>` +
+    (iconRules.length ? '' : '<p class="note" style="margin:8px 0 0">No custom categories yet — click &ldquo;Add category&rdquo;. The built-in ones (Kids, Toddler, Me-Time, Fan-Highlights, Games Party, Explorers, Special Offer, BRIO Flora) already work.</p>');
+  $('iconTableWrap').querySelectorAll('input').forEach(inp => inp.oninput = () => { iconRules[+inp.dataset.i].category = inp.value; saveIconRules(); });
+  $('iconTableWrap').querySelectorAll('select').forEach(sel => sel.onchange = () => { iconRules[+sel.dataset.i].kind = sel.value; saveIconRules(); renderBays(); });
+  $('iconTableWrap').querySelectorAll('[data-del]').forEach(b => b.onclick = () => { iconRules.splice(+b.dataset.del, 1); saveIconRules(); renderIconTable(); renderBays(); });
+}
+$('btnIcons').onclick = () => { renderIconTable(); $('dlgIcons').showModal(); };
+$('icoAdd').onclick = () => { iconRules.push({ category: '', kind: 'kids' }); saveIconRules(); renderIconTable(); };
+$('icoClose').onclick = () => { $('dlgIcons').close(); renderBays(); };
+$('icoExport').onclick = () => downloadBlob(new Blob([JSON.stringify(iconRules, null, 2)], { type: 'application/json' }), 'category-icons.json');
+$('icoImport').onclick = () => $('icoImportInput').click();
+$('icoImportInput').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const a = JSON.parse(await f.text()); if (!Array.isArray(a)) throw new Error('not a list of categories');
+    iconRules = a.map(r => ({ category: String(r.category || ''), kind: String(r.kind || 'other') }));
+    saveIconRules(); renderIconTable(); renderBays();
+  } catch (err) { toast('Could not import: ' + err.message); }
+};
 
 $('btnClear').onclick = () => {
   if (!confirm('Reset everything back to the built-in defaults (shelves, templates, Flora pilot)?')) return;

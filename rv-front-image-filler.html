@@ -26,6 +26,11 @@
   .ok { color:#1a7f37; } .warn { color:#b7791f; } .err { color:#c02b2b; }
   #status { margin-top:12px; font-size:14px; }
   .pill { display:inline-block; background:#eaf1fb; color:var(--rv-blue); border-radius:20px; padding:2px 10px; font-size:12px; margin-right:6px; }
+  table.src td, table.src th { padding:6px 8px; }
+  table.src input { width:100%; border:1px solid var(--line); border-radius:5px; padding:5px 7px; font:inherit; font-size:13px; }
+  table.src input.mono { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12px; }
+  table.src td.del { width:34px; text-align:center; }
+  table.src button.x { border:0; background:none; color:var(--err,#c02b2b); font-size:16px; cursor:pointer; line-height:1; }
 </style>
 </head>
 <body>
@@ -53,13 +58,29 @@
   </div>
 
   <div class="card">
-    <h2>2 &middot; Choose your order Excel</h2>
+    <h2>2 &middot; Image sources <span style="font-weight:400;color:var(--muted);font-size:13px">&mdash; editable, add your own brands</span></h2>
+    <p class="note" style="margin-top:0">One row per brand. The tool takes each product&rsquo;s EAN, finds the first row whose
+      <b>EAN starts with</b> matches, and builds the image link from your <b>URL template</b>. Use
+      <code>{art5}</code> for the 5-digit article number inside the EAN, or <code>{ean}</code> for the whole barcode.
+      Rows are saved in this browser; use Export to share them with a colleague.</p>
+    <div id="srcTableWrap"></div>
+    <div class="btnrow" style="margin-top:10px">
+      <button class="ghost" id="srcAdd">+ Add brand</button>
+      <button class="ghost" id="srcExport">Export table</button>
+      <button class="ghost" id="srcImport">Import table</button>
+      <button class="ghost" id="srcReset" title="Restore just the built-in Ravensburger row">Reset</button>
+      <input type="file" id="srcImportInput" accept=".json" style="display:none">
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3 &middot; Choose your order Excel</h2>
     <input type="file" id="file" accept=".xlsx">
     <div id="status"></div>
   </div>
 
   <div class="card" id="resultCard" style="display:none">
-    <h2>3 &middot; Result</h2>
+    <h2>4 &middot; Result</h2>
     <div id="summary"></div>
     <div style="margin:12px 0"><button id="download" disabled>Download filled Excel</button></div>
     <div id="preview"></div>
@@ -68,12 +89,50 @@
 
 <script>
 const $ = id => document.getElementById(id);
-const CDN = art => `https://cdn.ravensburger.de/images/produktseiten/240/${art}.jpg`;
-const artFromEan = ean => {
-  const d = String(ean).replace(/\D/g,'');
-  return (d.length===13 && d.startsWith('4005556')) ? d.slice(7,12) : null;
-};
 const xesc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ---------------- editable image-source table (per brand) ---------------- */
+const SRC_KEY = 'rvImgSources';
+const DEFAULT_SOURCES = [
+  { label:'Ravensburger', prefix:'4005556', template:'https://cdn.ravensburger.de/images/produktseiten/240/{art5}.jpg' }
+];
+let imgSources = loadSources();
+function loadSources(){
+  try { const s = JSON.parse(localStorage.getItem(SRC_KEY)); if (Array.isArray(s) && s.length) return s; } catch {}
+  return DEFAULT_SOURCES.map(r => ({ ...r }));
+}
+function saveSources(){ try { localStorage.setItem(SRC_KEY, JSON.stringify(imgSources)); } catch {} }
+// EAN → image URL using the first matching brand row (longest prefix wins)
+function urlForEan(ean){
+  const d = String(ean).replace(/\D/g,''); if (!d) return null;
+  const rows = imgSources.filter(r => (r.prefix||'').length && (r.template||'').trim())
+    .sort((a,b) => b.prefix.length - a.prefix.length);
+  for (const r of rows){
+    if (d.startsWith(r.prefix)){
+      const art5 = d.slice(7,12);
+      const art = String(parseInt(art5 || '0', 10) || '');
+      const url = r.template.replace(/\{ean\}/g, d).replace(/\{art5\}/g, art5).replace(/\{art\}/g, art);
+      return { url, code: art5 || d };
+    }
+  }
+  return null;
+}
+function renderSources(){
+  const rows = imgSources.map((r,i) => `<tr>
+    <td><input data-i="${i}" data-k="label" value="${xesc(r.label||'')}" placeholder="Brand"></td>
+    <td><input class="mono" data-i="${i}" data-k="prefix" value="${xesc(r.prefix||'')}" placeholder="4005556"></td>
+    <td><input class="mono" data-i="${i}" data-k="template" value="${xesc(r.template||'')}" placeholder="https://…/{art5}.jpg"></td>
+    <td class="del"><button class="x" data-del="${i}" title="Remove this brand">&times;</button></td></tr>`).join('');
+  $('srcTableWrap').innerHTML =
+    `<table class="src"><tr><th style="width:22%">Brand</th><th style="width:20%">EAN starts with</th><th>Image URL template</th><th></th></tr>${rows}</table>`;
+  $('srcTableWrap').querySelectorAll('input').forEach(inp => inp.oninput = () => {
+    imgSources[+inp.dataset.i][inp.dataset.k] = inp.value; saveSources();
+  });
+  $('srcTableWrap').querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+    imgSources.splice(+b.dataset.del, 1); if (!imgSources.length) imgSources = DEFAULT_SOURCES.map(r=>({...r}));
+    saveSources(); renderSources();
+  });
+}
 
 /* ---------------- minimal zip read (central directory) ---------------- */
 async function readZip(buf) {
@@ -206,9 +265,9 @@ $('file').addEventListener('change', async e => {
           const v=/<v>([\s\S]*?)<\/v>/.exec(ec[1]); if(v) ean=t?(shared[+v[1]]||''):v[1]; }
         if(!ean) continue;
         totalRows++;
-        const art=artFromEan(ean);
-        if(!art){ skipped++; continue; }
-        cands.push({ n, url:CDN(art), art, ean:String(ean).replace(/\D/g,'') });
+        const hit=urlForEan(ean);
+        if(!hit){ skipped++; continue; }
+        cands.push({ n, url:hit.url, art:hit.code, ean:String(ean).replace(/\D/g,'') });
       }
       sheets.push({ sf, xml, frontCol, cands });
     }
@@ -263,7 +322,7 @@ $('file').addEventListener('change', async e => {
       `<span class="pill">${filled} front images added</span>` +
       (noImage?`<span class="pill">${noImage} left empty (no image on server)</span>`:'') +
       (cleared?`<span class="pill">${cleared} old error formulas cleared</span>`:'') +
-      (skipped?`<span class="pill">${skipped} skipped (EAN not a 4005556 article)</span>`:'') +
+      (skipped?`<span class="pill">${skipped} skipped (EAN matches no brand in Image sources)</span>`:'') +
       `<p class="note">The <code>Front view</code> column is filled only where the picture actually exists on the image server. Rows with no published image are left <b>empty</b> (and any old <code>#BLOCKED</code> formula is removed) so you can drop in a screenshot yourself. Your Side column and the rest of the file are unchanged. Open in Excel (365, online) and the front pictures load automatically.</p>`;
     let tbl='<table><tr><th>EAN</th><th>Article</th><th>Front image</th><th>Preview</th></tr>';
     for(const p of preview) tbl+=`<tr><td>${p.ean}</td><td>${p.art}</td><td>${p.ok?'<span class="ok">&#10003; added</span>':'<span class="warn">&mdash; none on server</span>'}</td><td class="img">${p.ok?`<img src="${p.url}" loading="lazy" alt="">`:'&nbsp;'}</td></tr>`;
@@ -280,6 +339,27 @@ $('download').addEventListener('click', ()=>{
   const a=document.createElement('a'); a.href=URL.createObjectURL(outBlob); a.download=outName; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 });
+
+/* ---- image-source table controls ---- */
+$('srcAdd').onclick = () => { imgSources.push({ label:'', prefix:'', template:'' }); saveSources(); renderSources(); };
+$('srcReset').onclick = () => { if(confirm('Reset the image-source table to just the built-in Ravensburger row?')){ imgSources = DEFAULT_SOURCES.map(r=>({...r})); saveSources(); renderSources(); } };
+$('srcExport').onclick = () => {
+  const blob=new Blob([JSON.stringify(imgSources,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='image-sources.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+};
+$('srcImport').onclick = () => $('srcImportInput').click();
+$('srcImportInput').onchange = async e => {
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try {
+    const arr=JSON.parse(await f.text());
+    if(!Array.isArray(arr)) throw new Error('not a list of brands');
+    imgSources = arr.map(r=>({ label:String(r.label||''), prefix:String(r.prefix||''), template:String(r.template||'') }));
+    if(!imgSources.length) imgSources = DEFAULT_SOURCES.map(r=>({...r}));
+    saveSources(); renderSources();
+  } catch(err){ alert('Could not import that file: '+err.message); }
+};
+renderSources();
 </script>
 </body>
 </html>
