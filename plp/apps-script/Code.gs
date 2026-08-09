@@ -58,7 +58,7 @@ function doPost(e) {
 
     d.requests.forEach(function (r) {
       var overlaps = existing.filter(function (o) {
-        return o.start_date <= r.end_date && r.start_date <= o.end_date;
+        return rangesOverlap(o, r);
       });
       totalOverlaps += overlaps.length;
       var people = r.exclusive === "No" ? String(r.people) : "";
@@ -236,6 +236,19 @@ function parseDay(s) {
 
 function addDays(d, n) {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+}
+
+// A stay's end date is the departure day, so the range it really occupies is
+// [start, end). One stay ending the day another begins is a changeover, not an
+// overlap. Same-day requests are read as one night. Mirrors review.html.
+function stayEnd(r) {
+  if (r.start_date < r.end_date) return r.end_date;
+  var d = addDays(parseDay(r.start_date), 1);
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
+}
+
+function rangesOverlap(a, b) {
+  return a.start_date < stayEnd(b) && b.start_date < stayEnd(a);
 }
 
 function seasonWindowFromLabel(label) {

@@ -113,6 +113,11 @@
     .cal-day.open { background: var(--ok-bg); color: var(--ok-ink); border-color: #bcd9c2; }
     .cal-day.busy1 { background: #dbe9f3; color: #1f4d6b; border-color: #b5d0e2; }
     .cal-day.busy2 { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); font-weight: 700; }
+    /* Changeover: one stay ends, the next begins. Not an overlap. */
+    .cal-day.turn {
+      background: linear-gradient(135deg, #dbe9f3 0 48%, #efece3 48% 52%, #dbe9f3 52% 100%);
+      color: #1f4d6b; border-color: #b5d0e2;
+    }
     .cal-legend { font-size: .8rem; color: var(--muted); margin-top: .7rem; }
     .cal-legend .chip {
       display: inline-block;
@@ -127,9 +132,17 @@
     .cal-legend .chip.busy2 { background: var(--warn-bg); border-color: var(--warn-line); }
     .cal-legend .chip.shared { background: #d9f0ec; border-color: #a8d8cf; }
     .cal-legend .chip.conflict { background: var(--err-bg); border-color: #d9a0a0; }
+    .cal-legend .chip.turn {
+      background: linear-gradient(135deg, #dbe9f3 0 48%, #efece3 48% 52%, #dbe9f3 52% 100%);
+      border-color: #b5d0e2;
+    }
     .cal-day.pcal-open { background: var(--ok-bg); color: var(--ok-ink); border-color: #bcd9c2; }
     .cal-day.pcal-one { background: #dbe9f3; color: #1f4d6b; border-color: #b5d0e2; }
     .cal-day.pcal-shared { background: #d9f0ec; color: #175e52; border-color: #a8d8cf; }
+    .cal-day.pcal-turnover {
+      background: linear-gradient(135deg, #dbe9f3 0 48%, #efece3 48% 52%, #dbe9f3 52% 100%);
+      color: #1f4d6b; border-color: #b5d0e2;
+    }
     .cal-day.pcal-conflict { background: var(--err-bg); color: var(--err-ink); border-color: #d9a0a0; font-weight: 700; }
     .prop {
       background: var(--card);
@@ -148,6 +161,20 @@
     .prop-status.ok { color: var(--ok-ink); }
     .prop-status.bad { color: var(--err-ink); font-weight: 700; }
     .prop-status.skip { color: var(--muted); font-style: italic; }
+    .override {
+      margin-top: .9rem;
+      padding: .7rem .9rem;
+      background: var(--warn-bg);
+      border: 1px solid var(--warn-line);
+      border-radius: 10px;
+      font-size: .88rem;
+      color: var(--warn-ink);
+    }
+    .override p { margin: 0 0 .4rem; }
+    .override ul { margin: 0 0 .55rem; padding-left: 1.2rem; }
+    .override li { margin: .15rem 0; }
+    .override label { display: flex; gap: .45rem; align-items: flex-start; font-weight: 600; cursor: pointer; }
+    .override input { margin-top: .15rem; }
     .prop-actions { display: flex; gap: .7rem; align-items: center; flex-wrap: wrap; margin-top: .9rem; }
     .prop-publish {
       background: var(--pine);
@@ -206,7 +233,9 @@
 
     <p class="note">
       The calendars show every day of each season's window: green days are still open
-      (no requests), blue days have one request, amber days are contested. In the table,
+      (no requests), blue days have one request, amber days are contested. A day where one
+      stay ends and the next begins is a changeover, not an overlap — someone leaves, someone
+      arrives — so it's marked with a split blue day and never counted as a clash. In the table,
       rows highlighted in amber overlap another request; rows are sorted by start date.
       <a href="index.html">Back to the request form</a>.
     </p>
@@ -233,11 +262,35 @@
       return Math.max(1, Math.round(ms / 86400000));
     }
 
-    // Inclusive date-range overlap: a and b collide if each starts on or
-    // before the other ends.
+    function nextDay(iso) {
+      var d = new Date(iso + "T00:00:00");
+      d.setDate(d.getDate() + 1);
+      return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate());
+    }
+
+    // A stay's end date is the departure day: they're gone by the time the
+    // next party arrives. So the range a stay actually occupies is
+    // [start, end) — half open. A same-day request (start === end) is read
+    // as one night so it still occupies something.
+    function stayEnd(r) {
+      return r.start_date < r.end_date ? r.end_date : nextDay(r.start_date);
+    }
+
+    // True overlap only. One stay ending the same day another begins is a
+    // turnover, not an overlap — someone leaves, someone arrives.
+    function rangesOverlap(a, b) {
+      return a.start_date < stayEnd(b) && b.start_date < stayEnd(a);
+    }
+
+    // Do a and b meet exactly at a changeover day (one ends when the other
+    // starts)? Used to label those days rather than flag them.
+    function isTurnover(a, b) {
+      return a.end_date === b.start_date || b.end_date === a.start_date;
+    }
+
     function overlapsWith(list, item) {
       return list.filter(function (o) {
-        return o !== item && o.start_date <= item.end_date && item.start_date <= o.end_date;
+        return o !== item && rangesOverlap(o, item);
       });
     }
 
@@ -297,15 +350,25 @@
       return html + "</div></div>";
     }
 
+    // Every pair touching this day is a changeover — nobody actually shares it.
+    function allTurnover(covering) {
+      for (var i = 0; i < covering.length; i++)
+        for (var j = i + 1; j < covering.length; j++)
+          if (!isTurnover(covering[i], covering[j])) return false;
+      return true;
+    }
+
     function seasonDay(reqs) {
       return function (isoDay) {
         var covering = reqs.filter(function (r) {
           return r.start_date <= isoDay && isoDay <= r.end_date;
         });
-        return {
-          cls: covering.length === 0 ? "open" : covering.length === 1 ? "busy1" : "busy2",
-          title: covering.length ? covering.map(describeReq).join(" · ") : "Open — no requests"
-        };
+        if (!covering.length) return { cls: "open", title: "Open — no requests" };
+        var title = covering.map(describeReq).join(" · ");
+        if (covering.length === 1) return { cls: "busy1", title: title };
+        if (allTurnover(covering))
+          return { cls: "turn", title: "Changeover day — " + title };
+        return { cls: "busy2", title: title };
       };
     }
 
@@ -334,6 +397,7 @@
           '<div class="cal-legend">Hover a day to see who requested it. Key:' +
           '<span class="chip open"></span>open — no requests' +
           '<span class="chip busy1"></span>1 request' +
+          '<span class="chip turn"></span>changeover — one ends, next begins' +
           '<span class="chip busy2"></span>2+ requests (overlap)' +
           "</div></div>";
       }).join("");
@@ -342,11 +406,11 @@
     // ----- Proposed schedule (auto-solved, interactively adjustable) -----
     var propState = {};
 
-    // Two granted ranges clash when they overlap, belong to different
-    // parties, and at least one wants exclusive use. Shared+shared is fine.
+    // Two granted ranges clash when they genuinely overlap, belong to
+    // different parties, and at least one wants exclusive use. Shared+shared
+    // is fine, and a same-day changeover is fine.
     function rowConflict(a, b) {
-      return a._party !== b._party &&
-        a.start_date <= b.end_date && b.start_date <= a.end_date &&
+      return a._party !== b._party && rangesOverlap(a, b) &&
         (a.exclusive === "Yes" || b.exclusive === "Yes");
     }
 
@@ -438,15 +502,29 @@
           return r.start_date <= isoDay && isoDay <= r.end_date;
         });
         if (!covering.length) return { cls: "pcal-open", title: "Open" };
+        var title = covering.map(describeReq).join(" · ");
+        if (covering.length === 1) return { cls: "pcal-one", title: title };
         var conflict = false;
         for (var i = 0; i < covering.length && !conflict; i++)
           for (var j = i + 1; j < covering.length && !conflict; j++)
             conflict = rowConflict(covering[i], covering[j]);
-        return {
-          cls: conflict ? "pcal-conflict" : covering.length === 1 ? "pcal-one" : "pcal-shared",
-          title: covering.map(describeReq).join(" · ")
-        };
+        if (conflict) return { cls: "pcal-conflict", title: title };
+        if (allTurnover(covering))
+          return { cls: "pcal-turnover", title: "Changeover day — " + title };
+        return { cls: "pcal-shared", title: title };
       };
+    }
+
+    // Every clashing pair in a chosen arrangement, described for the user.
+    function clashPairs(rows) {
+      var out = [];
+      for (var i = 0; i < rows.length; i++)
+        for (var j = i + 1; j < rows.length; j++)
+          if (rowConflict(rows[i], rows[j]))
+            out.push({ a: rows[i], b: rows[j],
+              text: rows[i].name + " (" + rows[i].start_date + "–" + rows[i].end_date + ") and " +
+                rows[j].name + " (" + rows[j].start_date + "–" + rows[j].end_date + ")" });
+      return out;
     }
 
     function optionLabel(r) {
@@ -490,8 +568,10 @@
             '<span class="prop-status ' + cls + '">' + status + "</span></div>";
         }).join("");
 
+        var pairs = clashPairs(rows);
         var headline = clashes
-          ? "⚠ This arrangement has clashes — adjust below or reset."
+          ? "⚠ This arrangement has " + pairs.length + " clash" + (pairs.length > 1 ? "es" : "") +
+            " — adjust below, reset, or publish anyway if the overlap is intentional."
           : unscheduled
             ? "No clashes, but " + unscheduled + " stay" + (unscheduled > 1 ? "s" : "") + " couldn't be fit."
             : "Everyone fits with no clashes.";
@@ -509,8 +589,18 @@
           '<span class="chip open"></span>open' +
           '<span class="chip busy1"></span>one stay' +
           '<span class="chip shared"></span>shared (fine)' +
+          '<span class="chip turn"></span>changeover (fine)' +
           '<span class="chip conflict"></span>clash' +
           "</div>" +
+          (pairs.length
+            ? '<div class="override">' +
+              "<p><b>⚠ " + pairs.length + " overlap" + (pairs.length > 1 ? "s" : "") +
+              " in this arrangement.</b> Publish anyway only if you've agreed these are fine:</p>" +
+              "<ul>" + pairs.map(function (p) { return "<li>" + esc(p.text) + "</li>"; }).join("") + "</ul>" +
+              '<label><input type="checkbox" class="override-ok"> ' +
+              "Yes — these overlaps are intentional, publish anyway.</label>" +
+              "</div>"
+            : "") +
           '<div class="prop-actions">' +
           '<button type="button" class="prop-publish" data-season="' + esc(s) + '">Publish to Google Calendar</button>' +
           '<button type="button" class="prop-reset" data-season="' + esc(s) + '">Reset to auto proposal</button>' +
@@ -543,13 +633,24 @@
           function setStatus(cls, text) { statusEl.className = "pub-status " + cls; statusEl.textContent = text; }
 
           if (!rows.length) { setStatus("err", "Nothing is scheduled — pick some stays first."); return; }
-          var clash = false;
-          for (var i = 0; i < rows.length && !clash; i++)
-            for (var j = i + 1; j < rows.length && !clash; j++)
-              clash = rowConflict(rows[i], rows[j]);
-          if (clash) { setStatus("err", "Resolve the clashes first — publishing is blocked while stays conflict."); return; }
+
+          // Overlaps no longer block publishing — sometimes they're agreed on.
+          // They just need to be acknowledged deliberately.
+          var pairs = clashPairs(rows);
+          var prop = this.closest ? this.closest(".prop") : this.parentNode.parentNode;
+          var okBox = prop.querySelector(".override-ok");
+          if (pairs.length && !(okBox && okBox.checked)) {
+            setStatus("err", "This arrangement has " + pairs.length + " overlap" +
+              (pairs.length > 1 ? "s" : "") + ". Adjust it, or tick the box above to publish anyway.");
+            return;
+          }
+
           if (!window.confirm("Publish " + rows.length + " stay" + (rows.length > 1 ? "s" : "") +
-            " for " + s + " to the '" + "PLP Off-Season Schedule" + "' Google Calendar?\n\n" +
+            " for " + s + " to the 'PLP Off-Season Schedule' Google Calendar?\n\n" +
+            (pairs.length
+              ? "⚠ Publishing WITH " + pairs.length + " overlap" + (pairs.length > 1 ? "s" : "") + ":\n" +
+                pairs.map(function (p) { return "  • " + p.text; }).join("\n") + "\n\n"
+              : "") +
             "Any existing PLP events in that season will be replaced.")) return;
 
           btn.disabled = true;
