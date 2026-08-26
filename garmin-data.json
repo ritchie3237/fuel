@@ -1,68 +1,56 @@
 {
- "generated": "2026-08-16",
+ "generated": "2026-08-26",
  "athlete": "Mike Ritchie",
  "snapshot": {
-  "vo2max": 52.0,
-  "vo2maxPrecise": 52.5,
+  "vo2max": 53.0,
+  "vo2maxPrecise": 53.2,
   "vo2maxLabel": "Superior for age",
-  "fitnessAge": 28.2,
+  "fitnessAge": 29.8,
   "chronoAge": 36,
   "achievableFitnessAge": 30.5,
-  "rhr": 48,
-  "rhr7d": 47,
-  "hrv": 54,
+  "rhr": 44,
+  "rhr7d": 48,
+  "hrv": 53,
   "hrvStatus": "Balanced",
-  "readiness": 66,
-  "readinessLevel": "Moderate (66) — good recovery per Garmin (sleep factor 58%, recovery 99%, HRV 100% all GOOD), but multi-week sleep history is still soft (36%) after the short-sleep stretch Aug 10-12. Oura's read this morning is stronger (readiness 82, \"Good — ready to train\").",
-  "sleepScoreLast": 72,
-  "sleepAvg": 63,
-  "trainingStatus": "Peaking",
-  "acwr": 0.2,
+  "readiness": 70,
+  "readinessLevel": "Moderate (70) per Garmin - training load 100% and recovery 99% are VERY_GOOD, but multi-week sleep history is still soft (54%, moderate) from the Aug 10-12 short-sleep stretch. Oura's read this morning is notably stronger (readiness 83, \"Good — ready to train\"); with 35 nights of baseline, Oura is the better current signal.",
+  "sleepScoreLast": 75,
+  "sleepAvg": 73,
+  "trainingStatus": "Productive",
+  "acwr": 0.7,
   "acwrStatus": "Low",
-  "acwrPercent": 8,
-  "acuteLoad": 102,
-  "chronicLoad": 422,
-  "loadBalance": "Balanced load focus (aerobic-low 835.9, aerobic-high 599.0, anaerobic 353.7 monthly)",
-  "stressLatest": 20,
-  "stressWeek": 27,
+  "acwrPercent": 29,
+  "acuteLoad": 238,
+  "chronicLoad": 332,
+  "loadBalance": "Aerobic-high shortage (aerobic-low 736.3, aerobic-high 399.2, anaerobic 204.3 monthly) - needs more moderate-hard aerobic work, which next week's interval session targets",
+  "stressLatest": 13,
+  "stressWeek": 24,
   "stressQualifier": "Balanced",
-  "vigorousDays": 4.3,
+  "vigorousDays": 3.8,
   "vigorousTarget": 3,
   "weight": 169.8,
   "weightAsOf": "2026-07-29",
   "bmi": 23.7,
   "bmiTarget": 21.1,
   "bmiAsOf": "2026-07-29",
-  "steps": 2939,
-  "stepGoal": 11960,
-  "stepsAsOf": "2026-08-16",
+  "steps": 523,
+  "stepGoal": 15260,
+  "stepsAsOf": "2026-08-26",
   "racePredictions": {
-   "5K": "21:20",
-   "10K": "45:01",
-   "Half": "1:42:00",
-   "Marathon": "3:47:36"
+   "5K": "21:47",
+   "10K": "45:34",
+   "Half": "1:43:16",
+   "Marathon": "3:50:17"
   },
   "goal": {
    "text": "Sub-3:00 marathon",
    "race": "Oct 2027",
-   "current": "3:47:36",
+   "current": "3:50:17",
    "pace": "6:51/mi"
   }
  },
  "trends": {
   "vo2max": [
-   {
-    "d": "06-05",
-    "v": 52
-   },
-   {
-    "d": "06-16",
-    "v": 53
-   },
-   {
-    "d": "06-22",
-    "v": 52
-   },
    {
     "d": "06-28",
     "v": 52
@@ -86,33 +74,17 @@
    {
     "d": "08-16",
     "v": 52.5
-   }
-  ],
-  "hrv": [
-   {
-    "d": "07-23",
-    "v": 56
    },
    {
-    "d": "07-26",
-    "v": 55
-   },
-   {
-    "d": "07-28",
+    "d": "08-17",
     "v": 53
    },
    {
-    "d": "07-30",
-    "v": 52
-   },
-   {
-    "d": "08-01",
-    "v": 52
-   },
-   {
-    "d": "08-04",
-    "v": 52
-   },
+    "d": "08-26",
+    "v": 53.2
+   }
+  ],
+  "hrv": [
    {
     "d": "08-06",
     "v": 52
@@ -122,15 +94,35 @@
     "v": 51
    },
    {
+    "d": "08-11",
+    "v": 53
+   },
+   {
+    "d": "08-14",
+    "v": 55
+   },
+   {
     "d": "08-16",
     "v": 54
+   },
+   {
+    "d": "08-19",
+    "v": 52
+   },
+   {
+    "d": "08-21",
+    "v": 52
+   },
+   {
+    "d": "08-23",
+    "v": 53
+   },
+   {
+    "d": "08-26",
+    "v": 53
    }
   ],
   "rhr": [
-   {
-    "d": "07-22",
-    "v": 47.0
-   },
    {
     "d": "07-24",
     "v": 47.0
@@ -158,17 +150,13 @@
    {
     "d": "08-16",
     "v": 48.0
+   },
+   {
+    "d": "08-26",
+    "v": 44.0
    }
   ],
   "sleepScore": [
-   {
-    "d": "08-03",
-    "v": 71
-   },
-   {
-    "d": "08-04",
-    "v": 82
-   },
    {
     "d": "08-05",
     "v": 86
@@ -216,17 +204,17 @@
    {
     "d": "08-16",
     "v": 71
+   },
+   {
+    "d": "08-25",
+    "v": 72
+   },
+   {
+    "d": "08-26",
+    "v": 75
    }
   ],
   "sleepHours": [
-   {
-    "d": "08-03",
-    "v": 6.6
-   },
-   {
-    "d": "08-04",
-    "v": 6.9
-   },
    {
     "d": "08-05",
     "v": 7.3
@@ -274,50 +262,50 @@
    {
     "d": "08-16",
     "v": 5.6
+   },
+   {
+    "d": "08-25",
+    "v": 8.07
+   },
+   {
+    "d": "08-26",
+    "v": 6.0
    }
   ],
   "stressWeekly": [
    {
-    "d": "07-06",
-    "v": 27
-   },
-   {
-    "d": "07-13",
-    "v": 30
-   },
-   {
-    "d": "07-20",
-    "v": 32
-   },
-   {
-    "d": "07-27",
+    "d": "07-16",
     "v": 31
    },
    {
-    "d": "08-03",
-    "v": 32
+    "d": "07-23",
+    "v": 31
    },
    {
-    "d": "08-10",
+    "d": "07-30",
+    "v": 31
+   },
+   {
+    "d": "08-06",
+    "v": 29
+   },
+   {
+    "d": "08-13",
     "v": 27
+   },
+   {
+    "d": "08-20",
+    "v": 24
    }
   ]
  },
  "running": {
-  "ytd": 441.5,
-  "runsYtd": 93,
-  "thisWeek": 2.9,
-  "last7": 2.9,
-  "avg4": 24.1,
+  "ytd": 465.6,
+  "runsYtd": 98,
+  "thisWeek": 4.0,
+  "last7": 15.1,
+  "avg4": 17.7,
   "weekly": [
-   {
-    "d": "05-25",
-    "v": 9.1
-   },
-   {
-    "d": "06-01",
-    "v": 21.1
-   },
    {
     "d": "06-08",
     "v": 17.1
@@ -357,40 +345,48 @@
    {
     "d": "08-10",
     "v": 2.9
+   },
+   {
+    "d": "08-17",
+    "v": 20.1
+   },
+   {
+    "d": "08-24",
+    "v": 4.0
    }
   ],
   "polarized": {
    "window": "last 30 days",
    "method": "time-in-zone",
-   "runs": 16,
+   "runs": 15,
    "easyPct": 43,
-   "grayPct": 47,
-   "hardPct": 10,
-   "easyMi": 35.7,
-   "grayMi": 39.4,
-   "hardMi": 10.1,
-   "easyMin": 362,
-   "grayMin": 394,
-   "hardMin": 86,
+   "grayPct": 44,
+   "hardPct": 13,
+   "easyMi": 32.5,
+   "grayMi": 32.8,
+   "hardMi": 9.6,
+   "easyMin": 323,
+   "grayMin": 322,
+   "hardMin": 82,
    "last14": {
     "easyPct": 42,
-    "grayPct": 46,
-    "hardPct": 12
+    "grayPct": 50,
+    "hardPct": 8
    }
   }
  },
  "recommendations": {
   "change": [
-   "The gray zone is still the #1 lever: over the last 30 days only 43% of running time was genuinely easy (Z1-Z2, 35.7 mi) versus 47% sitting in Z3 (129-146 bpm, 39.4 mi) and 10% truly hard. The last 14 days are similar (42% easy / 46% gray / 12% hard) — keep watching HR on easy days and back off the moment it crosses ~130.",
-   "The week of Aug 10 was essentially a full stop on running (2.9 mi, one run) right after the baby arrived Aug 9 — that's exactly the right call, not a step backward. VO2max is flat at 52-52.5 and training status now reads \"Peaking\" (load has dropped well below what the body's used to), but ACWR is very low (0.2) so there's zero overreach risk heading back in.",
-   "Sleep took a real hit Aug 10-12 (4.6-4.9h/night, sleep scores in the 50s) and is still only partially recovered (71 last night, 5.6h). Readiness and HRV have stayed green throughout though (Oura readiness 82 today), so the body is tolerating it fine — but this is the newborn-maintenance phase now: expect volume to be whatever happens organically for a while, in the 18-32mi/wk band.",
-   "Next week's plan is deliberately conservative — ~21 mi with an optional, Oura-gated quality day — to ease back in rather than chase the 25-27 mi weeks from before the birth."
+   "Polarized split (last 30 days, time-in-zone): 43% easy (32.5mi) / 44% gray (32.8mi) / 13% hard (9.6mi) - still basically a coin flip between genuinely easy and Z3 drift. Last 14 days is worse (42% easy / 50% gray / 8% hard) - Aug 20's run averaged 132bpm and Aug 8's long run spent most of its middle third in Z3. Keep watching HR on easy days and back off the moment it crosses ~130.",
+   "This past week was intentionally light (15.1mi, 3 runs, no quality day) - recovery markers stayed green throughout (Oura readiness 83, HRV balanced, temp normal), so this was a deliberate breather, not a red flag.",
+   "Garmin's training readiness (70, Moderate) is reading lower than Oura's (83, Good) this morning - driven by Garmin's multi-week sleep-history factor (54%, still soft from the Aug 10-12 short-sleep stretch after the baby's arrival) rather than anything acute. Oura, with 35 nights of baseline, is the better read right now.",
+   "Next week's plan rebuilds to ~21mi with one Oura-conditional VO2max session - a return toward the 20-26mi range held pre-baby, not a fresh ramp past it."
   ],
   "continue": [
-   "Congratulations on the new arrival (Aug 9)! Recovery markers (Oura readiness 82, HRV 51-54ms balanced, RHR 47-48, no temp elevation) all still look good despite the short-sleep stretch — no signs of digging a hole.",
-   "Quality days stay genuinely hard when they happen: Aug 4's threshold session put over 40 of 62 minutes in Z3-Z5 combined with real Z4/Z5 time — the intensity side of polarized training is real, it's the easy side that still needs work.",
-   "ACWR has stayed in a safe range through a very up-and-down stretch (0.8 optimal two weeks ago, now 0.2 low) — the body absorbs whatever load shows up, which is exactly what you want heading into an unpredictable newborn phase.",
-   "Fitness age is holding at a strong 28.2 (7.8 years under chronological age) straight through the light week — the aerobic base built over the summer isn't going anywhere in a week off."
+   "VO2max is trending up (52.0 in late June to 53.2 now) straight through the newborn-adjustment weeks - the aerobic base isn't eroding.",
+   "ACWR is low (29%, well under the optimal 80-130% band) - zero overreach risk and plenty of headroom to add load back.",
+   "HRV has stayed BALANCED for three straight weeks (50-55ms weekly avg) with no drop tied to the lower-sleep stretch - the body is tolerating the newborn phase well.",
+   "Fitness age is still a strong 29.8 (6.2 years under chronological) despite the down week - one light week doesn't undo the summer's aerobic build."
   ]
  }
 }
