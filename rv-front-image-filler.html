@@ -94,7 +94,7 @@ const xesc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 /* ---------------- editable image-source table (per brand) ---------------- */
 const SRC_KEY = 'rvImgSources';
 const DEFAULT_SOURCES = [
-  { label:'Ravensburger', prefix:'4005556', template:'https://cdn.ravensburger.de/images/produktseiten/240/{art5}.jpg' }
+  { label:'Ravensburger', prefix:'400555', template:'https://cdn.ravensburger.de/images/produktseiten/240/{art5}.jpg' }
 ];
 let imgSources = loadSources();
 function loadSources(){
@@ -261,8 +261,11 @@ $('file').addEventListener('change', async e => {
         const n=+mm[1]; if(n<=headerR) continue; const body=mm[2];
         const ec=new RegExp(`<c r="${eanCol}${n}"[^>]*>([\\s\\S]*?)</c>`).exec(body);
         let ean=null;
-        if(ec){ const tM=/<c r="[^"]*"([^>]*)>/.exec(ec[0]); const t=/t="s"/.test(tM?tM[1]:'');
-          const v=/<v>([\s\S]*?)<\/v>/.exec(ec[1]); if(v) ean=t?(shared[+v[1]]||''):v[1]; }
+        if(ec){ const tM=/<c r="[^"]*"([^>]*)>/.exec(ec[0]); const attrs=tM?tM[1]:'';
+          const inl=/<is>[\s\S]*?<t[^>]*>([\s\S]*?)<\/t>/.exec(ec[1]);
+          const v=/<v>([\s\S]*?)<\/v>/.exec(ec[1]);
+          if(/t="inlineStr"/.test(attrs) && inl) ean=inl[1];
+          else if(v) ean=/t="s"/.test(attrs)?(shared[+v[1]]||''):v[1]; }
         if(!ean) continue;
         totalRows++;
         const hit=urlForEan(ean);
@@ -290,7 +293,10 @@ $('file').addEventListener('change', async e => {
         if (ok){
           // Stored as _xlfn.IMAGE — the required prefix for post-2007 functions
           // (without it Excel shows =@IMAGE / #NAME?). German Excel shows =BILD(…).
-          const cell=`<c r="${frontCol}${n}"><f>_xlfn.IMAGE(&quot;${xesc(url)}&quot;,&quot;${xesc('front '+c.ean)}&quot;)</f></c>`;
+          // s="0" forces the default (General) cell format so Excel evaluates the
+          // formula on open instead of showing it as text (Nina: "I had to press
+          // ENTER"). The column may otherwise carry a Text format from the old cells.
+          const cell=`<c r="${frontCol}${n}" s="0"><f>_xlfn.IMAGE(&quot;${xesc(url)}&quot;,&quot;${xesc('front '+c.ean)}&quot;)</f></c>`;
           if (cur) xml=xml.replace(jRe, cell);
           else xml=xml.replace(new RegExp(`(<row[^>]*\\br="${n}"[^>]*>)([\\s\\S]*?)(</row>)`), (m,o,b,cl)=>o+b+cell+cl);
           filled++;
@@ -307,11 +313,15 @@ $('file').addEventListener('change', async e => {
       s.sf.data=encb(xml);
     }
 
-    // force recalc so IMAGE() evaluates on open
+    // force AUTOMATIC + full recalc so the IMAGE() formulas evaluate on open
+    // (rather than showing as text until the cell is re-entered)
     const wbF=get('xl/workbook.xml');
     if(wbF){ let wb=dec(wbF.data);
-      if(/<calcPr/.test(wb)){ if(!/fullCalcOnLoad/.test(wb)) wb=wb.replace('<calcPr','<calcPr fullCalcOnLoad="1" '); }
-      else wb=wb.replace('</workbook>','<calcPr fullCalcOnLoad="1"/></workbook>');
+      if(/<calcPr[^>]*\/>/.test(wb)){
+        wb=wb.replace(/<calcPr[^>]*\/>/, '<calcPr calcId="191028" calcMode="auto" fullCalcOnLoad="1"/>');
+      } else {
+        wb=wb.replace('</workbook>','<calcPr calcId="191028" calcMode="auto" fullCalcOnLoad="1"/></workbook>');
+      }
       wbF.data=encb(wb);
     }
 
