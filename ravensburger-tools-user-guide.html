@@ -87,6 +87,7 @@
   <section id="order">
     <h2 class="sec"><span class="n">03</span>Load your order Excel <a class="top" href="#start">top ↑</a></h2>
     <p>Use <b>Load order file (.xlsx / .csv)</b> in section 1. The tool reads one row per product: EAN, article number, title, order quantity, package width×height×depth, and category. It understands German or English headers.</p>
+    <p>It also accepts a plain <b>SAP export</b> (a &ldquo;SAP-Import&rdquo; tab with order details at the top, then <b>Artikel&nbsp;Nr.</b> / <b>Bestellmenge</b> columns of EAN + quantity). When only EAN and quantity are given, products are placed at an estimated size so they still appear on the shelf.</p>
     <h3>Product pictures in the order file</h3>
     <p>Photos embedded in the sheet are read by column heading:</p>
     <ul>
@@ -105,7 +106,13 @@
       <li><b>Drag</b> a product to another level or shelf.</li>
       <li><b>Click</b> a product to change its facings, switch it between front / side / open view, duplicate it, or remove it.</li>
       <li>Your hand edits stick &mdash; only pressing Generate re-arranges from scratch.</li>
+      <li><b>Undo</b> (top bar) takes back your last change &mdash; a move, an edit, a delete, an upload &mdash; step by step.</li>
     </ul>
+    <div class="note"><b>Items that don&rsquo;t fit go to a red tray</b> under the planogram (&ldquo;not on the shelf yet&rdquo;),
+      shown as cards with the product image. The goal is to get everything onto the shelf &mdash; the tool fills each level and turns
+      extras sideways to make room. Anything still left over, you place by hand: clear a little space, then <b>drag the red card
+      onto a shelf level</b>. A product with no size in the file is placed at an estimated size (dashed card) so it still appears &mdash;
+      correct its size under &ldquo;Held aside&rdquo; if you want it exact.</div>
   </section>
 
   <section id="banners">
@@ -114,6 +121,10 @@
     <h3>Adding an icon for a new category</h3>
     <p>The built-in icons (Kids, Toddler, Me-Time, Fan-Highlights, Games Party, Explorers, Special Offer, BRIO Flora) appear automatically from the area name. If you invent a <b>new category</b>, open <b>Category icons</b> in the top bar and add a row: type the category name and choose which icon it should use. From then on any shelf in that area shows it automatically. Use <b>Export / Import</b> to share your list with a colleague.</p>
     <div class="note">A brand-new picture that isn&rsquo;t in the icon list yet needs a developer to add &mdash; but you can always point a new category at the closest existing icon yourself.</div>
+    <h3>Using your own banner image</h3>
+    <p>Click a banner and use <b>Own banner image</b> to upload your own header (for example a red promo banner with a logo). It fills
+      that one shelf&rsquo;s panel and replaces the icon/text, and it&rsquo;s included in the PNG export. Any wide image works &mdash; it&rsquo;s
+      scaled to fit; around <b>1000&times;320&nbsp;px</b> (roughly 3:1) looks best.</p>
   </section>
 
   <section id="projects">

@@ -55,7 +55,10 @@ The commit log on the branch is the detailed record. High level:
 ### Current known-good behaviour (verified v7)
 - Front/side images map to labelled columns: **Front → column J, Side → column K, Open → column L**. Front never borrows the side image.
 - A single-tab order whose tab name matches no theme lands entirely on the **sole** theme area if only one exists (Nina's "I made only a Kids shelf" flow); otherwise the active theme.
-- Per-shelf blende with correct icons; Special Offer red.
+- Per-shelf blende with correct icons; Special Offer red; a shelf can also use an **uploaded banner image** (`shelfBlende[id].img` data-URI, drawn in DOM + PNG).
+- **Everything lands on the shelf where possible.** No-size products get a **default box** (flagged `missingDims`, dashed card) rather than being held aside; the packer fills each level and turns extras sideways. Overflow shows below the planogram as a **red draggable tray** of image cards — drag one onto a level to place it (`onDrop` handles `{tray: pid}`); removing a block returns it.
+- **Undo** (`undoStack` + `pushUndo()`); **delete-shelf renumbers** with no gap.
+- Reads the **SAP-Import** layout (metadata rows, `Artikel Nr.`/`Bestellmenge`, EAN in col A); RB EANs recognised for **both 4005555 and 4005556** prefixes.
 
 ---
 

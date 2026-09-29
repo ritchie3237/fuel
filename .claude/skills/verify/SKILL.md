@@ -33,6 +33,12 @@ use the versioned `chromium-<rev>/chrome-linux/chrome` binary.
 - `rv-front-image-filler.html` writes the Front column as `<f>_xlfn.IMAGE("url","alt")</f>` —
   the `_xlfn.` prefix is REQUIRED for post-2007 functions (without it Excel shows `=@IMAGE`/
   `#NAME?`). German Excel renders/evaluates it as `=BILD(…)`.
+- Unplaced products render below the planogram as a red **draggable tray** (`.traycard`,
+  dragstart payload `{tray: pid}`); `onDrop` places a dropped tray card on the level.
+  No-dimension products get a default box (flagged `missingDims`) so they still place.
+  Undo is an in-memory `undoStack` (`pushUndo()` before mutations); deleting a shelf
+  renumbers the rest. HTML5 drag is flaky headless — test `onDrop` by dispatching a
+  `DragEvent('drop')` with a `DataTransfer`, and drive undo via a real handler.
 - Per-shelf blende (fascia) config lives in `shelfBlende` keyed by shelf id; icons are
   inline white SVGs by category (kids/toddler/metime/fan/games/explorers/flora), and the
   Special Offer category renders as a red gradient panel (all others blue). The blende
