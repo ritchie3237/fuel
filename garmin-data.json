@@ -1,51 +1,51 @@
 {
- "generated": "2026-09-29",
+ "generated": "2026-10-11",
  "athlete": "Mike Ritchie",
  "snapshot": {
-  "vo2max": 54.0,
-  "vo2maxPrecise": 53.8,
+  "vo2max": 53.0,
+  "vo2maxPrecise": 52.9,
   "vo2maxLabel": "Superior for age",
   "fitnessAge": 30.6,
   "chronoAge": 36,
   "achievableFitnessAge": 30.5,
-  "rhr": 51,
-  "rhr7d": 50,
-  "hrv": 52,
+  "rhr": 49,
+  "rhr7d": 48,
+  "hrv": 56,
   "hrvStatus": "Balanced",
-  "readiness": 79,
-  "readinessLevel": "High (79) per Garmin - \"well recovered\", HRV factor 100% VERY_GOOD, training load factor 100% VERY_GOOD. Oura agrees and then some: readiness 93, \"Optimal — well recovered\". Both sources are in full agreement today - the two light weeks have left the body very fresh.",
-  "sleepScoreLast": 75,
+  "readiness": 92,
+  "readinessLevel": "High (92) per Garmin - \"well rested and recovered\", HRV factor 92% GOOD, training load factor 92% GOOD. Oura agrees: readiness 90, \"Optimal - well recovered\". Both sources are in sync - the body is absorbing this week's modest load easily.",
+  "sleepScoreLast": 86,
   "sleepAvg": 82,
-  "trainingStatus": "Recovery",
-  "acwr": 0.5,
-  "acwrStatus": "Low",
-  "acwrPercent": 20,
-  "acuteLoad": 113,
+  "trainingStatus": "Maintaining",
+  "acwr": 1.0,
+  "acwrStatus": "Optimal",
+  "acwrPercent": 42,
+  "acuteLoad": 221,
   "chronicLoad": 219,
-  "loadBalance": "Aerobic-high shortage (aerobic-low 513.0, aerobic-high 151.5, anaerobic 141.8 monthly) - training volume dropped sharply the last two weeks; this week's plan begins rebuilding it",
-  "stressLatest": 27,
-  "stressWeek": 28,
+  "loadBalance": "Aerobic-high shortage (aerobic-low 548.2, aerobic-high 0.0, anaerobic 29.3 monthly) - three weeks of all-easy/gray running with no real quality session; this week's plan reintroduces a scaled interval day to start filling that gap.",
+  "stressLatest": 20,
+  "stressWeek": 25,
   "stressQualifier": "Balanced",
-  "vigorousDays": 2.5,
+  "vigorousDays": 2.3,
   "vigorousTarget": 3,
   "weight": 169.8,
   "weightAsOf": "2026-07-29",
   "bmi": 23.7,
   "bmiTarget": 21.1,
   "bmiAsOf": "2026-07-29",
-  "steps": 2960,
-  "stepGoal": 10870,
-  "stepsAsOf": "2026-09-28",
+  "steps": 6937,
+  "stepGoal": 11750,
+  "stepsAsOf": "2026-10-10",
   "racePredictions": {
-   "5K": "22:08",
-   "10K": "47:03",
-   "Half": "1:47:06",
-   "Marathon": "3:56:11"
+   "5K": "22:29",
+   "10K": "48:12",
+   "Half": "1:49:46",
+   "Marathon": "4:02:32"
   },
   "goal": {
    "text": "Sub-3:00 marathon",
    "race": "Oct 2027",
-   "current": "3:56:11",
+   "current": "4:02:32",
    "pace": "6:51/mi"
   }
  },
@@ -72,24 +72,12 @@
     "v": 54
    },
    {
-    "d": "09-29",
-    "v": 54
+    "d": "10-02",
+    "v": 53
    }
   ],
   "hrv": [
    {
-    "d": "09-15",
-    "v": 50
-   },
-   {
-    "d": "09-17",
-    "v": 51
-   },
-   {
-    "d": "09-19",
-    "v": 53
-   },
-   {
     "d": "09-21",
     "v": 53
    },
@@ -106,146 +94,174 @@
     "v": 51
    },
    {
-    "d": "09-28",
+    "d": "09-29",
     "v": 52
+   },
+   {
+    "d": "10-01",
+    "v": 52
+   },
+   {
+    "d": "10-03",
+    "v": 52
+   },
+   {
+    "d": "10-05",
+    "v": 53
+   },
+   {
+    "d": "10-07",
+    "v": 54
+   },
+   {
+    "d": "10-09",
+    "v": 55
    }
   ],
   "rhr": [
    {
-    "d": "09-20",
-    "v": 47.0
-   },
-   {
-    "d": "09-21",
-    "v": 52.0
-   },
-   {
-    "d": "09-22",
-    "v": 47.0
-   },
-   {
-    "d": "09-23",
-    "v": 47.0
-   },
-   {
-    "d": "09-25",
-    "v": 46.0
-   },
-   {
-    "d": "09-26",
-    "v": 51.0
-   },
-   {
-    "d": "09-27",
+    "d": "10-03",
     "v": 48.0
    },
    {
-    "d": "09-29",
+    "d": "10-04",
+    "v": 48.0
+   },
+   {
+    "d": "10-05",
+    "v": 52.0
+   },
+   {
+    "d": "10-06",
+    "v": 48.0
+   },
+   {
+    "d": "10-07",
+    "v": 45.0
+   },
+   {
+    "d": "10-08",
     "v": 47.0
+   },
+   {
+    "d": "10-09",
+    "v": 47.0
+   },
+   {
+    "d": "10-10",
+    "v": 49.0
    }
   ],
   "sleepScore": [
    {
-    "d": "09-22",
-    "v": 90
+    "d": "10-02",
+    "v": 70
    },
    {
-    "d": "09-23",
-    "v": 94
+    "d": "10-03",
+    "v": 88
    },
    {
-    "d": "09-24",
+    "d": "10-04",
     "v": 82
    },
    {
-    "d": "09-25",
-    "v": 92
+    "d": "10-05",
+    "v": 65
    },
    {
-    "d": "09-26",
-    "v": 66
+    "d": "10-06",
+    "v": 85
    },
    {
-    "d": "09-27",
-    "v": 78
+    "d": "10-07",
+    "v": 80
    },
    {
-    "d": "09-28",
-    "v": 75
+    "d": "10-08",
+    "v": 94
+   },
+   {
+    "d": "10-09",
+    "v": 91
+   },
+   {
+    "d": "10-10",
+    "v": 86
    }
   ],
   "sleepHours": [
    {
-    "d": "09-22",
-    "v": 8.45
+    "d": "10-02",
+    "v": 6.88
    },
    {
-    "d": "09-23",
-    "v": 8.43
+    "d": "10-03",
+    "v": 9.65
    },
    {
-    "d": "09-24",
-    "v": 8.2
-   },
-   {
-    "d": "09-25",
-    "v": 7.79
-   },
-   {
-    "d": "09-26",
+    "d": "10-04",
     "v": 8.03
    },
    {
-    "d": "09-27",
-    "v": 8.81
+    "d": "10-05",
+    "v": 6.14
    },
    {
-    "d": "09-28",
-    "v": 6.57
+    "d": "10-06",
+    "v": 9.23
+   },
+   {
+    "d": "10-07",
+    "v": 8.88
+   },
+   {
+    "d": "10-08",
+    "v": 8.27
+   },
+   {
+    "d": "10-09",
+    "v": 8.16
+   },
+   {
+    "d": "10-10",
+    "v": 9.28
    }
   ],
   "stressWeekly": [
    {
-    "d": "08-19",
-    "v": 25
+    "d": "08-31",
+    "v": 28
    },
    {
-    "d": "08-26",
+    "d": "09-07",
+    "v": 31
+   },
+   {
+    "d": "09-14",
+    "v": 29
+   },
+   {
+    "d": "09-21",
+    "v": 28
+   },
+   {
+    "d": "09-28",
     "v": 27
    },
    {
-    "d": "09-02",
-    "v": 30
-   },
-   {
-    "d": "09-09",
-    "v": 30
-   },
-   {
-    "d": "09-16",
-    "v": 28
-   },
-   {
-    "d": "09-23",
-    "v": 28
+    "d": "10-05",
+    "v": 25
    }
   ]
  },
  "running": {
-  "ytd": 514.6,
-  "runsYtd": 108,
-  "thisWeek": 0,
-  "last7": 9.1,
-  "avg4": 11.0,
+  "ytd": 538.8,
+  "runsYtd": 113,
+  "thisWeek": 13.1,
+  "last7": 13.1,
+  "avg4": 9.3,
   "weekly": [
-   {
-    "d": "07-06",
-    "v": 4.52
-   },
-   {
-    "d": "07-13",
-    "v": 23.09
-   },
    {
     "d": "07-20",
     "v": 25.41
@@ -285,39 +301,47 @@
    {
     "d": "09-21",
     "v": 9.06
+   },
+   {
+    "d": "09-28",
+    "v": 11.05
+   },
+   {
+    "d": "10-05",
+    "v": 13.15
    }
   ],
   "polarized": {
    "window": "last 30 days",
    "method": "time-in-zone",
-   "runs": 9,
-   "easyPct": 37,
-   "grayPct": 57,
-   "hardPct": 6,
-   "easyMi": 16.1,
-   "grayMi": 25.0,
-   "hardMi": 2.8,
-   "easyMin": 155,
-   "grayMin": 239,
-   "hardMin": 26,
+   "runs": 8,
+   "easyPct": 39,
+   "grayPct": 59,
+   "hardPct": 2,
+   "easyMi": 14.4,
+   "grayMi": 22.3,
+   "hardMi": 0.6,
+   "easyMin": 139,
+   "grayMin": 215,
+   "hardMin": 6,
    "last14": {
-    "easyPct": 41,
-    "grayPct": 58,
-    "hardPct": 1
+    "easyPct": 37,
+    "grayPct": 61,
+    "hardPct": 2
    }
   }
  },
  "recommendations": {
   "change": [
-   "Polarized split (last 30 days, time-in-zone): 37% easy (16.1mi) / 57% gray (25.0mi) / 6% hard (2.8mi). Gray-zone drift is still the #1 issue - most \"easy\" runs (like Sep 24's, avg HR 126) are still spending close to half their time above 129bpm. Watch HR and back off the moment it crosses ~130.",
-   "Training volume dropped sharply the last two weeks (4mi the week of Sep 14, 9mi the week of Sep 21 - no intervals, no long run either week) and the weekly report itself missed a couple of runs. Framing this as a reset, not a failure: recovery markers are excellent right now (Oura readiness 93, Garmin readiness 79, HRV balanced 52-54ms for two weeks straight), so the body has had plenty of rest and is ready to rebuild. This week eases back in with a scaled-down interval session (4x3min instead of 5) and a modest 5mi long run rather than jumping straight back to the old volume.",
-   "Fitness age ticked up to 30.6 (from 29.8) and training status shows \"Recovery\" rather than \"Productive\" - both are just downstream of the light two weeks, not a red flag. VO2max itself hasn't moved (still 54), so the aerobic engine is intact; these numbers should recover quickly once training resumes."
+   "Polarized split (last 30 days, time-in-zone): 39% easy (14.4mi) / 59% gray (22.3mi) / 2% hard (0.6mi). Gray-zone drift is still the #1 issue - literally every run in the last month, including the ones that felt like easy days, spent 45-80% of its moving time above ~129bpm. Watch HR and back off (or walk) the second it crosses 130.",
+   "Mileage is climbing for the third week straight (4.0 -> 9.1 -> 11.1 -> 13.1mi), but there's been zero real quality work in that stretch - the VO2max interval session queued for Oct 1 never got done, and the Oct 4 strength session still shows incomplete on Garmin. This week reintroduces a scaled-down 3x3min interval day (not the full 4-5x3min) plus two strength sessions, bracketed around tennis on Wednesday.",
+   "Training status reads 'Maintaining' with an aerobic-high shortage - unsurprising after three weeks of all-easy/gray running with no quality day. ACWR is optimal at just 42% of the high-risk threshold, so there's plenty of headroom to keep adding load gradually without tripping the usual red flags."
   ],
   "continue": [
-   "VO2max has held steady at 54 straight through the light stretch - the aerobic base isn't eroding even when volume drops for a couple weeks.",
-   "Recovery capacity is excellent: HRV has read BALANCED for two full weeks (52-54ms), and both Oura and Garmin agree readiness is high right now - a good, low-risk moment to rebuild.",
-   "Sleep quality has been notably good the last week (several 90+ Garmin sleep scores) - a real asset heading into the rebuild.",
-   "Sled work (Rogue S-25) continues to be folded into strength sessions - sled push for posterior chain/power, low eccentric muscle damage."
+   "Recovery markers are all green and in full agreement: Garmin readiness 92 ('well rested and recovered'), Oura readiness 90 ('Optimal'), HRV at a 3-week high of 56ms, resting HR down to 48-49. Solid footing to keep rebuilding on.",
+   "VO2max has barely moved (54 -> 53) despite three light/no-quality weeks - the aerobic engine built over the summer is holding.",
+   "Sleep has been consistently strong the last week - four nights at 85+ score, with Oct 8 hitting 94.",
+   "Getting outside for every run through a genuinely busy stretch (newborn + 2 kids) is the real win - the next lever is just reining the pace in a touch so more of that time lands in true Z2."
   ]
  }
 }
