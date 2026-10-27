@@ -1,6 +1,6 @@
 // Today's Fuel — offline service worker.
 // Bump CACHE when you change app files so phones pull the update.
-const CACHE = "fuel-v43";
+const CACHE = "fuel-v44";
 const ASSETS = [
   "./index.html",
   "./smoothie-experiment.html",
