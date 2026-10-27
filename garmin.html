@@ -246,15 +246,16 @@ function render(D, O){
   for(const [k,v] of Object.entries(s.racePredictions)) h += `<div><div class="t">${v}</div><div class="d">${k}</div></div>`;
   h += `</div></div>`;
   if(s.goal){
+    const sg=s.strength;
     h += `<div class="card" style="margin-top:12px;border-color:#cbb3ee;background:#faf7ff;">`+
       `<div style="font-size:15px;font-weight:800;">🎯 Goal: ${s.goal.text} &mdash; ${s.goal.race}</div>`+
-      `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;">Needs ~${s.goal.pace} for 26.2. Current projection <b>${s.goal.current}</b>. The work between now and then: build easy aerobic volume + raise VO2max — base first, marathon-specific later.</div></div>`;
+      `<div style="font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.5;">${s.goal.detail||""}${s.goal.longest?`. Longest run, last 8 weeks: <b>${s.goal.longest}</b>`:""}${sg&&sg.last28!=null?`. Gym: <b>${sg.last28}</b> strength sessions in 4 weeks (aiming for ${sg.target}/week)`:""}. The work between now and then: steady easy miles, more time on your feet, hills and trails, and 3 gym sessions a week.</div></div>`;
   }
 
   h += `<div class="sec">Trends <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--muted);">${ou?"Garmin history — nightly Oura now feeds the tiles above":"Garmin history"}</span></div><div class="grid charts">`;
   const vmin=Math.min(...t.vo2max.map(p=>p.v)), vmax=Math.max(...t.vo2max.map(p=>p.v));
   h += chartCard("VO2max (8 wk)", t.vo2max, s.vo2max, "var(--blue)", false,
-    `Flat at ${vmin}–${vmax} for two months — the weekly intervals target this, but aerobic base is the bigger lever.`, "");
+    `${vmin}–${vmax} over 8 weeks. For a 50-miler this matters less than easy volume and time on feet — hill sessions keep it from sliding.`, "");
   const hpk=Math.max(...t.hrv.map(p=>p.v)), hnow=t.hrv[t.hrv.length-1].v;
   h += chartCard("HRV weekly avg (4 wk)", t.hrv, s.hrv+" ms", "var(--accent)", false,
     (hnow>=hpk ? `At its high (${hnow} ms) — recovery keeping up with load. All days “Balanced.”`
@@ -276,7 +277,7 @@ function render(D, O){
     h += mini("This week", r.thisWeek+" mi", "so far (partial)");
     h += `</div>`;
     h += barCard("Weekly mileage (12 wk)", r.weekly, " mi", 20, "var(--blue)", `${r.avg4} mi/wk avg`,
-      `Dashed line = 20 mi, the low end of your 20s–30s goal. Four-week average is ${r.avg4} mi/wk. Week-to-week swings are still the pattern to fix — add easy Z2 volume, and ramp ~10%/wk rather than in jumps.`);
+      `Dashed line = 20 mi, the floor for this base phase (building toward 35–45 mi/wk in spring and 45–55 at peak for the 50-miler). Four-week average is ${r.avg4} mi/wk. Ramp ~10%/wk rather than in jumps.`);
     const pl=r.polarized;
     if(pl){
       h += `<div class="card chartcard" style="margin-top:12px;">`;

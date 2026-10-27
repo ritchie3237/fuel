@@ -42,12 +42,8 @@
    "Half": "1:50:33",
    "Marathon": "4:04:11"
   },
-  "goal": {
-   "text": "Sub-3:00 marathon",
-   "race": "Oct 2027",
-   "current": "4:04:11",
-   "pace": "6:51/mi"
-  }
+  "goal": {"text": "Finish a 50-miler", "race": "Fall 2027", "detail": "Half trail, half road · no time goal — finish healthy"},
+    "strength": {"last28": null, "target": 3}
  },
  "trends": {
   "vo2max": [
@@ -157,8 +153,9 @@
  "recommendations": {
   "change": [
    "Polarized split (last 30 days, time-in-zone): 40% easy (18.7mi) / 58% gray (27.5mi) / 2% hard (1.1mi). Every run is still landing at 9:25-9:35/mi, which puts more than half of each run above 129bpm. Slow easy days to 10:00-10:45/mi and walk the hills - that one change fixes most of the gray zone.",
-   "No real quality session in over a month - the Oct 13 interval day turned into another easy-ish run. Wednesday is free now that tennis is paused, so the 4x3min intervals go there, with soccer on Sunday night as the week's second hard effort.",
-   "Garmin reads 'Recovery' with load ratio 0.6 (low) - acute load has fallen well below chronic. That's room to grow, not a warning: a 10% bump to ~15.5mi this week plus one hard day is well within what you can absorb."
+   "No real quality session in over a month. Wednesday is free now that tennis is paused — use it for hills (uphill repeats build the climbing legs a 50-miler needs), with soccer Sunday night as the week's second hard effort.",
+   "Garmin reads 'Recovery' with load ratio 0.6 (low) - acute load has fallen well below chronic. That's room to grow, not a warning: a 10% bump to ~15.5mi this week plus one hard day is well within what you can absorb.",
+    "Gym goes up to 3 sessions a week: two lower-body (one heavy, one single-leg) and one upper-body + core. Low running volume during the newborn months is the right time to build strength."
   ],
   "continue": [
    "Recovery is green across both sources: Oura readiness 88 ('Optimal'), Garmin readiness 88 ('well recovered'), HRV steady at 53-55ms, Oura resting HR 46, body temp normal (+0.2C).",
