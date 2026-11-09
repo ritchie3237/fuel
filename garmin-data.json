@@ -1,30 +1,30 @@
 {
- "generated": "2026-11-02",
+ "generated": "2026-11-09",
  "athlete": "Mike Ritchie",
  "snapshot": {
   "vo2max": 53.0,
-  "vo2maxPrecise": 53.2,
+  "vo2maxPrecise": 53.4,
   "vo2maxLabel": "Superior for age",
-  "fitnessAge": 30.5,
+  "fitnessAge": 30.4,
   "chronoAge": 36,
   "achievableFitnessAge": 30.5,
-  "rhr": 51,
+  "rhr": 49,
   "rhr7d": 47,
   "hrv": 55,
   "hrvStatus": "Balanced",
-  "readiness": 87,
-  "readinessLevel": "High (87) per Garmin - \"excellent recovery\", HRV factor 95% GOOD, training load factor 100% VERY GOOD, sleep MODERATE (62%). Oura reads lower: readiness 74 after a short night (5.9 hours), HRV 50, RHR 50, temp +0.25C. The two disagree today, so treat it as a mild dip after one short night, on top of a green week.",
-  "sleepScoreLast": 75,
-  "sleepAvg": 83,
+  "readiness": 74,
+  "readinessLevel": "Moderate (74) per Garmin this morning. HRV factor 100% very good and training load factor 100% very good, held back by sleep (score 76, 6.1 hours) and a moderate sleep history (43%). Oura last synced Nov 5 (readiness 84, HRV 56, RHR 45, temp -0.06C), so it hasn't seen the last four nights.",
+  "sleepScoreLast": 76,
+  "sleepAvg": 75,
   "trainingStatus": "Recovery",
-  "acwr": 0.3,
+  "acwr": 0.4,
   "acwrStatus": "Low",
-  "acwrPercent": 12,
-  "acuteLoad": 85,
+  "acwrPercent": 16,
+  "acuteLoad": 89,
   "chronicLoad": 219,
-  "loadBalance": "Aerobic-high shortage (aerobic-low 640.3, aerobic-high 92.6, anaerobic 69.1 monthly). Acute load (85) is far under chronic (219) after a light week with no long run, so there's plenty of room to add load back.",
-  "stressLatest": 21,
-  "stressWeek": 22,
+  "loadBalance": "Aerobic-high shortage (aerobic-low 559.6, aerobic-high 92.6, anaerobic 69.1 monthly). Acute load (89) is far under chronic (219) after two 8-mile weeks, so there's lots of room to add easy running back.",
+  "stressLatest": 29,
+  "stressWeek": 27,
   "stressQualifier": "Balanced",
   "vigorousDays": 2.3,
   "vigorousTarget": 3,
@@ -33,89 +33,93 @@
   "bmi": 23.7,
   "bmiTarget": 21.1,
   "bmiAsOf": "2026-07-29",
-  "steps": 12757,
-  "stepGoal": 11550,
-  "stepsAsOf": "2026-11-01",
+  "steps": 12668,
+  "stepGoal": 9980,
+  "stepsAsOf": "2026-11-08",
   "racePredictions": {
-   "5K": "22:36",
-   "10K": "48:28",
-   "Half": "1:49:51",
-   "Marathon": "4:02:29"
+   "5K": "22:39",
+   "10K": "48:33",
+   "Half": "1:49:59",
+   "Marathon": "4:02:43"
   },
   "goal": {"text": "Finish a 50-miler", "race": "Nov 21, 2027", "detail": "Half trail, half road · no time goal — finish healthy", "longest": "7.0 mi (Oct 2)"},
     "strength": {"last28": 5, "target": 3}
  },
  "trends": {
   "vo2max": [
-   {"d": "07-19", "v": 52},
    {"d": "08-04", "v": 53},
    {"d": "08-08", "v": 52},
    {"d": "08-17", "v": 53},
    {"d": "08-28", "v": 54},
    {"d": "10-02", "v": 53},
    {"d": "10-20", "v": 53},
-   {"d": "11-02", "v": 53}
+   {"d": "11-02", "v": 53},
+   {"d": "11-09", "v": 53}
   ],
   "hrv": [
-   {"d": "10-11", "v": 55},
-   {"d": "10-14", "v": 53},
-   {"d": "10-17", "v": 52},
    {"d": "10-20", "v": 53},
    {"d": "10-23", "v": 53},
    {"d": "10-26", "v": 53},
    {"d": "10-29", "v": 53},
-   {"d": "10-31", "v": 55},
-   {"d": "11-02", "v": 55}
+   {"d": "11-01", "v": 56},
+   {"d": "11-03", "v": 56},
+   {"d": "11-05", "v": 56},
+   {"d": "11-07", "v": 56},
+   {"d": "11-09", "v": 55}
   ],
   "rhr": [
-   {"d": "10-17", "v": 50.0},
-   {"d": "10-18", "v": 49.0},
    {"d": "10-19", "v": 51.0},
    {"d": "10-26", "v": 49.0},
    {"d": "10-28", "v": 46.0},
    {"d": "10-30", "v": 47.0},
    {"d": "11-01", "v": 45.0},
-   {"d": "11-02", "v": 51.0}
+   {"d": "11-02", "v": 51.0},
+   {"d": "11-08", "v": 49.0}
   ],
   "sleepScore": [
-   {"d": "10-25", "v": 84},
-   {"d": "10-26", "v": 80},
-   {"d": "10-27", "v": 82},
-   {"d": "10-28", "v": 84},
    {"d": "10-29", "v": 87},
    {"d": "10-30", "v": 87},
    {"d": "10-31", "v": 76},
    {"d": "11-01", "v": 88},
-   {"d": "11-02", "v": 75}
+   {"d": "11-02", "v": 75},
+   {"d": "11-03", "v": 95},
+   {"d": "11-04", "v": 74},
+   {"d": "11-05", "v": 72},
+   {"d": "11-06", "v": 86},
+   {"d": "11-07", "v": 55},
+   {"d": "11-08", "v": 66},
+   {"d": "11-09", "v": 76}
   ],
   "sleepHours": [
-   {"d": "10-25", "v": 6.87},
-   {"d": "10-26", "v": 7.17},
-   {"d": "10-27", "v": 9.65},
-   {"d": "10-28", "v": 7.05},
    {"d": "10-29", "v": 7.6},
    {"d": "10-30", "v": 8.64},
    {"d": "10-31", "v": 7.08},
    {"d": "11-01", "v": 8.57},
-   {"d": "11-02", "v": 6.35}
+   {"d": "11-02", "v": 6.35},
+   {"d": "11-03", "v": 7.65},
+   {"d": "11-04", "v": 7.25},
+   {"d": "11-05", "v": 5.35},
+   {"d": "11-06", "v": 9.1},
+   {"d": "11-07", "v": 8.27},
+   {"d": "11-08", "v": 9.17},
+   {"d": "11-09", "v": 6.08}
   ],
   "stressWeekly": [
-   {"d": "09-22", "v": 28},
-   {"d": "09-29", "v": 26},
-   {"d": "10-06", "v": 25},
-   {"d": "10-13", "v": 24},
-   {"d": "10-20", "v": 27},
-   {"d": "10-27", "v": 22}
+   {"d": "09-28", "v": 27},
+   {"d": "10-05", "v": 26},
+   {"d": "10-12", "v": 24},
+   {"d": "10-19", "v": 27},
+   {"d": "10-26", "v": 23},
+   {"d": "11-02", "v": 27}
   ]
  },
  "running": {
-  "ytd": 574.0,
-  "runsYtd": 121,
+  "ytd": 582.1,
+  "runsYtd": 123,
   "thisWeek": 0.0,
   "last7": 8.05,
-  "avg4": 12.1,
+  "avg4": 10.8,
   "weekly": [
-   {"d": "08-10", "v": 2.85},
    {"d": "08-17", "v": 20.1},
    {"d": "08-24", "v": 9.05},
    {"d": "08-31", "v": 17.33},
@@ -126,40 +130,41 @@
    {"d": "10-05", "v": 13.15},
    {"d": "10-12", "v": 14.09},
    {"d": "10-19", "v": 13.08},
-   {"d": "10-26", "v": 8.05}
+   {"d": "10-26", "v": 8.05},
+   {"d": "11-02", "v": 8.05}
   ],
   "polarized": {
    "window": "last 30 days",
    "method": "time-in-zone",
-   "runs": 11,
-   "easyPct": 51,
-   "grayPct": 45,
-   "hardPct": 4,
-   "easyMi": 24.6,
-   "grayMi": 21.9,
-   "hardMi": 1.8,
-   "easyMin": 232,
-   "grayMin": 206,
-   "hardMin": 16,
+   "runs": 10,
+   "easyPct": 54,
+   "grayPct": 42,
+   "hardPct": 3,
+   "easyMi": 23.4,
+   "grayMi": 18.3,
+   "hardMi": 1.6,
+   "easyMin": 221,
+   "grayMin": 171,
+   "hardMin": 14,
    "last14": {
-    "easyPct": 63,
-    "grayPct": 32,
-    "hardPct": 5
+    "easyPct": 70,
+    "grayPct": 30,
+    "hardPct": 0
    }
   }
  },
  "recommendations": {
   "change": [
-   "Polarized split (last 30 days, time-in-zone): 51% easy (24.6mi) / 45% gray (21.9mi) / 4% hard (1.8mi). It's moving the right way: gray was 58% two weeks ago, and last week's two runs were 85% easy. Keep easy days at 10:00/mi or slower.",
-   "No long run last week, and your longest run in 8 weeks is 7.0mi (Oct 2). For a 50-miler this is the habit to build first: 6 miles easy on Saturday, then grow it slowly.",
-   "Garmin reads 'Recovery' with load ratio 0.3 (low). That's room to add running back, not a warning. Aim for about 14 miles this week rather than trying to make up what was missed.",
-   "Keep one quality day a week. Hill repeats go on Thursday, since hills are what a half-trail 50-miler needs. Skip to an easy run if Oura readiness is under 75 that morning."
+   "Polarized split (last 30 days, time-in-zone): 54% easy (23.4mi) / 42% gray (18.3mi) / 3% hard (1.6mi). Better than 51/45/4 last week. Nov 7 was 72% easy, but Nov 3 was 62% gray at 9:40/mi. Hold easy runs at 9:45-10:30/mi and the gray will keep shrinking.",
+   "Only 2 runs (8.05mi) for the second week in a row, and the Nov 5 hill session was skipped. Aim for 4 runs and about 14.5 miles this week. Don't try to make up the missed miles.",
+   "Still no long run since Oct 24 (5.0mi). Your longest run in 8 weeks is 7.0mi (Oct 2). Saturday's 6 miles easy is the run that matters most this week.",
+   "Tennis starts Wednesday evening and counts as a hard day. Hills go Tuesday, so the hard days sit together and Thursday through Sunday stay easy."
   ],
   "continue": [
-   "The slower easy pace is working: 10:00/mi at heart rate 122 on Oct 27 and 9:54/mi at 124 on Oct 28. Compare that with 9:25-9:35/mi at 127-133 earlier in October.",
-   "Gym work is showing up: 5 sessions in the last 28 days, 2 of them last week. The target is now 3 a week.",
-   "Recovery is holding up with a newborn at home. Oura readiness was 77-90 all last week and Garmin's weekly HRV is steady at 55, despite a short night on Nov 2 (Oura readiness 74).",
-   "VO2max is steady at 53.2, even with so little hard running."
+   "Easy pace at low heart rate is holding: 9:29/mi at heart rate 125 on Nov 7, and 10:00/mi at 122 on Oct 27.",
+   "Recovery is solid for a house with a newborn. Garmin's weekly HRV is 54-56 and Balanced every day for a month, and Oura readiness was 74-91 through Nov 5 with body temp near baseline.",
+   "VO2max is steady at 53.4, even with very little hard running.",
+   "Gym and yoga are consistent: 5 gym sessions in the last 28 days plus yoga most Mondays. The target is 3 gym sessions a week."
   ]
  }
 }
